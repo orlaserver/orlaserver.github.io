@@ -1,0 +1,56 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: system-ui, -apple-system, sans-serif;
+  line-height: 1.6;
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+  color: #24292f;
+}
+
+header {
+  margin-bottom: 2rem;
+}
+
+h1 {
+  font-size: 2rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+.tagline {
+  margin: 0.25rem 0 0;
+  color: #57606a;
+}
+
+main {
+  margin-bottom: 2rem;
+}
+
+main a {
+  color: #0969da;
+  text-decoration: none;
+}
+
+main a:hover {
+  text-decoration: underline;
+}
+
+footer {
+  padding-top: 1.5rem;
+  border-top: 1px solid #d0d7de;
+  font-size: 0.875rem;
+  color: #57606a;
+}
+
+footer a {
+  color: #0969da;
+  text-decoration: none;
+}
+
+footer a:hover {
+  text-decoration: underline;
+}
