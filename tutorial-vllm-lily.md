@@ -88,15 +88,7 @@ cd orla
 
 ### 5. Go
 
-The main tutorial uses the Orla Go client. Install Go 1.25 or later. On Ubuntu or Debian:
-
-```bash
-sudo apt-get update
-sudo apt-get install -y golang-go
-go version
-```
-
-Or install from [go.dev/dl](https://go.dev/dl/).
+The main tutorial uses the Orla Go client. You need Go 1.25 or later. Install or upgrade using the [official install guide](https://go.dev/doc/install), then run `go version` to confirm.
 
 ## 1. Start Orla and vLLM
 
