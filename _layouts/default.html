@@ -5,27 +5,32 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{{ page.title | default: site.title }}: {{ site.description }}</title>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/water.css@2/out/light.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
   <link rel="stylesheet" href="{{ '/syntax.css' | relative_url }}">
   <link rel="stylesheet" href="{{ '/styles.css' | relative_url }}">
 </head>
 
 <body>
-  <header>
+  <header class="container">
     <nav>
-      <a href="{{ '/' | relative_url }}" class="nav-icon" aria-label="Home">
-        <img src="{{ '/orla_banner_no_caption.png' | relative_url }}" alt="Orla">
-      </a>
-      <a href="https://github.com/dorcha-inc/orla">GitHub</a>
+      <ul>
+        <li><strong><a href="{{ '/' | relative_url }}">Orla</a></strong></li>
+      </ul>
+      <ul>
+        <li><a href="{{ '/' | relative_url }}">Home</a></li>
+        <li><a href="https://github.com/dorcha-inc/orla">GitHub</a></li>
+      </ul>
     </nav>
   </header>
+
+  <main class="container">
 
   <main>
     {{ content }}
   </main>
 
-  <footer>
-    <p>Back to <a href="https://orlaserver.github.io/">Home</a></p>
+  <footer class="container">
+    <p>Back to <a href="{{ '/' | relative_url }}">Home</a></p>
   </footer>
 </body>
 
