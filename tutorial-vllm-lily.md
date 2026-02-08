@@ -173,7 +173,40 @@ From the repo root, run:
 go run .
 ```
 
-You should see the model’s story about Lily printed to the terminal. For a curl-based version of the same workflow, see the appendix below.
+You should see the model’s story about Lily printed to the terminal. This is an example
+output from a run:
+
+```
+Lily the cat wasn't just any cat. She was a **sunbeam with a tail**, a creature of pure, golden joy who believed in the magic of tiny things.
+
+One rainy Tuesday, the garden was a soggy mess. Birds had flown, flowers drooped, and even the wind seemed to sigh. Lily, perched on the windowsill, watched with a thoughtful blink.
+
+"Such a gloomy day," she murmured, her green eyes sparkling. "But what if... what if I made a rainbow?"
+
+She didn't need a rainbow. She needed a *spark*.
+
+With a decisive *mew*, Lily leapt onto the dripping window ledge. Using her paws, she carefully nudged a tiny, waterlogged dandelion fluff from the sill. It floated down, wobbling like a shy leaf.
+
+"Ah!" Lily chirped. "A dandelion! A *dandelion*! It's not just wet—it's *wet with potential*!"
+
+She gently blew on it. Not hard, just a soft, happy puff.
+
+And the fluff *twirled*.
+
+Not a rainbow, not yet. But it spun in a perfect, slow spiral, catching the weak light, and for a moment, it glowed like a tiny, living sunbeam.
+
+Lily's tail curled around her paws in delight. "Look! Look!" she called to the rain-slicked garden. "A *dandelion dance*! A dance of hope!"
+
+The rain kept falling, but the garden didn't feel so sad anymore. The dandelion fluff spun on, a tiny, golden whirlwind of cheer.
+
+And from that day on, whenever the rain came, Lily would find a dandelion fluff and blow it gently. Not to make a rainbow—just to make a little, spinning, hopeful *dance*.
+
+And the world, just a little, felt brighter. 🌈🐾
+
+**The End. (And the beginning of a very happy cat's legacy.)**
+```
+
+For a curl-based version of the same workflow, see the appendix below.
 
 ## 4. Stop the stack
 
