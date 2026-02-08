@@ -1,6 +1,6 @@
 ---
 layout: default
-title: Tutorial — Run a simple agent with Orla and vLLM
+title: Tutorial | Run a simple agent with Orla and vLLM
 ---
 
 # Tutorial: Run a simple agent with Orla and vLLM
@@ -72,7 +72,7 @@ sudo systemctl restart docker
 Verify that a container can see the GPU:
 
 ```bash
-docker run --rm --gpus all nvidia/cuda:12.0-base nvidia-smi
+docker run --rm --gpus all nvidia/cuda:12.0.0-base-ubuntu20.04 nvidia-smi
 ```
 
 You should see the same GPU info as on the host.
