@@ -4,6 +4,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
   <title>{{ page.title | default: site.title }}: {{ site.description }}</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
   <link rel="stylesheet" href="{{ '/syntax.css' | relative_url }}">
@@ -14,18 +15,15 @@
   <header class="container">
     <nav>
       <ul>
-        <li><strong><a href="{{ '/' | relative_url }}">Orla</a></strong></li>
+        <li><strong><a href="{{ '/' | relative_url }}">Orla</a></strong> <small>{{ site.description }}</small></li>
       </ul>
       <ul>
-        <li><a href="{{ '/' | relative_url }}">Home</a></li>
         <li><a href="https://github.com/dorcha-inc/orla">GitHub</a></li>
       </ul>
     </nav>
   </header>
 
   <main class="container">
-
-  <main>
     {{ content }}
   </main>
 
