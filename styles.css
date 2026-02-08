@@ -1,3 +1,21 @@
+/* Navbar: Orla left, tagline center, links right */
+header nav {
+  display: flex;
+  align-items: center;
+}
+
+header nav .nav-tagline {
+  flex: 1;
+  margin: 0;
+  text-align: center;
+}
+
+header nav .nav-spacer--end {
+  flex: 1;
+  display: flex;
+  justify-content: flex-end;
+}
+
 /* Code blocks: scroll instead of overflow */
 pre,
 .highlight {

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
 
 <head>
   <meta charset="utf-8">
@@ -15,11 +15,14 @@
   <header class="container">
     <nav>
       <ul>
-        <li><strong><a href="{{ '/' | relative_url }}">Orla</a></strong> <small>{{ site.description }}</small></li>
+        <li><strong><a href="{{ '/' | relative_url }}">Orla</a></strong></li>
       </ul>
-      <ul>
-        <li><a href="https://github.com/dorcha-inc/orla">GitHub</a></li>
-      </ul>
+      <p class="nav-tagline"><small>{{ site.description }}</small></p>
+      <div class="nav-spacer nav-spacer--end">
+        <ul>
+          <li><a href="https://github.com/dorcha-inc/orla">GitHub</a></li>
+        </ul>
+      </div>
     </nav>
   </header>
 
