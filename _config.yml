@@ -1,3 +1,7 @@
 title: Orla
 description: A high-performance serving engine for agentic workflows.
 markdown: kramdown
+kramdown:
+  syntax_highlighter: rouge
+  syntax_highlighter_opts:
+    block: { line_numbers: false }
