@@ -1,4 +1,11 @@
-/* Overrides: code blocks scroll instead of overflow; keep Rouge .highlight readable */
+/* Navbar icon: scale banner to fit nav */
+nav .nav-icon img {
+  display: block;
+  height: 2.5rem;
+  width: auto;
+}
+
+/* Code blocks: scroll instead of overflow */
 pre,
 .highlight {
   overflow-x: auto;
