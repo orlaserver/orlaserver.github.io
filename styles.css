@@ -1,57 +1,15 @@
-*, *::before, *::after { box-sizing: border-box; }
+/* Overrides on top of Almond.CSS */
 
-body {
-  font-family: system-ui, sans-serif;
-  line-height: 1.5;
-  max-width: 720px;
-  margin: 0 auto;
-  padding: 1rem;
-  color: #222;
-}
-
-a { color: #0066cc; }
-a:hover { text-decoration: none; }
-
-header {
-  border-bottom: 1px solid #ddd;
-  margin-bottom: 1.5rem;
-}
-
-nav {
+/* Nav: simple row, wraps on small screens */
+/* nav {
   display: flex;
   flex-wrap: wrap;
   gap: 1rem;
-  padding: 0.5rem 0;
-}
+} */
 
-nav a {
-  text-decoration: none;
-  font-weight: 600;
-}
-
-footer {
-  margin-top: 2rem;
-  padding-top: 1rem;
-  border-top: 1px solid #ddd;
-  font-size: 0.9rem;
-  color: #555;
-}
-
-/* Code blocks: minimal padding, scroll on small screens */
-pre, .highlight {
+/* Code blocks: scroll on overflow, trim bottom padding
+pre,
+.highlight {
   overflow-x: auto;
   max-width: 100%;
-  padding: 0.75rem 1rem;
-  margin: 1rem 0;
-  background: #f5f5f5;
-  border-radius: 4px;
-  font-size: 0.9em;
-}
-
-pre { margin-bottom: 0; }
-.highlight pre { padding-bottom: 0.75rem; }
-
-pre code {
-  padding: 0;
-  background: none;
-}
+} */
