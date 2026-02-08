@@ -1,53 +1,6 @@
-* {
-  box-sizing: border-box;
-}
-
-body {
-  font-family: system-ui, sans-serif;
-  line-height: 1.6;
-  max-width: 40rem;
-  margin: 0 auto;
-  padding: 2rem 1rem;
-  color: #333;
-}
-
-h1 {
-  font-size: 1.5rem;
-  margin: 0 0 0.25rem;
-}
-
-header {
-  margin-bottom: 2rem;
-}
-
-.tagline {
-  margin: 0;
-  color: #666;
-  font-size: 0.95rem;
-}
-
-main {
-  margin-bottom: 2rem;
-}
-
-a {
-  color: #06c;
-  text-decoration: none;
-}
-
-a:hover {
-  text-decoration: underline;
-}
-
-:not(pre)>code {
-  background: #eee;
-  padding: 0.15em 0.4em;
-  border-radius: 2px;
-}
-
-footer {
-  padding-top: 1.5rem;
-  border-top: 1px solid #ddd;
-  font-size: 0.875rem;
-  color: #666;
+/* Overrides: code blocks scroll instead of overflow; keep Rouge .highlight readable */
+pre,
+.highlight {
+  overflow-x: auto;
+  max-width: 100%;
 }
