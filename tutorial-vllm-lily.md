@@ -103,7 +103,9 @@ This starts:
 - vLLM on port 8000 (OpenAI-compatible API), serving the default model `Qwen/Qwen3-4B-Instruct-2507`.
 - Orla daemon on port 8081, using the config in `deploy/orla-vllm.yaml` (including the `single_agent` workflow).
 
-Optional: use a different model or Hugging Face token:
+### Optional
+
+You can use a different model or set the Hugging Face token
 
 ```bash
 export VLLM_MODEL=Qwen/Qwen3-8B
@@ -129,7 +131,7 @@ You should get a successful response (e.g. HTTP 200).
 
 The included config defines a workflow named `single_agent` with one task that uses the default agent profile (vLLM). We’ll call it from a small Go program using the Orla API client.
 
-Create a file `main.go` in the Orla repo root:
+Create a file `main.go` in the Orla repo root.
 
 ```go
 package main
@@ -139,11 +141,11 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/dorcha-inc/orla/pkg/api"
+	orla "github.com/dorcha-inc/orla/pkg/api"
 )
 
 func main() {
-	client := api.NewClient("http://localhost:8081")
+	client := orla.NewClient("http://localhost:8081")
 	exec, err := client.StartWorkflow(context.Background(), "single_agent")
 	if err != nil {
 		log.Fatal(err)
@@ -156,7 +158,7 @@ func main() {
 	if task.Prompt != "" {
 		prompt = task.Prompt
 	}
-	resp, err := client.ExecuteTask(context.Background(), exec, taskIndex, prompt, &api.ExecuteTaskOptions{MaxTokens: 512, Stream: false})
+	resp, err := client.ExecuteTask(context.Background(), exec, taskIndex, prompt, &orla.ExecuteTaskOptions{MaxTokens: 512, Stream: false})
 	if err != nil {
 		log.Fatal(err)
 	}
