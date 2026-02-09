@@ -24,8 +24,6 @@ The Orla agentic server was originally developed in [Dr. Minlan Yu](https://minl
 - [Dr. Rana Shahout](https://sites.google.com/view/ranash): primary researcher of the agentic systems project at Harvard.
 - [Dr. Minlan Yu](https://minlanyu.seas.harvard.edu/): principal investigator.
 
-
-
 ## Sponsors and Acknowledgements
 
 We would like to thank [Dr. Minlan Yu](https://minlanyu.seas.harvard.edu/)'s lab at Harvard, the [Kempner Institute for the Study of Natural and Artificial Intelligence](https://kempnerinstitute.harvard.edu/) at Harvard, and
