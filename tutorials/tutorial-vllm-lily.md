@@ -1,8 +1,3 @@
----
-layout: default
-title: Tutorial | Run a simple agent with Orla and vLLM
----
-
 # Tutorial: Run a simple agent with Orla and vLLM
 
 This tutorial runs a single agent using [Orla](https://github.com/dorcha-inc/orla) and [vLLM](https://docs.vllm.ai/) via Docker Compose. The agent has one job: tell a short story about a cat called Lily.
