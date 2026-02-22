@@ -143,10 +143,11 @@ func main() {
 	client := orla.NewClient("http://localhost:8081")
 	ctx := context.Background()
 
-	// Register the vLLM backend
+	// Register the vLLM backend. When Orla and vLLM run in Docker Compose, use the
+	// service name "vllm" so the Orla server (in its container) can reach the vLLM container.
 	_, err := client.RegisterBackend(ctx, &orla.RegisterBackendRequest{
 		Name:     "vllm",
-		Endpoint: "http://localhost:8000/v1",
+		Endpoint: "http://vllm:8000/v1",
 		Type:     "openai",
 		ModelID:  "openai:Qwen/Qwen3-4B-Instruct-2507",
 	})
@@ -178,9 +179,9 @@ go run .
 You should see the model’s story about Lily printed to the terminal. Example output:
 
 ```
-Lily the cat wasn't just any cat. She was a **sunbeam with a tail**...
+Lily the cat lived in a sun-dappled cottage at the edge of a meadow, where daisies waved in the breeze and butterflies danced like tiny rainbows. Every morning, she would stretch like a furry sunbeam, then leap onto the windowsill to watch the world wake up. Her favorite pastime? Tiptoeing through the garden to chase a fluttering butterfly, only to gently nudge it back into the daisy patch with a soft purr. The neighbors often chuckled and said, “Lily has the most joyful spirit in all the village!”
 
-And the world, just a little, felt brighter. 🌈🐾
+One bright afternoon, a tiny blue bird with a broken wing landed near her window, trembling and unable to fly. Lily didn’t just watch—she sat beside it, her tail wrapped gently around the bird’s side, and began humming a soft, melodic tune. The bird, startled but calm, slowly leaned into her warmth. With a little help from a kind neighbor, they found a patch of healing herbs, and by sunset, the bird could flutter again. As it soared into the sky, it left a trail of golden light—and Lily, beaming with pride, curled up in the grass, dreaming of more sunny adventures. After all, happiness, she thought, is just a purr away. 🌞🐾
 ```
 
 ## 4. Stop the stack
@@ -201,14 +202,14 @@ You can skip the Go client and use only `curl`. First register the vLLM backend,
 
 ### Register the backend (curl)
 
-Orla does not read backends from config. Register the vLLM backend with **`POST /api/v1/backends`** (from the host, where vLLM is reachable as `localhost:8000`):
+Orla does not read backends from config. Register the vLLM backend with **`POST /api/v1/backends`**. When Orla and vLLM run in Docker Compose, use endpoint **`http://vllm:8000/v1`** (the Compose service name) so the Orla server container can reach the vLLM container:
 
 ```bash
 curl -X POST http://localhost:8081/api/v1/backends \
   -H "Content-Type: application/json" \
   -d '{
     "name": "vllm",
-    "endpoint": "http://localhost:8000/v1",
+    "endpoint": "http://vllm:8000/v1",
     "type": "openai",
     "model_id": "openai:Qwen/Qwen3-4B-Instruct-2507",
     "api_key_env_var": ""
@@ -216,8 +217,6 @@ curl -X POST http://localhost:8081/api/v1/backends \
 ```
 
 You should get `{"success":true}`. List backends: `curl -s http://localhost:8081/api/v1/backends`
-
-**If Orla and vLLM run in different containers** (e.g. Docker Compose), register from the host using `http://localhost:8000/v1` as above so execute requests from your machine use the same backend.
 
 ### Execute with curl
 
