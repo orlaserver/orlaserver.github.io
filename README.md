@@ -53,5 +53,4 @@ We discard the first run as a warmup and report the mean and standard deviation
 for the 3 remaining non-warmup runs.
 
 ## Source code
-
 Orla's [github repository](https://github.com/dorcha-inc/orla).

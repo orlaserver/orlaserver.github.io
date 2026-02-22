@@ -85,7 +85,7 @@ cd orla
 
 The main tutorial uses the Orla Go client. You need Go 1.25 or later. Install or upgrade using the [official install guide](https://go.dev/doc/install), then run `go version` to confirm.
 
-## 1. Start Orla and vLLM
+## 1. Start vLLM and Orla
 
 From the root of the Orla repository:
 
@@ -96,7 +96,7 @@ docker compose -f deploy/docker-compose.vllm.yaml up -d
 This starts:
 
 - vLLM on port 8000 (OpenAI-compatible API), serving the default model `Qwen/Qwen3-4B-Instruct-2507`.
-- Orla daemon on port 8081, using the config in `deploy/orla-vllm.yaml` (including the `single_agent` workflow).
+- Orla on port 8081. The Orla server starts with no LLM backends; you register them via the API (next step).
 
 ### Optional
 
@@ -108,11 +108,7 @@ export HF_TOKEN=your_token   # only for gated models
 docker compose -f deploy/docker-compose.vllm.yaml up -d
 ```
 
-If you change the model, set `agentic_serving.llm_servers[0].model` in `deploy/orla-vllm.yaml` to match (e.g. `openai:Qwen/Qwen3-8B`), then restart the Orla service:
-
-```bash
-docker compose -f deploy/docker-compose.vllm.yaml restart orla
-```
+If you change the model, ensure the Orla backend’s model identifier matches what vLLM serves (e.g. `openai:Qwen/Qwen3-4B-Instruct-2507`).
 
 ## 2. Check that the daemon is up
 
@@ -120,13 +116,37 @@ docker compose -f deploy/docker-compose.vllm.yaml restart orla
 curl -s http://localhost:8081/api/v1/health
 ```
 
-You should get a successful response (e.g. HTTP 200).
+You should get a successful response (e.g. HTTP 200 with `{"status":"healthy"}`).
 
-## 3. Run the “Lily” story workflow
+## 3. Register the vLLM backend
 
-The included config defines a workflow named `single_agent` with one task that uses the default agent profile (vLLM). We’ll call it from a small Go program using the Orla API client.
+Orla does not read backends from config. You register each LLM backend via **`POST /api/v1/backends`**. Use the same backend name in execute requests (e.g. `vllm`).
 
-Create a file `main.go` in the Orla repo root.
+From the host (where vLLM is reachable as `localhost:8000`):
+
+```bash
+curl -s -X POST http://localhost:8081/api/v1/backends \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "vllm",
+    "endpoint": "http://localhost:8000/v1",
+    "type": "openai",
+    "model_id": "openai:Qwen/Qwen3-4B-Instruct-2507",
+    "api_key_env_var": ""
+  }'
+```
+
+You should get `{"success":true}`. To list registered backends: `curl -s http://localhost:8081/api/v1/backends`
+
+**If Orla and vLLM run in different containers** (e.g. Docker Compose), use the vLLM service hostname as the endpoint when registering from inside the Orla container, or register from the host using `http://localhost:8000/v1` as above so execute requests from your machine use the same backend.
+
+## 4. Run the “Lily” story request
+
+The Orla API exposes **`POST /api/v1/execute`**: you send a `backend` name (a backend you registered), a `prompt` (or `messages`), and optional `max_tokens` and `stream`. The response contains the model output in `response.content`.
+
+### Using the Go client
+
+Create a file `main.go` in the Orla repo root. The program registers the vLLM backend (same as step 3), then runs the execute request:
 
 ```go
 package main
@@ -141,23 +161,30 @@ import (
 
 func main() {
 	client := orla.NewClient("http://localhost:8081")
-	exec, err := client.StartWorkflow(context.Background(), "single_agent")
+	ctx := context.Background()
+
+	// Register the vLLM backend
+	_, err := client.RegisterBackend(ctx, &orla.RegisterBackendRequest{
+		Name:     "vllm",
+		Endpoint: "http://localhost:8000/v1",
+		Type:     "openai",
+		ModelID:  "openai:Qwen/Qwen3-4B-Instruct-2507",
+	})
+	
+	if err != nil {
+		log.Fatal("register backend: ", err)
+	}
+
+	resp, err := client.Execute(ctx, &orla.ExecuteRequest{
+		Backend:   "vllm",
+		Prompt:    "Tell me a short, cheerful story about a cat called Lily. Two or three paragraphs is enough.",
+		MaxTokens: 512,
+		Stream:    false,
+	})
 	if err != nil {
 		log.Fatal(err)
 	}
-	task, taskIndex, complete, _, err := client.GetNextTask(context.Background(), exec)
-	if err != nil || complete {
-		log.Fatal(err)
-	}
-	prompt := "Tell me a short, cheerful story about a cat called Lily."
-	if task.Prompt != "" {
-		prompt = task.Prompt
-	}
-	resp, err := client.ExecuteTask(context.Background(), exec, taskIndex, prompt, &orla.ExecuteTaskOptions{MaxTokens: 512, Stream: false})
-	if err != nil {
-		log.Fatal(err)
-	}
-	_ = client.CompleteTask(context.Background(), exec, taskIndex, resp)
+
 	fmt.Println(resp.Content)
 }
 ```
@@ -168,42 +195,17 @@ From the repo root, run:
 go run .
 ```
 
-You should see the model’s story about Lily printed to the terminal. This is an example
-output from a run:
+You should see the model’s story about Lily printed to the terminal. Example output:
 
 ```
-Lily the cat wasn't just any cat. She was a **sunbeam with a tail**, a creature of pure, golden joy who believed in the magic of tiny things.
-
-One rainy Tuesday, the garden was a soggy mess. Birds had flown, flowers drooped, and even the wind seemed to sigh. Lily, perched on the windowsill, watched with a thoughtful blink.
-
-"Such a gloomy day," she murmured, her green eyes sparkling. "But what if... what if I made a rainbow?"
-
-She didn't need a rainbow. She needed a *spark*.
-
-With a decisive *mew*, Lily leapt onto the dripping window ledge. Using her paws, she carefully nudged a tiny, waterlogged dandelion fluff from the sill. It floated down, wobbling like a shy leaf.
-
-"Ah!" Lily chirped. "A dandelion! A *dandelion*! It's not just wet—it's *wet with potential*!"
-
-She gently blew on it. Not hard, just a soft, happy puff.
-
-And the fluff *twirled*.
-
-Not a rainbow, not yet. But it spun in a perfect, slow spiral, catching the weak light, and for a moment, it glowed like a tiny, living sunbeam.
-
-Lily's tail curled around her paws in delight. "Look! Look!" she called to the rain-slicked garden. "A *dandelion dance*! A dance of hope!"
-
-The rain kept falling, but the garden didn't feel so sad anymore. The dandelion fluff spun on, a tiny, golden whirlwind of cheer.
-
-And from that day on, whenever the rain came, Lily would find a dandelion fluff and blow it gently. Not to make a rainbow—just to make a little, spinning, hopeful *dance*.
+Lily the cat wasn't just any cat. She was a **sunbeam with a tail**...
 
 And the world, just a little, felt brighter. 🌈🐾
-
-**The End. (And the beginning of a very happy cat's legacy.)**
 ```
 
-For a curl-based version of the same workflow, see the appendix below.
+If you already registered the backend in step 3 (e.g. with curl), calling `RegisterBackend` again with the same name is idempotent (the backend is replaced). You can omit the `RegisterBackend` call in the Go program if you prefer to register once via curl.
 
-## 4. Stop the stack
+## 5. Stop the stack
 
 When you’re done:
 
@@ -213,95 +215,30 @@ docker compose -f deploy/docker-compose.vllm.yaml down
 
 Use `down -v` if you also want to remove the vLLM model cache volume.
 
-You’ve run a simple agent that tells a story about a cat called Lily using Orla’s daemon and vLLM. For more workflows, multi-step agents, and configuration options, see the [Orla repo](https://github.com/dorcha-inc/orla) and the [deploy README](https://github.com/dorcha-inc/orla/blob/main/deploy/README.md).
+You’ve registered a backend via the API, sent a prompt to the Orla server, and received a story about Lily from vLLM. For more on the execute and backend-registration APIs, configuration, and deployment, see the [Orla repo](https://github.com/dorcha-inc/orla) and the [deploy README](https://github.com/dorcha-inc/orla/blob/main/deploy/README.md).
 
-## Appendix: Running the workflow with curl
+## Appendix: Running the request with curl
 
-If you prefer not to use Go, you can drive the same workflow with `curl` (and `jq` for parsing JSON). Install `jq` if needed: `sudo apt-get install -y jq`.
-
-### Step 1: Start the workflow
+You can call the execute endpoint directly with `curl` (and optionally `jq` for JSON). Install `jq` if needed: `sudo apt-get install -y jq`.
 
 ```bash
-EXEC=$(curl -s -X POST http://localhost:8081/api/v1/workflow/start \
+curl -s -X POST http://localhost:8081/api/v1/execute \
   -H "Content-Type: application/json" \
-  -d '{"workflow_name":"single_agent"}' | jq -r '.execution_id')
-echo "Execution ID: $EXEC"
+  -d '{
+    "backend": "vllm",
+    "prompt": "Tell me a short, cheerful story about a cat called Lily. Two or three paragraphs is enough.",
+    "max_tokens": 512,
+    "stream": false
+  }' | jq .
 ```
 
-### Step 2: Get the next task
+To print only the story text (after registering the `vllm` backend in step 3):
 
 ```bash
-TASK_JSON=$(curl -s "http://localhost:8081/api/v1/workflow/task/next?execution_id=$EXEC")
-echo "$TASK_JSON" | jq .
-```
-
-You should see `"complete": false` and one task with `"task_index": 0`.
-
-### Step 3: Execute the task (ask for the story)
-
-```bash
-RESPONSE=$(curl -s -X POST http://localhost:8081/api/v1/workflow/task/execute \
+curl -s -X POST http://localhost:8081/api/v1/execute \
   -H "Content-Type: application/json" \
-  -d "{
-    \"execution_id\": \"$EXEC\",
-    \"task_index\": 0,
-    \"prompt\": \"Tell me a short, cheerful story about a cat called Lily. Two or three paragraphs is enough.\",
-    \"options\": { \"max_tokens\": 512, \"stream\": false }
-  }")
-echo "$RESPONSE" | jq .
+  -d '{"backend": "vllm", "prompt": "Tell me a short story about a cat called Lily.", "max_tokens": 512}' \
+  | jq -r '.response.content'
 ```
 
-To print just the story: `echo "$RESPONSE" | jq -r '.response.content'`
-
-### Step 4: Complete the task
-
-```bash
-BODY=$(echo "$RESPONSE" | jq -c '{execution_id: "'"$EXEC"'", task_index: 0, response: .response}')
-curl -s -X POST http://localhost:8081/api/v1/workflow/task/complete \
-  -H "Content-Type: application/json" \
-  -d "$BODY" | jq .
-```
-
-### Step 5: Confirm the workflow is complete
-
-```bash
-curl -s "http://localhost:8081/api/v1/workflow/task/next?execution_id=$EXEC" | jq .
-```
-
-You should see `"complete": true`.
-
-One-shot script: save as `run_lily_story.sh` in the Orla repo root and run `./run_lily_story.sh` (requires `jq`):
-
-```bash
-#!/usr/bin/env bash
-set -e
-BASE=http://localhost:8081/api/v1
-
-EXEC=$(curl -s -X POST "$BASE/workflow/start" -H "Content-Type: application/json" \
-  -d '{"workflow_name":"single_agent"}' | jq -r '.execution_id')
-echo "Execution ID: $EXEC"
-
-TASK=$(curl -s "$BASE/workflow/task/next?execution_id=$EXEC")
-IDX=$(echo "$TASK" | jq -r '.task_index')
-COMPLETE=$(echo "$TASK" | jq -r '.complete')
-
-if [ "$COMPLETE" = "true" ]; then
-  echo "Workflow has no tasks."
-  exit 0
-fi
-
-RESPONSE=$(curl -s -X POST "$BASE/workflow/task/execute" -H "Content-Type: application/json" \
-  -d "{
-    \"execution_id\": \"$EXEC\",
-    \"task_index\": $IDX,
-    \"prompt\": \"Tell me a short, cheerful story about a cat called Lily. Two or three paragraphs is enough.\",
-    \"options\": { \"max_tokens\": 512, \"stream\": false }
-  }")
-
-echo "--- Story (Lily) ---"
-echo "$RESPONSE" | jq -r '.response.content'
-
-COMPLETE_BODY=$(echo "$RESPONSE" | jq -c '{execution_id: "'"$EXEC"'", task_index: '"$IDX"', response: .response}')
-curl -s -X POST "$BASE/workflow/task/complete" -H "Content-Type: application/json" -d "$COMPLETE_BODY" > /dev/null
-echo "--- Done ---"
-```
+Response shape: `{"success": true, "response": {"content": "...", "thinking": "", ...}}` or `{"success": false, "error": "..."}`.
