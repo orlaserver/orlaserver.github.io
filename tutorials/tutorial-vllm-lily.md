@@ -113,7 +113,7 @@ If you change the model, ensure the Orla backend’s model identifier matches wh
 ## 2. Check that the daemon is up
 
 ```bash
-curl -s http://localhost:8081/api/v1/health
+curl http://localhost:8081/api/v1/health
 ```
 
 You should get a successful response (e.g. HTTP 200 with `{"status":"healthy"}`).
@@ -202,7 +202,7 @@ You can skip the Go client and use only `curl`. First register the vLLM backend,
 Orla does not read backends from config. Register the vLLM backend with **`POST /api/v1/backends`** (from the host, where vLLM is reachable as `localhost:8000`):
 
 ```bash
-curl -s -X POST http://localhost:8081/api/v1/backends \
+curl -X POST http://localhost:8081/api/v1/backends \
   -H "Content-Type: application/json" \
   -d '{
     "name": "vllm",
@@ -222,7 +222,7 @@ You should get `{"success":true}`. List backends: `curl -s http://localhost:8081
 Install `jq` if needed: `sudo apt-get install -y jq`.
 
 ```bash
-curl -s -X POST http://localhost:8081/api/v1/execute \
+curl -X POST http://localhost:8081/api/v1/execute \
   -H "Content-Type: application/json" \
   -d '{
     "backend": "vllm",
@@ -235,7 +235,7 @@ curl -s -X POST http://localhost:8081/api/v1/execute \
 To print only the story text:
 
 ```bash
-curl -s -X POST http://localhost:8081/api/v1/execute \
+curl -X POST http://localhost:8081/api/v1/execute \
   -H "Content-Type: application/json" \
   -d '{"backend": "vllm", "prompt": "Tell me a short story about a cat called Lily.", "max_tokens": 512}' \
   | jq -r '.response.content'
