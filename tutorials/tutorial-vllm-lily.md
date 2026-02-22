@@ -90,8 +90,10 @@ The main tutorial uses the Orla Go client. You need Go 1.25 or later. Install or
 From the root of the Orla repository:
 
 ```bash
-docker compose -f deploy/docker-compose.vllm.yaml up
+docker compose -f deploy/docker-compose.vllm.yaml up -d
 ```
+
+Side note: remove the `-d` if you want to see the streamed output.
 
 This starts:
 
