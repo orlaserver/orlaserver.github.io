@@ -90,7 +90,7 @@ The main tutorial uses the Orla Go client. You need Go 1.25 or later. Install or
 From the root of the Orla repository:
 
 ```bash
-docker compose -f deploy/docker-compose.vllm.yaml up -d
+docker compose -f deploy/docker-compose.vllm.yaml up
 ```
 
 This starts:
@@ -105,7 +105,7 @@ You can use a different model or set the Hugging Face token
 ```bash
 export VLLM_MODEL=Qwen/Qwen3-8B
 export HF_TOKEN=your_token   # only for gated models
-docker compose -f deploy/docker-compose.vllm.yaml up -d
+docker compose -f deploy/docker-compose.vllm.yaml up
 ```
 
 If you change the model, ensure the Orla backend’s model identifier matches what vLLM serves (e.g. `openai:Qwen/Qwen3-4B-Instruct-2507`).
