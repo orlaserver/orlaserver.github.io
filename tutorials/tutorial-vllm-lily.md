@@ -184,6 +184,61 @@ Lily the cat lived in a sun-dappled cottage at the edge of a meadow, where daisi
 One bright afternoon, a tiny blue bird with a broken wing landed near her window, trembling and unable to fly. Lily didn’t just watch—she sat beside it, her tail wrapped gently around the bird’s side, and began humming a soft, melodic tune. The bird, startled but calm, slowly leaned into her warmth. With a little help from a kind neighbor, they found a patch of healing herbs, and by sunset, the bird could flutter again. As it soared into the sky, it left a trail of golden light—and Lily, beaming with pride, curled up in the grass, dreaming of more sunny adventures. After all, happiness, she thought, is just a purr away. 🌞🐾
 ```
 
+### Streamed output
+
+To see the story as it is generated, use **`ExecuteStream`**. It returns a channel of events: `content` (text deltas), optional `thinking` and `tool_call`, and a final `done` event with the full response (including metrics). Run the same backend registration as above, then stream the request:
+
+```go
+package main
+
+import (
+	"context"
+	"fmt"
+	"log"
+
+	orla "github.com/dorcha-inc/orla/pkg/api"
+)
+
+func main() {
+	client := orla.NewClient("http://localhost:8081")
+	ctx := context.Background()
+
+	_, err := client.RegisterBackend(ctx, &orla.RegisterBackendRequest{
+		Name:     "vllm",
+		Endpoint: "http://vllm:8000/v1",
+		Type:     "openai",
+		ModelID:  "openai:Qwen/Qwen3-4B-Instruct-2507",
+	})
+	if err != nil {
+		log.Fatal("register backend: ", err)
+	}
+
+	events, err := client.ExecuteStream(ctx, &orla.ExecuteRequest{
+		Backend:   "vllm",
+		Prompt:    "Tell me a short, cheerful story about a cat called Lily. Two or three paragraphs is enough.",
+		MaxTokens: 512,
+	})
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	for ev := range events {
+		switch ev.Type {
+		case "content":
+			fmt.Print(ev.Content)
+		case "thinking":
+			fmt.Print(ev.Thinking)
+		case "done":
+			if ev.Response != nil && ev.Response.Metrics != nil {
+				fmt.Printf("\n\n[TTFT: %d ms, TPOT: %d ms]\n", ev.Response.Metrics.TTFTMs, ev.Response.Metrics.TPOTMs)
+			}
+		}
+	}
+}
+```
+
+Run with `go run .`. Text appears incrementally; when the stream finishes, the final event carries the full `TaskResponse` (e.g. TTFT/TPOT metrics if the backend provides them).
+
 ## 4. Stop the stack
 
 When you’re done:
