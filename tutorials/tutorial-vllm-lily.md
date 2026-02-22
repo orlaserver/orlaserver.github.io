@@ -96,7 +96,7 @@ docker compose -f deploy/docker-compose.vllm.yaml up -d
 This starts:
 
 - vLLM on port 8000 (OpenAI-compatible API), serving the default model `Qwen/Qwen3-4B-Instruct-2507`.
-- Orla on port 8081. The Orla server starts with no LLM backends; you register them via the API (next step).
+- Orla on port 8081. The Orla server starts with no LLM backends; the Go program in step 3 registers the vLLM backend and runs the request. If you use the curl-only flow (appendix), register the backend with curl first.
 
 ### Optional
 
@@ -118,35 +118,13 @@ curl -s http://localhost:8081/api/v1/health
 
 You should get a successful response (e.g. HTTP 200 with `{"status":"healthy"}`).
 
-## 3. Register the vLLM backend
-
-Orla does not read backends from config. You register each LLM backend via **`POST /api/v1/backends`**. Use the same backend name in execute requests (e.g. `vllm`).
-
-From the host (where vLLM is reachable as `localhost:8000`):
-
-```bash
-curl -s -X POST http://localhost:8081/api/v1/backends \
-  -H "Content-Type: application/json" \
-  -d '{
-    "name": "vllm",
-    "endpoint": "http://localhost:8000/v1",
-    "type": "openai",
-    "model_id": "openai:Qwen/Qwen3-4B-Instruct-2507",
-    "api_key_env_var": ""
-  }'
-```
-
-You should get `{"success":true}`. To list registered backends: `curl -s http://localhost:8081/api/v1/backends`
-
-**If Orla and vLLM run in different containers** (e.g. Docker Compose), use the vLLM service hostname as the endpoint when registering from inside the Orla container, or register from the host using `http://localhost:8000/v1` as above so execute requests from your machine use the same backend.
-
-## 4. Run the “Lily” story request
+## 3. Run the “Lily” story request
 
 The Orla API exposes **`POST /api/v1/execute`**: you send a `backend` name (a backend you registered), a `prompt` (or `messages`), and optional `max_tokens` and `stream`. The response contains the model output in `response.content`.
 
 ### Using the Go client
 
-Create a file `main.go` in the Orla repo root. The program registers the vLLM backend (same as step 3), then runs the execute request:
+Create a file `main.go` in the Orla repo root. The program registers the vLLM backend, then runs the execute request:
 
 ```go
 package main
@@ -170,7 +148,7 @@ func main() {
 		Type:     "openai",
 		ModelID:  "openai:Qwen/Qwen3-4B-Instruct-2507",
 	})
-	
+
 	if err != nil {
 		log.Fatal("register backend: ", err)
 	}
@@ -203,9 +181,7 @@ Lily the cat wasn't just any cat. She was a **sunbeam with a tail**...
 And the world, just a little, felt brighter. 🌈🐾
 ```
 
-If you already registered the backend in step 3 (e.g. with curl), calling `RegisterBackend` again with the same name is idempotent (the backend is replaced). You can omit the `RegisterBackend` call in the Go program if you prefer to register once via curl.
-
-## 5. Stop the stack
+## 4. Stop the stack
 
 When you’re done:
 
@@ -219,7 +195,31 @@ You’ve registered a backend via the API, sent a prompt to the Orla server, and
 
 ## Appendix: Running the request with curl
 
-You can call the execute endpoint directly with `curl` (and optionally `jq` for JSON). Install `jq` if needed: `sudo apt-get install -y jq`.
+You can skip the Go client and use only `curl`. First register the vLLM backend, then call the execute endpoint.
+
+### Register the backend (curl)
+
+Orla does not read backends from config. Register the vLLM backend with **`POST /api/v1/backends`** (from the host, where vLLM is reachable as `localhost:8000`):
+
+```bash
+curl -s -X POST http://localhost:8081/api/v1/backends \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "vllm",
+    "endpoint": "http://localhost:8000/v1",
+    "type": "openai",
+    "model_id": "openai:Qwen/Qwen3-4B-Instruct-2507",
+    "api_key_env_var": ""
+  }'
+```
+
+You should get `{"success":true}`. List backends: `curl -s http://localhost:8081/api/v1/backends`
+
+**If Orla and vLLM run in different containers** (e.g. Docker Compose), register from the host using `http://localhost:8000/v1` as above so execute requests from your machine use the same backend.
+
+### Execute with curl
+
+Install `jq` if needed: `sudo apt-get install -y jq`.
 
 ```bash
 curl -s -X POST http://localhost:8081/api/v1/execute \
@@ -232,7 +232,7 @@ curl -s -X POST http://localhost:8081/api/v1/execute \
   }' | jq .
 ```
 
-To print only the story text (after registering the `vllm` backend in step 3):
+To print only the story text:
 
 ```bash
 curl -s -X POST http://localhost:8081/api/v1/execute \
