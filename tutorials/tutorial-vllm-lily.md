@@ -124,9 +124,9 @@ You should get a successful response (e.g. HTTP 200 with `{"status":"healthy"}`)
 
 The Orla API exposes **`POST /api/v1/execute`**: you send a `backend` name (a backend you registered), a `prompt` (or `messages`), and optional `max_tokens` and `stream`. The response contains the model output in `response.content`.
 
-### Using the Go client
+### Using the Go client and Agent API
 
-Create a file `main.go` in the Orla repo root. The program registers the vLLM backend, then runs the execute request:
+Create a file `main.go` in the Orla repo root. The program registers the vLLM backend, creates an agent with the prompt, and runs the execute request:
 
 ```go
 package main
@@ -140,28 +140,25 @@ import (
 )
 
 func main() {
-	client := orla.NewClient("http://localhost:8081")
+	client := orla.NewOrlaClient("http://localhost:8081")
 	ctx := context.Background()
 
 	// Register the vLLM backend. When Orla and vLLM run in Docker Compose, use the
 	// service name "vllm" so the Orla server (in its container) can reach the vLLM container.
-	_, err := client.RegisterBackend(ctx, &orla.RegisterBackendRequest{
+	backend, err := client.RegisterBackend(ctx, &orla.RegisterBackendRequest{
 		Name:     "vllm",
 		Endpoint: "http://vllm:8000/v1",
 		Type:     "openai",
 		ModelID:  "openai:Qwen/Qwen3-4B-Instruct-2507",
 	})
-
 	if err != nil {
 		log.Fatal("register backend: ", err)
 	}
 
-	resp, err := client.Execute(ctx, &orla.ExecuteRequest{
-		Backend:   "vllm",
-		Prompt:    "Tell me a short, cheerful story about a cat called Lily. Two or three paragraphs is enough.",
-		MaxTokens: 512,
-		Stream:    false,
-	})
+	agent := orla.NewAgentWithPrompt(client, backend, "Tell me a short, cheerful story about a cat called Lily. Two or three paragraphs is enough.")
+	agent.SetMaxTokens(512)
+
+	resp, err := agent.Execute(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -186,7 +183,7 @@ One bright afternoon, a tiny blue bird with a broken wing landed near her window
 
 ### Streamed output
 
-To see the story as it is generated, use **`ExecuteStream`**. It returns a channel of events: `content` (text deltas), optional `thinking` and `tool_call`, and a final `done` event with the full response (including metrics). Run the same backend registration as above, then stream the request:
+To see the story as it is generated, use the agent’s **`ExecuteStream`** and **`ConsumeStream`**. `ExecuteStream` returns a channel of events; `ConsumeStream` reads that channel, optionally calls a handler for each event (e.g. to print tokens), and returns the full response when the stream finishes:
 
 ```go
 package main
@@ -200,10 +197,10 @@ import (
 )
 
 func main() {
-	client := orla.NewClient("http://localhost:8081")
+	client := orla.NewOrlaClient("http://localhost:8081")
 	ctx := context.Background()
 
-	_, err := client.RegisterBackend(ctx, &orla.RegisterBackendRequest{
+	backend, err := client.RegisterBackend(ctx, &orla.RegisterBackendRequest{
 		Name:     "vllm",
 		Endpoint: "http://vllm:8000/v1",
 		Type:     "openai",
@@ -213,31 +210,35 @@ func main() {
 		log.Fatal("register backend: ", err)
 	}
 
-	events, err := client.ExecuteStream(ctx, &orla.ExecuteRequest{
-		Backend:   "vllm",
-		Prompt:    "Tell me a short, cheerful story about a cat called Lily. Two or three paragraphs is enough.",
-		MaxTokens: 512,
+	agent := orla.NewAgentWithPrompt(client, backend, "Tell me a short, cheerful story about a cat called Lily. Two or three paragraphs is enough.")
+	agent.SetMaxTokens(512)
+
+	stream, err := agent.ExecuteStream(ctx)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// ConsumeStream runs until "done"; the handler prints content and thinking as they arrive.
+	resp, err := agent.ConsumeStream(ctx, stream, func(ev orla.StreamEvent) error {
+		if ev.Type == "content" {
+			fmt.Print(ev.Content)
+		}
+		if ev.Type == "thinking" {
+			fmt.Print(ev.Thinking)
+		}
+		return nil
 	})
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	for ev := range events {
-		switch ev.Type {
-		case "content":
-			fmt.Print(ev.Content)
-		case "thinking":
-			fmt.Print(ev.Thinking)
-		case "done":
-			if ev.Response != nil && ev.Response.Metrics != nil {
-				fmt.Printf("\n\n[TTFT: %d ms, TPOT: %d ms]\n", ev.Response.Metrics.TTFTMs, ev.Response.Metrics.TPOTMs)
-			}
-		}
+	if resp.Metrics != nil {
+		fmt.Printf("\n\n[TTFT: %d ms, TPOT: %d ms]\n", resp.Metrics.TTFTMs, resp.Metrics.TPOTMs)
 	}
 }
 ```
 
-Run with `go run .`. Text appears incrementally; when the stream finishes, the final event carries the full `TaskResponse` (e.g. TTFT/TPOT metrics if the backend provides them).
+Run with `go run .`. Text appears incrementally; `ConsumeStream` returns the full `InferenceResponse` (including metrics) when the stream finishes.
 
 ## 4. Stop the stack
 
