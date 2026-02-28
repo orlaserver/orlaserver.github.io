@@ -211,19 +211,141 @@ func main() {
 }
 ```
 
+The output should be something like:
+
+
+```bash
+Model reply: <think>
+Okay, the user asked for the weather in Paris, and I called the get_weather function. The response came back with sunny conditions and a temperature of 22°C. Now I need to reply in one sentence. Let me combine those details smoothly. Maybe start with the main condition and mention the temperature. Check if the units are specified, but since it's not mentioned, just use Celsius. Alright, the sentence should be clear and concise.
+</think>
+
+The weather in Paris is sunny with a temperature of 22°C.
+```
+
 - **ExecuteWithMessages** sends the current `messages` and the agent’s tools to the backend. The model may return text and/or **tool_calls**.
 - **RunToolCallsInResponse** parses `resp.ToolCalls`, runs each tool by name (using your `Run`), and returns the corresponding **tool-result messages** (role `"tool"`, content, tool_call_id, tool_name).
 - You append the assistant message (the model’s content) and those tool messages, then call **ExecuteWithMessages** again. The loop ends when the model responds with no tool calls.
 
 This flow is the same for **vLLM**, **Ollama**, and **SGLang**; only the backend registration (name, endpoint, type, model_id) changes.
 
-## 5. Backend-specific notes
+## 5. Streaming with tools
+
+You can stream the model’s reply (and thinking, if the backend supports it) while still doing the same tool loop. Use **ExecuteStreamWithMessages** and **ConsumeStream**: the stream delivers `content`, `thinking`, and `tool_call` events, then a **done** event with the full response (including **ToolCalls**). Run tools on that response and continue the loop as before.
+
+```go
+package main
+
+import (
+    "context"
+    "fmt"
+    "log"
+
+    orla "github.com/dorcha-inc/orla/pkg/api"
+)
+
+func main() {
+    client := orla.NewOrlaClient("http://localhost:8081")
+    ctx := context.Background()
+
+    backend, err := client.RegisterBackend(ctx, &orla.RegisterBackendRequest{
+        Name:     "vllm",
+        Endpoint: "http://vllm:8000/v1",
+        Type:     "openai",
+        ModelID:  "openai:Qwen/Qwen3-4B-Instruct-2507",
+    })
+    if err != nil {
+        log.Fatal("register backend: ", err)
+    }
+
+    agent := orla.NewAgent(client, backend)
+    agent.SetMaxTokens(512)
+
+    tool, err := orla.NewTool(
+        "get_weather",
+        "Get the current weather for a location.",
+        orla.ToolSchema{
+            "type": "object",
+            "properties": map[string]any{
+                "location": map[string]any{"type": "string", "description": "City or place name"},
+            },
+            "required": []any{"location"},
+        },
+        orla.ToolSchema{
+            "type": "object",
+            "properties": map[string]any{
+                "temperature": map[string]any{"type": "number"},
+                "conditions": map[string]any{"type": "string"},
+            },
+        },
+        orla.ToolRunnerFromSchema(func(ctx context.Context, input orla.ToolSchema) (orla.ToolSchema, error) {
+            location, _ := input["location"].(string)
+            if location == "" {
+                location = "unknown"
+            }
+            return orla.ToolSchema{
+                "temperature": 22.0,
+                "conditions": "sunny in " + location,
+            }, nil
+        }),
+    )
+    if err != nil {
+        log.Fatal(err)
+    }
+    if err := agent.AddTool(tool); err != nil {
+        log.Fatal(err)
+    }
+
+    prompt := "What's the weather in Tokyo? One sentence."
+    messages := []orla.Message{{Role: "user", Content: prompt}}
+
+    for {
+        stream, err := agent.ExecuteStreamWithMessages(ctx, messages)
+        if err != nil {
+            log.Fatal(err)
+        }
+
+        // Print content and thinking as they arrive; ConsumeStream returns the full response on "done"
+        resp, err := agent.ConsumeStream(ctx, stream, func(ev orla.StreamEvent) error {
+            if ev.Type == "content" {
+                fmt.Print(ev.Content)
+            }
+            if ev.Type == "thinking" {
+                fmt.Print(ev.Thinking)
+            }
+            return nil
+        })
+        if err != nil {
+            log.Fatal(err)
+        }
+
+        if len(resp.ToolCalls) == 0 {
+            fmt.Println()
+            break
+        }
+
+        messages = append(messages, orla.Message{Role: "assistant", Content: resp.Content})
+        toolMessages, err := agent.RunToolCallsInResponse(ctx, resp)
+        if err != nil {
+            log.Fatal(err)
+        }
+        for _, m := range toolMessages {
+            messages = append(messages, *m)
+        }
+    }
+}
+```
+
+- **ExecuteStreamWithMessages** takes the same `messages` (and tools) as the non-streaming call but returns a channel of events.
+- **ConsumeStream** reads the channel, optionally runs your handler for each event (e.g. print content/thinking), and returns the full **InferenceResponse** when the stream sends **done**. That response includes **ToolCalls**.
+- The rest of the loop is unchanged: append the assistant message and tool-result messages, then call **ExecuteStreamWithMessages** again until the model returns no tool calls.
+
+## 6. Backend-specific notes
 
 - **vLLM**: Uses the OpenAI-compatible API. Tool calls include a unique `id`; you must send it back as `tool_call_id` in the tool result message so the model can match results to calls.
 - **Ollama**: Uses `tool_name` and content for tool results. Ollama does not yet support per-call IDs, so when the same tool is called multiple times in one turn, matching is by order.
 - **SGLang**: In this setup SGLang is used with the Ollama-compatible API (same as the Ollama tutorial). Behavior matches Ollama for tool results.
 
-## 6. Stop the stack
+## 7. Stop the stack
 
 ```bash
 docker compose -f deploy/docker-compose.vllm.yaml down   # or ollama / sglang
