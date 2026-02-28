@@ -42,10 +42,10 @@ docker compose -f deploy/docker-compose.swebench-baseline.yaml run --rm baseline
 
 Predictions are written to **`deploy/output/predictions.jsonl`**.
 
-To run a different instance file or pass flags (e.g. `-max-steps 10`):
+To run a different instance file:
 
 ```bash
-docker compose -f deploy/docker-compose.swebench-baseline.yaml run --rm baseline /instances/other.json -max-steps 10
+docker compose -f deploy/docker-compose.swebench-baseline.yaml run --rm baseline /instances/other.json
 ```
 
 ## 3. Stop the stack
@@ -74,11 +74,12 @@ Predictions are one JSON object per line (instance_id, model_name_or_path, model
 The example in `examples/swe_bench_lite/baseline_orla_sglang/main.go`:
 
 1. **Registers** the SGLang backend with the Orla daemon (OpenAI-compatible API at `http://sglang:30000/v1`). SGLang must be started with `--tool-call-parser qwen` (the deploy compose includes it).
-2. **Adds a single tool**, `run_bash`, that runs one bash command in `-workdir` and returns stdout, stderr, and exit code.
+2. **Adds a single tool**, `run_bash`, that runs one bash command in the repository workdir (`/workdir/<instance_id>`) and returns stdout, stderr, and exit code.
 3. **Loads the instance** and builds a user message with the problem statement, repo, and base commit.
-4. **Runs a loop**: `ExecuteWithMessages` → if the model returns tool calls, runs them via the agent, appends assistant + tool-result messages, and repeats until there are no tool calls or `-max-steps` is reached.
+4. **Runs a loop**: `ExecuteWithMessages` and then if the model returns tool calls, runs them via the agent, appends assistant + tool-result messages, and repeats until there are no tool calls or the step limit is reached.
+5. **Writes the prediction**: the submitted patch is the **git diff** of the workdir (no parsing of model output). If the agent made no file changes, the patch is empty.
 
-This is the same pattern as [Using Tools with Orla](tutorials/tutorial-tools-vllm-ollama-sglang.md): **ExecuteWithMessages** and **RunToolCallsInResponse** implement a ReAct-style loop.
+Settings are fixed for the Docker setup: only the instance file path is an argument. This is the same pattern as [Using Tools with Orla](tutorials/tutorial-tools-vllm-ollama-sglang.md): **ExecuteWithMessages** and **RunToolCallsInResponse** implement a ReAct-style loop.
 
 ## Conclusion 
 
