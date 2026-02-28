@@ -8,6 +8,7 @@ This tutorial walks through running [Orla](https://github.com/dorcha-inc/orla) w
 - **NVIDIA GPU** and [NVIDIA Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/install-guide.html) so the SGLang container can use the GPU.
 - **Orla repo** cloned so you can run the example and deploy from the repo root.
 - **Go 1.25 or later** to run the Orla SWE-bench Lite example.
+- **(Optional)** **[sb-cli](https://www.swebench.com/sb-cli/)** to evaluate or submit predictions. See [Setting up sb-cli for SWE-bench Lite](sb_cli_swebench_lite.md) for installation with uv.
 
 If you’ve already completed [Using Orla with SGLang](tutorials/tutorial-sglang-lily.md), you have the same stack; this tutorial adds the SWE-bench Lite example and instance format.
 
@@ -26,7 +27,7 @@ docker compose -f deploy/docker-compose.sglang.yaml up -d
 
 This starts:
 
-- **SGLang** on port 30000 (Ollama-compatible API). Default model: `Qwen/Qwen3-8B`.
+- **SGLang** on port 30000 with `--tool-call-parser qwen`. Default model: `Qwen/Qwen3-8B`. The example uses the OpenAI-compatible API (`/v1`) so tool calls work.
 - **Orla** on port 8081. The example program will register the SGLang backend and run the agent.
 
 Check that the daemon is up:
@@ -98,7 +99,7 @@ Predictions are appended as one JSON object per line (instance_id, model_name_or
 
 The example in `examples/swe_bench_lite/cache_strategy/orla_sglang/main.go`:
 
-1. **Registers** the SGLang backend with the Orla daemon (Ollama-compatible, `http://sglang:30000`).
+1. **Registers** the SGLang backend with the Orla daemon using the **OpenAI-compatible API** (`http://sglang:30000/v1`) so tool calls work. SGLang must be started with `--tool-call-parser qwen` (the deploy compose includes it).
 2. **Adds a single tool**, `run_bash`, that runs one bash command in `-workdir` and returns stdout, stderr, and exit code.
 3. **Loads the instance** and builds a user message with the problem statement, repo, and base commit.
 4. **Runs a loop**: `ExecuteWithMessages` → if the model returns tool calls, runs them via the agent, appends assistant + tool-result messages, and repeats until there are no tool calls or `-max-steps` is reached.
@@ -107,10 +108,9 @@ This is the same pattern as [Using Tools with Orla](tutorials/tutorial-tools-vll
 
 ## 6. Comparing with mini-SWE-agent
 
-The same directory includes a **mini-SWE-agent** setup so you can run SWE-bench Lite with the same SGLang backend for comparison. mini-SWE-agent is a minimal Python agent (bash-only tools, linear history) used as a baseline. See `examples/swe_bench_lite/cache_strategy/README.md` in the Orla repo for:
+For **comparable runs** between Orla and mini-SWE-agent, use the **same stack**: start SGLang and Orla with `docker compose -f deploy/docker-compose.sglang.yaml up -d` (so SGLang has `--tool-call-parser qwen` and the same model). Both Orla and mini-SWE-agent talk to SGLang via the **OpenAI-compatible API** (`/v1`). Same model (Qwen/Qwen3-8B), same benchmark instances, same step limit.
 
-- Installing `mini-swe-agent` and `mini-swe-agent-extra`.
-- Setting `OLLAMA_HOST=http://localhost:30000` and running `run_swebench_lite.sh` to drive mini-SWE-agent against SGLang.
+See [Running mini-SWE-agent with SWE-bench Lite](mini_swe_agent_swebench_lite.md) for installing and running mini-SWE-agent against the same SGLang backend.
 
 ## 7. Stop the stack
 

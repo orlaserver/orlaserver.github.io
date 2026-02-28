@@ -13,3 +13,4 @@
 * Research Tutorials
   * [Orla with SWE-bench Lite](research/orla_swebench_lite.md)
   * [mini-SWE-agent with SWE-bench Lite](research/mini_swe_agent_swebench_lite.md)
+  * [Setting up sb-cli for SWE-bench Lite with uv](research/sb_cli_swebench_lite.md)
