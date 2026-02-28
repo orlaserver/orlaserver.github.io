@@ -27,14 +27,10 @@
     };
   </script>
   <script src="https://cdn.jsdelivr.net/npm/docsify@4"></script>
-  <!-- Prism autoloader: loads any language on demand from CDN -->
-  <script src="https://cdn.jsdelivr.net/npm/prismjs@1/plugins/autoloader/prism-autoloader.min.js"></script>
-  <script>
-    window.Prism = window.Prism || {};
-    Prism.plugins = Prism.plugins || {};
-    Prism.plugins.autoloader = Prism.plugins.autoloader || {};
-    Prism.plugins.autoloader.languages_path = 'https://cdn.jsdelivr.net/npm/prismjs@1/components/';
-  </script>
+  <!-- Prism language grammars (per https://docsify.js.org/#/language-highlight) -->
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1/components/prism-bash.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1/components/prism-go.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1/components/prism-yaml.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/docsify-copy-code@2"></script>
 </body>
 
