@@ -101,13 +101,8 @@ func main() {
 
 	// Register the Ollama backend. When Orla and Ollama run in Docker Compose, use the
 	// service name "ollama" so the Orla server (in its container) can reach the Ollama container.
-	backend, err := client.RegisterBackend(ctx, &orla.RegisterBackendRequest{
-		Name:     "ollama",
-		Endpoint: "http://ollama:11434",
-		Type:     "ollama",
-		ModelID:  "ollama:llama3.2:3b",
-	})
-	if err != nil {
+	backend := orla.NewOllamaBackend("llama3.2:3b", "http://ollama:11434")
+	if err := client.RegisterBackend(ctx, backend); err != nil {
 		log.Fatal("register backend: ", err)
 	}
 
@@ -159,13 +154,8 @@ func main() {
 	client := orla.NewOrlaClient("http://localhost:8081")
 	ctx := context.Background()
 
-	backend, err := client.RegisterBackend(ctx, &orla.RegisterBackendRequest{
-		Name:     "ollama",
-		Endpoint: "http://ollama:11434",
-		Type:     "ollama",
-		ModelID:  "ollama:llama3.2:3b",
-	})
-	if err != nil {
+	backend := orla.NewOllamaBackend("llama3.2:3b", "http://ollama:11434")
+	if err := client.RegisterBackend(ctx, backend); err != nil {
 		log.Fatal("register backend: ", err)
 	}
 

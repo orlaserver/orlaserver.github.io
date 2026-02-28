@@ -43,34 +43,22 @@ Register the backend that matches the stack you started. Use the **service name*
 **vLLM:**
 
 ```go
-backend, err := client.RegisterBackend(ctx, &orla.RegisterBackendRequest{
-    Name:     "vllm",
-    Endpoint: "http://vllm:8000/v1",
-    Type:     "openai",
-    ModelID:  "openai:Qwen/Qwen3-4B-Instruct-2507",
-})
+backend := orla.NewVLLMBackend("Qwen/Qwen3-4B-Instruct-2507", "http://vllm:8000/v1")
+if err := client.RegisterBackend(ctx, backend); err != nil { log.Fatal(err) }
 ```
 
 **Ollama:**
 
 ```go
-backend, err := client.RegisterBackend(ctx, &orla.RegisterBackendRequest{
-    Name:     "ollama",
-    Endpoint: "http://ollama:11434",
-    Type:     "ollama",
-    ModelID:  "ollama:llama3.2:3b",
-})
+backend := orla.NewOllamaBackend("llama3.2:3b", "http://ollama:11434")
+if err := client.RegisterBackend(ctx, backend); err != nil { log.Fatal(err) }
 ```
 
-**SGLang** (Ollama-compatible API on port 30000):
+**SGLang** (OpenAI API on port 30000; use `/v1` for TTFT/TPOT):
 
 ```go
-backend, err := client.RegisterBackend(ctx, &orla.RegisterBackendRequest{
-    Name:     "sglang",
-    Endpoint: "http://sglang:30000",
-    Type:     "ollama",
-    ModelID:  "ollama:Qwen/Qwen3-8B",
-})
+backend := orla.NewSGLangBackend("Qwen/Qwen3-8B", "http://sglang:30000/v1")
+if err := client.RegisterBackend(ctx, backend); err != nil { log.Fatal(err) }
 ```
 
 ## 3. Define a tool
@@ -132,14 +120,9 @@ func main() {
     client := orla.NewOrlaClient("http://localhost:8081")
     ctx := context.Background()
 
-    // Register backend (use the block that matches your stack: vLLM, Ollama, or SGLang)
-    backend, err := client.RegisterBackend(ctx, &orla.RegisterBackendRequest{
-        Name:     "vllm",
-        Endpoint: "http://vllm:8000/v1",
-        Type:     "openai",
-        ModelID:  "openai:Qwen/Qwen3-4B-Instruct-2507",
-    })
-    if err != nil {
+    // Register backend (use the helper that matches your stack: vLLM, Ollama, or SGLang)
+    backend := orla.NewVLLMBackend("Qwen/Qwen3-4B-Instruct-2507", "http://vllm:8000/v1")
+    if err := client.RegisterBackend(ctx, backend); err != nil {
         log.Fatal("register backend: ", err)
     }
 
@@ -247,13 +230,8 @@ func main() {
     client := orla.NewOrlaClient("http://localhost:8081")
     ctx := context.Background()
 
-    backend, err := client.RegisterBackend(ctx, &orla.RegisterBackendRequest{
-        Name:     "vllm",
-        Endpoint: "http://vllm:8000/v1",
-        Type:     "openai",
-        ModelID:  "openai:Qwen/Qwen3-4B-Instruct-2507",
-    })
-    if err != nil {
+    backend := orla.NewVLLMBackend("Qwen/Qwen3-4B-Instruct-2507", "http://vllm:8000/v1")
+    if err := client.RegisterBackend(ctx, backend); err != nil {
         log.Fatal("register backend: ", err)
     }
 
@@ -359,7 +337,7 @@ It's sunny in Tokyo with a temperature of 22°C.
 
 - **vLLM**: Uses the OpenAI-compatible API. Tool calls include a unique `id`; you must send it back as `tool_call_id` in the tool result message so the model can match results to calls.
 - **Ollama**: Uses `tool_name` and content for tool results. Ollama does not yet support per-call IDs, so when the same tool is called multiple times in one turn, matching is by order.
-- **SGLang**: In this setup SGLang is used with the Ollama-compatible API (same as the Ollama tutorial). Behavior matches Ollama for tool results.
+- **SGLang**: Use the OpenAI-compatible API (`NewSGLangBackend` with endpoint `http://sglang:30000/v1`). Behavior matches vLLM for tool results and you get TTFT/TPOT in streaming.
 
 ## 7. Stop the stack
 

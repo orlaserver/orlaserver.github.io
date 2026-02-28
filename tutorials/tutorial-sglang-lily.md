@@ -73,7 +73,7 @@ docker compose -f deploy/docker-compose.sglang.yaml up -d
 
 This starts:
 
-- **SGLang** on port 30000 (Ollama-compatible API). Default model: `Qwen/Qwen3-8B`. The Orla server (in its container) reaches it at `http://sglang:30000`.
+- **SGLang** on port 30000 (OpenAI- and Ollama-compatible APIs). Default model: `Qwen/Qwen3-8B`. The Orla server (in its container) reaches it at `http://sglang:30000`.
 - **Orla** on port 8081. The Orla server starts with no LLM backends; the Go program in step 3 registers the SGLang backend and runs the request.
 
 ### Optional
@@ -86,7 +86,7 @@ export HF_TOKEN=your_token   # only for gated models
 docker compose -f deploy/docker-compose.sglang.yaml up
 ```
 
-If you change the model, ensure the Orla backend’s model identifier matches what SGLang serves (e.g. `ollama:Qwen/Qwen3-8B` for the default).
+If you change the model, use the same model name in the Go backend (e.g. `Qwen/Qwen3-8B` for the default).
 
 ## 2. Check that the daemon is up
 
@@ -102,7 +102,7 @@ The Orla API exposes **`POST /api/v1/execute`**: you send a `backend` name (a ba
 
 ### Using the Go client and Agent API
 
-Orla talks to SGLang using the **Ollama-compatible** API (type `"ollama"`). Create a file `main.go` in the Orla repo root:
+Orla talks to SGLang using the **OpenAI-compatible** API (`/v1/chat/completions`) so you get TTFT/TPOT metrics in streaming responses. Use `orla.NewSGLangBackend` to create a backend with the correct endpoint and model ID. Create a file `main.go` in the Orla repo root:
 
 ```go
 package main
@@ -119,15 +119,10 @@ func main() {
 	client := orla.NewOrlaClient("http://localhost:8081")
 	ctx := context.Background()
 
-	// Register the SGLang backend. Orla uses the Ollama-compatible API to talk to SGLang.
+	// Register the SGLang backend. Use the OpenAI API and /v1 so Orla gets TTFT/TPOT from the stream.
 	// When Orla and SGLang run in Docker Compose, use the service name "sglang".
-	backend, err := client.RegisterBackend(ctx, &orla.RegisterBackendRequest{
-		Name:     "sglang",
-		Endpoint: "http://sglang:30000",
-		Type:     "ollama",
-		ModelID:  "ollama:Qwen/Qwen3-8B",
-	})
-	if err != nil {
+	backend := orla.NewSGLangBackend("Qwen/Qwen3-8B", "http://sglang:30000/v1")
+	if err := client.RegisterBackend(ctx, backend); err != nil {
 		log.Fatal("register backend: ", err)
 	}
 
@@ -152,6 +147,26 @@ go run .
 
 You should see the model’s story about Lily printed to the terminal.
 
+```bash
+<think>
+Okay, the user wants a short, cheerful story about a cat named Lily. Let me start by thinking about the key elements. The story should be two or three paragraphs, so I need to keep it concise but engaging.
+
+First, I should introduce Lily. Maybe give her some characteristics that make her cheerful. Perhaps she's playful and curious. Setting is important—maybe a cozy home with a garden. That way, there's a nice environment for her to explore.
+
+Next, I need a simple plot. Maybe she does something cute, like chasing a butterfly or interacting with other animals. Including a positive outcome would keep the story cheerful. Maybe she helps a friend or finds something delightful. 
+
+I should make sure the language is warm and upbeat. Use words that evoke happiness, like "gleamed," "whiskers twitched," "sunlight danced." Maybe include some sensory details to make it vivid. 
+
+Wait, the user mentioned two or three paragraphs. Let me outline: first paragraph introduces Lily and her daily activities. Second paragraph could be an incident where she does something special, maybe helping a bird or another animal. Third paragraph could wrap up with her contentment and the positive effect on her surroundings. 
+
+I need to check for flow and ensure each paragraph transitions smoothly. Also, make sure the story has a satisfying ending. Maybe end with her sleeping contentedly, showing she's happy. Avoid any sad elements. Keep the tone light and joyful throughout. 
+
+Let me start drafting. First paragraph: Lily in her garden, playful, chasing things. Second paragraph: she helps a bird, showing her kindness. Third paragraph: the garden thrives because of her, and she's happy. That should work. Now, check the word count and make sure it's not too long. Use simple sentences to keep it accessible. Alright, that should do it.
+</think>
+
+Lily was a sprightly tabby with emerald eyes that gleamed like polished gems. Every morning, she’d leap from her sun-warmed windowsill, tail flicking with mischief, and race through the garden where tulips swayed in the breeze. She’d chase fireflies at dusk, pounce on floating dandelion seeds, and nap in the shade of the old oak tree, her purr a soft melody that seemed to charm the very flowers. Though small, Lily had a knack for making the world feel brighter, especially when she’d curl up beside the mailman’s daughter, teaching her to tickle the feathers of a curious
+```
+
 ### Streamed output
 
 To see the story as it is generated, use the agent’s **ExecuteStream** and **ConsumeStream**:
@@ -171,13 +186,8 @@ func main() {
 	client := orla.NewOrlaClient("http://localhost:8081")
 	ctx := context.Background()
 
-	backend, err := client.RegisterBackend(ctx, &orla.RegisterBackendRequest{
-		Name:     "sglang",
-		Endpoint: "http://sglang:30000",
-		Type:     "ollama",
-		ModelID:  "ollama:Qwen/Qwen3-8B",
-	})
-	if err != nil {
+	backend := orla.NewSGLangBackend("Qwen/Qwen3-8B", "http://sglang:30000/v1")
+	if err := client.RegisterBackend(ctx, backend); err != nil {
 		log.Fatal("register backend: ", err)
 	}
 
@@ -211,6 +221,9 @@ func main() {
 
 Run with `go run .`. Text appears incrementally; ConsumeStream returns the full InferenceResponse when the stream finishes.
 
+```bash
+
+
 ## 4. Stop the stack
 
 When you’re done:
@@ -229,15 +242,16 @@ You can skip the Go client and use only `curl`. First register the SGLang backen
 
 ### Register the backend (curl)
 
+Use the OpenAI API and `/v1` so streaming responses include TTFT/TPOT:
+
 ```bash
 curl -X POST http://localhost:8081/api/v1/backends \
   -H "Content-Type: application/json" \
   -d '{
     "name": "sglang",
-    "endpoint": "http://sglang:30000",
-    "type": "ollama",
-    "model_id": "ollama:Qwen/Qwen3-8B",
-    "api_key_env_var": ""
+    "endpoint": "http://sglang:30000/v1",
+    "type": "openai",
+    "model_id": "openai:Qwen/Qwen3-8B"
   }'
 ```
 

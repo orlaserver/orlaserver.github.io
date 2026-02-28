@@ -145,13 +145,8 @@ func main() {
 
 	// Register the vLLM backend. When Orla and vLLM run in Docker Compose, use the
 	// service name "vllm" so the Orla server (in its container) can reach the vLLM container.
-	backend, err := client.RegisterBackend(ctx, &orla.RegisterBackendRequest{
-		Name:     "vllm",
-		Endpoint: "http://vllm:8000/v1",
-		Type:     "openai",
-		ModelID:  "openai:Qwen/Qwen3-4B-Instruct-2507",
-	})
-	if err != nil {
+	backend := orla.NewVLLMBackend("Qwen/Qwen3-4B-Instruct-2507", "http://vllm:8000/v1")
+	if err := client.RegisterBackend(ctx, backend); err != nil {
 		log.Fatal("register backend: ", err)
 	}
 
@@ -201,13 +196,8 @@ func main() {
 	client := orla.NewOrlaClient("http://localhost:8081")
 	ctx := context.Background()
 
-	backend, err := client.RegisterBackend(ctx, &orla.RegisterBackendRequest{
-		Name:     "vllm",
-		Endpoint: "http://vllm:8000/v1",
-		Type:     "openai",
-		ModelID:  "openai:Qwen/Qwen3-4B-Instruct-2507",
-	})
-	if err != nil {
+	backend := orla.NewVLLMBackend("Qwen/Qwen3-4B-Instruct-2507", "http://vllm:8000/v1")
+	if err := client.RegisterBackend(ctx, backend); err != nil {
 		log.Fatal("register backend: ", err)
 	}
 
