@@ -5,11 +5,11 @@
 * [Developer's Guide](developers-guide.md)
 * [Community](community.md)
 * [Uninstalling](uninstalling.md)
-* Tutorials
+* Usage Tutorials
   * [Using Orla with vLLM](tutorials/tutorial-vllm-lily.md)
   * [Using Orla with Ollama](tutorials/tutorial-ollama-lily.md)
   * [Using Orla with SGLang](tutorials/tutorial-sglang-lily.md)
   * [Using Tools with Orla](tutorials/tutorial-tools-vllm-ollama-sglang.md)
-* Orla For Research
+* Research Tutorials
   * [Orla with SWE-bench Lite](research/orla_swebench_lite.md)
   * [mini-SWE-agent with SWE-bench Lite](research/mini_swe_agent_swebench_lite.md)
