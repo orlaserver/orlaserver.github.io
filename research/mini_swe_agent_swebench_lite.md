@@ -7,13 +7,13 @@ This tutorial walks through running [mini-SWE-agent](https://github.com/SWE-agen
 - **Docker and Docker Compose** (Compose V2).
 - **NVIDIA GPU** and [NVIDIA Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/install-guide.html) for the SGLang container.
 - **Orla repo** cloned (for the run script and to start SGLang via the same compose).
-- **Python 3** with `pip` so you can install mini-swe-agent and the SWE-bench extra.
+- **[uv](https://docs.astral.sh/uv/)** so you can run with a single sync and no manual venv.
 
 For full SWE-bench Lite runs, mini-swe-agent uses **Docker** (or another supported sandbox) to run each instance in isolation. Ensure Docker is available and your user can run containers.
 
 ## What is mini-SWE-agent?
 
-[mini-SWE-agent](https://github.com/SWE-agent/mini-swe-agent) is a minimal software-engineering agent: it uses only a **bash** tool and a **linear message history**. The model is called repeatedly with the same conversation; each turn can include one or more bash commands, and their output is appended before the next call. It supports many backends via LiteLLM (including Ollama-compatible APIs), so we point it at SGLang. The Orla repo includes a small script that runs `mini-extra swebench` with the right options and environment for our setup.
+[mini-SWE-agent](https://github.com/SWE-agent/mini-swe-agent) is a minimal software-engineering agent: it uses only a **bash** tool and a **linear message history**. The model is called repeatedly with the same conversation; each turn can include one or more bash commands, and their output is appended before the next call. It supports many backends via LiteLLM (including Ollama-compatible APIs), so we point it at SGLang. The Orla repo includes `run.bash` in that directory; it runs `mini-extra swebench` with the right options and environment for our setup.
 
 ## 1. Start SGLang with Docker Compose
 
@@ -38,21 +38,16 @@ curl -s http://localhost:30000/api/tags | head -20
 
 You should see a JSON response (e.g. with a `models` array).
 
-## 2. Install mini-swe-agent
+## 2. Install dependencies with uv
 
-In a Python environment (virtualenv or system), install the main package and the SWE-bench extra so you get the `mini-extra swebench` command:
-
-```bash
-pip install mini-swe-agent mini-swe-agent-extra
-```
-
-Verify:
+The `mini_swe_agent` directory has a `pyproject.toml` that depends on `mini-swe-agent[full]` (includes the SWE-bench `mini-extra` command). From that directory, sync the environment once:
 
 ```bash
-mini-extra --help
+cd examples/swe_bench_lite/cache_strategy/mini_swe_agent
+uv sync
 ```
 
-You should see usage including the `swebench` subcommand.
+This creates a `.venv` and installs the package. You don’t create or activate a virtualenv yourself; `uv run` (below) will use it.
 
 ## 3. Point mini-SWE-agent at SGLang
 
@@ -66,21 +61,21 @@ If SGLang runs on another machine or port, use that URL instead.
 
 ## 4. Run SWE-bench Lite
 
-The Orla repo includes a script that runs `mini-extra swebench` with our defaults (subset **lite**, split **dev**). From the Orla repo root:
+From the `mini_swe_agent` directory, run the script with **uv** so it uses the project’s `.venv` (where `mini-extra` is installed):
 
 ```bash
-cd examples/swe_bench_lite/cache_strategy/mini_swe_agent
-./run_swebench_lite.sh
+export OLLAMA_HOST=http://localhost:30000
+uv run ./run.bash
 ```
 
-The script passes `--model`, `--subset lite`, `--split dev`, and an output directory. Predictions are written under `./mini_swe_agent_preds` by default. Each instance runs in a Docker container (by default) if your environment supports it.
+The script runs `mini-extra swebench` with our defaults (subset **lite**, split **dev**). Predictions are written under `./mini_swe_agent_preds` by default. Each instance runs in a Docker container (by default) if your environment supports it.
 
 ### Run a small slice first
 
 To test with only a few instances (e.g. first 3):
 
 ```bash
-./run_swebench_lite.sh --slice 0:3
+uv run ./run.bash --slice 0:3
 ```
 
 ### Full test set
@@ -88,17 +83,7 @@ To test with only a few instances (e.g. first 3):
 To run the full 300 test instances:
 
 ```bash
-./run_swebench_lite.sh --split test
-```
-
-### Custom output directory
-
-Override the output directory with `-o` or the `OUTPUT_DIR` env var:
-
-```bash
-./run_swebench_lite.sh -o /path/to/my_preds
-# or
-OUTPUT_DIR=/path/to/my_preds ./run_swebench_lite.sh
+uv run ./run.bash --split test
 ```
 
 ## 5. Model name
@@ -107,7 +92,7 @@ The script uses a default model name that matches what SGLang serves over the Ol
 
 ```bash
 export MINI_SWE_MODEL=ollama/your-model-name
-./run_swebench_lite.sh
+uv run ./run.bash
 ```
 
 The exact name depends on how SGLang exposes the model; check SGLang logs or the `/api/tags` response if needed.
@@ -126,6 +111,6 @@ docker compose -f deploy/docker-compose.sglang.yaml down
 
 Use `down -v` if you want to remove the SGLang model cache volume.
 
----
+## Conclusion
 
-You’ve run mini-SWE-agent on SWE-bench Lite with SGLang from our Docker Compose setup. For the same benchmark using the Orla Go client and the same backend, see [Orla with SWE-bench Lite](orla_swebench_lite.md).
+You’ve run mini-SWE-agent on SWE-bench Lite with SGLang from our Docker Compose setup. For the same benchmark using the Orla Go client and the same backend, see [Orla with SWE-bench Lite](research/orla_swebench_lite.md).
