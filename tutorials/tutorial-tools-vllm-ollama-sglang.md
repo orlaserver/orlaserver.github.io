@@ -33,6 +33,9 @@ Ensure Orla is healthy:
 curl http://localhost:8081/api/v1/health
 ```
 
+> [!NOTE]
+> Tool calling with vLLM only works when the server is started with `--enable-auto-tool-choice` and `--tool-call-parser`. The Orla deploy Compose file [`deploy/docker-compose.vllm.yaml`](https://github.com/dorcha-inc/orla/blob/main/deploy/docker-compose.vllm.yaml) already includes these flags for the default Qwen model using the `hermes` parser. If you use a different model or see errors about tool choice, check [vLLM’s Tool Calling docs](https://docs.vllm.ai/en/latest/features/tool_calling/) for the correct `--tool-call-parser` for your model and update the `command` in the Compose file if needed.
+
 ## 2. Register the backend
 
 Register the backend that matches the stack you started. Use the **service name** as the host when Orla runs in the same Compose (so Orla in its container can reach the backend).
