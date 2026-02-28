@@ -10,7 +10,7 @@ This tutorial shows how to use **tools** with Orla and any of the supported back
 - The [Orla repo](https://github.com/dorcha-inc/orla) cloned.
 - Go 1.25 or later.
 
-Pick one backend and start its stack (see [tutorial: vLLM](tutorial-vllm-lily.md), [Ollama](tutorial-ollama-lily.md), or [SGLang](tutorial-sglang-lily.md) for full setup). Then register that backend with Orla and run the Go program below.
+Pick one backend and start its stack (see [vLLM](tutorials/tutorial-vllm-lily.md), [Ollama](tutorials/tutorial-ollama-lily.md), or [SGLang](tutorials/tutorial-sglang-lily.md) for full setup). Then register that backend with Orla and run the Go program below.
 
 ## 1. Start a backend and Orla
 
