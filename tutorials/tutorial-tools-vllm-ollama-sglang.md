@@ -335,6 +335,22 @@ func main() {
 }
 ```
 
+The output should be something like:
+
+```bash
+<think>
+Okay, the user is asking for the weather in Tokyo in one sentence. Let me check the tools provided. There's a function called get_weather that takes a location parameter. So I need to call that function with Tokyo as the location. I'll make sure to format the tool call correctly within the XML tags. Just need to specify the name as get_weather and arguments with location set to Tokyo. That should do it
+.
+</think>
+
+<think>
+Okay, the user asked for the weather in Tokyo in one sentence. I called the get_weather function with Tokyo as the location. The response came back with conditions "sunny in Tokyo" and temperature 22. Now I need to present this information concisely. Let me check if the
+ temperature is in Celsius or Fahrenheit. Since it's not specified, I'll assume Celsius. The user wants a single sentence, so I'll combine the conditions and temperature into one statement. Maybe something like, "It's sunny in Tokyo with a temperature of 22°C." That should cover both details in one sentence.
+</think>
+
+It's sunny in Tokyo with a temperature of 22°C.
+```
+
 - **ExecuteStreamWithMessages** takes the same `messages` (and tools) as the non-streaming call but returns a channel of events.
 - **ConsumeStream** reads the channel, optionally runs your handler for each event (e.g. print content/thinking), and returns the full **InferenceResponse** when the stream sends **done**. That response includes **ToolCalls**.
 - The rest of the loop is unchanged: append the assistant message and tool-result messages, then call **ExecuteStreamWithMessages** again until the model returns no tool calls.
