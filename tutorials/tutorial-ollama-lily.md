@@ -132,6 +132,14 @@ go run .
 
 You should see the model’s story about Lily printed to the terminal.
 
+```bash
+Lily was a bright and sunny cat with a coat as white as freshly fallen snow and eyes that sparkled like diamonds. She loved nothing more than spending her days lounging in the warm patches of sunlight that streamed through the windows of her cozy little home. But Lily wasn't just a lazy housecat - she had a secret passion for music.
+
+Every morning, while her humans were still asleep, Lily would sneak into the living room and start tapping out a lively rhythm on the piano keys with her paw. She'd listen to classical music, jazz, and even a little bit of rock 'n' roll, but most of all she loved the sound of birdsong outside in the garden. As soon as the first note of "The Birds and the Bees" floated through the air, Lily would leap onto the piano bench, join her paws to the keys, and start playing along with a little mew.
+
+Before long, Lily's music had woken up the whole house, and her humans came running into the living room to find their mischievous cat covered in dust and grinning from ear to ear. They couldn't help but laugh at the sight of Lily, paws waving in time, purring away with pure joy on her face. And so they joined in, clapping along to Lily's impromptu concert, and together they created a lively symphony that filled their little home with laughter and love.
+```
+
 ### Streamed output
 
 To see the story as it is generated, use the agent’s **ExecuteStream** and **ConsumeStream**:
