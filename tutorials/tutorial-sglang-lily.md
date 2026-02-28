@@ -119,8 +119,7 @@ func main() {
 	client := orla.NewOrlaClient("http://localhost:8081")
 	ctx := context.Background()
 
-	// Register the SGLang backend. Use the OpenAI API and /v1 so Orla gets TTFT/TPOT from the stream.
-	// When Orla and SGLang run in Docker Compose, use the service name "sglang".
+	// Register the SGLang backend. When Orla and SGLang run in Docker Compose, use the service name "sglang".
 	backend := orla.NewSGLangBackend("Qwen/Qwen3-8B", "http://sglang:30000/v1")
 	if err := client.RegisterBackend(ctx, backend); err != nil {
 		log.Fatal("register backend: ", err)
@@ -222,7 +221,27 @@ func main() {
 Run with `go run .`. Text appears incrementally; ConsumeStream returns the full InferenceResponse when the stream finishes.
 
 ```bash
+<think>
+Okay, the user wants a short, cheerful story about a cat named Lily. Let me start by thinking about the key elements. The story should be two or three paragraphs, so I need to keep it concise but engaging.
 
+First, I should introduce Lily. Maybe give her some characteristics that make her cheerful. Maybe she's curious or loves adventures. Then, think of a simple plot. Perhaps she does something playful, like chasing a butterfly or exploring the garden. Including some positive interactions with other animals or humans would add to the cheerfulness.
+
+I need to make sure the tone is upbeat. Use vivid descriptions to paint a happy scene. Maybe include some sensory details like the smell of flowers or the sound of birds. Also, think about a small conflict or challenge that Lily overcomes, but keep it light. For example
+, she might help a friend or find something special. Ending on a positive note will keep the story cheerful.
+
+Wait, the user mentioned two or three paragraphs. Let me outline: first paragraph introduces Lily and her environment. Second paragraph
+ could be her adventure or interaction. Third paragraph might be the resolution or a happy ending. But maybe two paragraphs are enough if I combine some elements. Let me check the example response they provided earlier. Oh, right, the example had two paragraphs. So maybe stick to that structure.
+
+Also, ensure the name Lily is prominent. Maybe give her some unique traits, like a favorite toy or a special ability. Avoid making it too complex. Keep the language simple and warm. Use words that evoke happiness, like "sunlight," "laughter," "paws," "butterflies." Maybe include a friendly animal friend to add depth. Alright, let me start drafting.
+</think>
+
+Lily the cat lived in a sunlit cottage where the windows always seemed to wink at her. Her fur was the color of honey, and her tail twitched with curiosity as she prowled the garden, chasing fireflies at dusk. Every morning, she’d leap onto the porch swing, purring as the breeze tousled her ears, and greet the day with a yowl that sounded more like a cheerful song than a cat’s call. The neighbors often
+ smiled at her antics, especially when she’d sneak up behind the mailman and nudge his hat with her nose, leaving him laughing despite himself.  
+
+One sunny afternoon, Lily discovered a hidden patch of wildflowers behind the fence, their colors brighter than any garden she’d seen. She brought her favorite feather toy, twirling it through the
+
+[TTFT: 26 ms, TPOT: 11 ms]
+```
 
 ## 4. Stop the stack
 
