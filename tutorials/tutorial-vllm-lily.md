@@ -242,6 +242,32 @@ func main() {
 
 Run with `go run .`. Text appears incrementally; `ConsumeStream` returns the full `InferenceResponse` (including metrics) when the stream finishes.
 
+The output should look like:
+
+
+```bash
+<think>
+Okay, the user wants a short, cheerful story about a cat named Lily. Let me start by thinking about the key elements. The story needs to be upbeat and positive, so I should focus on happy events. Maybe Lily is adventurous or has a friendly personality. Two or three paragraphs is enough, so I need to keep it concise.
+
+First paragraph: Introduce Lily and her characteristics. Maybe she's curious and loves exploring. Maybe she lives in a cozy place, like
+ a cottage with a garden. That sets a warm scene. Then, perhaps she discovers something new, like a hidden path or a garden. Adding some sensory details would make it vivid—like the scent of flowers or the sound of birds.
+
+Second paragraph: The adventure. Maybe she meets another animal, like a butterfly or a squirrel. They have a friendly interaction. The butterfly could be a magical element, like a guardian of the garden. This adds a touch of whimsy. Lily's actions show her kindness and curiosity. Maybe she helps the butterfly, leading to a positive outcome.
+
+Third paragraph: The resolution. The butterfly leads her to a special place, like a hidden grove with a magical tree. This gives a sense of wonder. The tree could have glowing leaves or something magical, reinforcing the cheerful tone. End with Lily feeling happy and content, maybe with a hint of ongoing adventure. Make sure the language is simple and flows well, keeping each paragraph focused on a different part of the story.
+
+Check for any negative elements and ensure the story stays positive. Avoid complex sentences. Use active verbs to keep it lively. Maybe
+ include some dialogue if it fits naturally, but since it's a short story, maybe not necessary. Make sure the name Lily is mentioned and the story has a satisfying, warm ending.
+</think>
+
+Lily was a curious tabby with a coat like caramel swirls and eyes that sparkled like sunlight through leaves. She lived in a cozy cottage surrounded by a wildflower meadow, where she spent her days chasing butterflies and napping in the sun. One bright morning, she spotted a shimmering path hidden behind a tangle of bushes, leading to a forest she’d never explored. Heart racing, she padded forward, her
+ tail flicking with excitement, ready for adventure.  
+
+As she ventured deeper, Lily met a fluffy white rabbit named Pippin, who was gathering berries. They became instant friends, sharing stories and giggling at the antics of a mischievous squirrel. Together, they discovered a secret garden where flowers gl
+
+[TTFT: 30 ms, TPOT: 13 ms]
+```
+
 ## 4. Stop the stack
 
 When you’re done:
