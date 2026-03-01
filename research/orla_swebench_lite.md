@@ -21,11 +21,11 @@ From the **Orla repo root**:
 docker compose -f deploy/docker-compose.swebench-lite.yaml up -d
 ```
 
-This starts SGLang (GPU), then Orla (after SGLang is healthy). The run image includes the dataset and experiment binaries; the baseline discovers all instances under `/dataset` and runs them sequentially. The run service does not start until you run it manually (see step 2).
+This starts SGLang (GPU), then Orla (after SGLang is healthy). The run image includes the dataset and experiment binaries; the baseline loads instances from `/dataset/test` and runs them sequentially. The run service does not start until you run it manually (see step 2).
 
 ## 2. Run the full SWE-bench Lite benchmark
 
-Create the output directory and run the baseline once. It will process every instance in the dataset (dev + test) in order:
+Create the output directory and run the baseline once. It will process every instance in the test set (`/dataset/test`) in order:
 
 ```bash
 mkdir -p deploy/output
@@ -51,18 +51,18 @@ Each instance is a single JSON object with at least:
 - **`base_commit`** – Git commit the agent should work from.
 - **`problem_statement`** – The issue description (what to fix).
 
-The image includes the dataset from `examples/swe_bench_lite/dataset/` (see [princeton-nlp/SWE-bench_Lite](https://huggingface.co/datasets/princeton-nlp/SWE-bench_Lite)).
+The image includes the dataset as `dataset.zip` (unzipped at build time to `/dataset`). The baseline runs instances from `/dataset/test`. Source: [princeton-nlp/SWE-bench_Lite](https://huggingface.co/datasets/princeton-nlp/SWE-bench_Lite).
 
 Predictions are one JSON object per line (instance_id, model_name_or_path, model_patch). You can run the [SWE-bench evaluation harness](https://www.swebench.com/SWE-bench/guides/evaluation/) against the output file.
 
 ## How the baseline works
 
-The baseline experiment lives in `examples/swe_bench_lite/baseline/` (package baseline) and is invoked via `cmd/baseline` or `make baseline`:
+The baseline lives in `examples/swe_bench_lite/baseline/` and uses shared helpers from `shared/`; it is invoked via `cmd/baseline` or `make baseline`:
 
-1. **Discovers instances**: walks `/dataset` (e.g. `dataset/dev/` and `dataset/test/`) for all `*.json` files and runs them in sorted order.
+1. **Loads instances**: reads all instance JSONs from `/dataset/test` (using `os.OpenRoot` in the shared package) and runs them in sorted order.
 2. **Registers** the SGLang backend with the Orla daemon (OpenAI-compatible API at `http://sglang:30000/v1`). SGLang must be started with `--tool-call-parser qwen` (the deploy compose includes it).
 3. **Adds a single tool**, `run_bash`, that runs one bash command in the current instance’s workdir (`/workdir/<instance_id>`) and returns stdout, stderr, and exit code.
-4. **For each instance**: ensures the repo is cloned and at `base_commit`, builds a user message from the problem statement, runs a ReAct-style loop (`ExecuteWithMessages` and `RunToolCallsInResponse`) until the model stops or the step limit is reached, then writes one prediction line (the **git diff** of the workdir) to `predictions.jsonl`.
+4. **For each instance**: prepares the workdir (clone repo and checkout `base_commit` via shared), builds the initial message from the problem statement, runs a ReAct-style loop (`ExecuteWithMessages` and `RunToolCallsInResponse`) until the model stops or the step limit is reached, then writes one prediction line (the **git diff** of the workdir) to `predictions.jsonl`.
 
 No per-run arguments: the full SWE-bench Lite benchmark runs in one container invocation. This is the same pattern as [Using Tools with Orla](tutorials/tutorial-tools-vllm-ollama-sglang.md): **ExecuteWithMessages** and **RunToolCallsInResponse** implement the ReAct loop.
 
