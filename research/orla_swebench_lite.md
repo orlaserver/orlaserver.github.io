@@ -21,17 +21,17 @@ From the **Orla repo root**, create the output directory and start the stack wit
 
 ```bash
 mkdir -p deploy/output
-docker compose -f deploy/docker-compose.swebench-lite.yaml up run
+docker compose -f deploy/docker-compose.swebench-lite.yaml up
 ```
 
 **Two-stage mapping** (router on heavy model, then light or heavy model per instance):
 
 ```bash
 mkdir -p deploy/output
-RUN_TARGET=two_stage_mapping docker compose -f deploy/docker-compose.swebench-lite.yaml up run
+RUN_TARGET=two_stage_mapping docker compose -f deploy/docker-compose.swebench-lite.yaml up
 ```
 
-Predictions are written to **`deploy/output/predictions.jsonl`** and timing metrics to **`deploy/output/metrics.json`** (set `METRICS_PATH` to use a different path). To run an experiment again without bringing the stack up first, use `docker compose run --rm run baseline` or `docker compose run --rm run two_stage_mapping` (with the stack already running via `up -d`).
+This starts all services (SGLang, Orla, and the experiment runner) and attaches to their logs in the foreground. Predictions are written to **`deploy/output/predictions.jsonl`** and timing metrics to **`deploy/output/metrics.json`** (set `METRICS_PATH` to use a different path). To run an experiment again without bringing the stack up first, use `docker compose run --rm run baseline` or `docker compose run --rm run two_stage_mapping` (with the stack already running via `up -d`).
 
 ## 2. Stop the stack
 
