@@ -1,6 +1,6 @@
-# Tutorial: Running Orla with SWE-bench Lite
+# Tutorial: Experiment with Orla Stage Mapping with SWE-bench Lite
 
-This tutorial runs the [Orla](https://github.com/dorcha-inc/orla) SWE-bench Lite baseline in Docker: one **run_bash** tool and a ReAct-style agent loop against [SWE-bench Lite](https://www.swebench.com/lite.html) instances.
+This tutorial is for anyone who wants to research, reproduce, extend, or test Orla’s stage mapping functionality. It runs [Orla](https://github.com/dorcha-inc/orla) SWE-bench Lite experiments in Docker: one **run_bash** tool and a ReAct-style agent loop against [SWE-bench Lite](https://www.swebench.com/lite.html) instances. Two experiments are available: **baseline** (single model) and **two_stage_mapping** (router + light/heavy model by task complexity).
 
 ## What you need
 
@@ -21,18 +21,26 @@ From the **Orla repo root**:
 docker compose -f deploy/docker-compose.swebench-lite.yaml up -d
 ```
 
-This starts SGLang (GPU), then Orla (after SGLang is healthy). The run image includes the dataset and experiment binaries; the baseline loads instances from `/dataset/test` and runs them sequentially. The run service does not start until you run it manually (see step 2).
+This starts two SGLang services (heavy and light model on GPU), then Orla (after both are healthy). The run image includes the dataset and experiment binaries; experiments load instances from `/dataset/test` and run them sequentially. The run service does not start until you run it manually (see step 2).
 
-## 2. Run the full SWE-bench Lite benchmark
+## 2. Run an experiment
 
-Create the output directory and run the baseline once. It will process every instance in the test set (`/dataset/test`) in order:
+Create the output directory, then run either the baseline or the two-stage mapping experiment.
+
+**Baseline** (single model, Qwen3-8B):
 
 ```bash
 mkdir -p deploy/output
 docker compose -f deploy/docker-compose.swebench-lite.yaml run --rm run baseline
 ```
 
-Predictions are appended to **`deploy/output/predictions.jsonl`** (one JSON object per line per instance).
+**Two-stage mapping** (router on heavy model, then light or heavy model per instance):
+
+```bash
+docker compose -f deploy/docker-compose.swebench-lite.yaml run --rm run two_stage_mapping
+```
+
+Predictions are appended to **`deploy/output/predictions.jsonl`** (one JSON object per line per instance). Timing metrics (end-to-end, per-instance, per-step) are written to **`deploy/output/metrics.json`** (overwritten each run; set `METRICS_PATH` to use a different path or keep separate files per experiment).
 
 ## 3. Stop the stack
 
@@ -55,17 +63,24 @@ The image includes the dataset as `dataset.zip` (unzipped at build time to `/dat
 
 Predictions are one JSON object per line (instance_id, model_name_or_path, model_patch). You can run the [SWE-bench evaluation harness](https://www.swebench.com/SWE-bench/guides/evaluation/) against the output file.
 
-## How the baseline works
+## How the experiments work
 
-The baseline lives in `examples/swe_bench_lite/baseline/` and uses shared helpers from `shared/`; it is invoked via `cmd/baseline` or `make baseline`:
+Both experiments live under `examples/swe_bench_lite/` and use shared helpers from `shared/` (including metrics recording). They are invoked via `make baseline` or `make two_stage_mapping` (or the same targets as the container command).
 
-1. **Loads instances**: reads all instance JSONs from `/dataset/test` (using `os.OpenRoot` in the shared package) and runs them in sorted order.
-2. **Registers** the SGLang backend with the Orla daemon (OpenAI-compatible API at `http://sglang:30000/v1`). SGLang must be started with `--tool-call-parser qwen` (the deploy compose includes it).
-3. **Adds a single tool**, `run_bash`, that runs one bash command in the current instance’s workdir (`/workdir/<instance_id>`) and returns stdout, stderr, and exit code.
-4. **For each instance**: prepares the workdir (clone repo and checkout `base_commit` via shared), builds the initial message from the problem statement, runs a ReAct-style loop (`ExecuteWithMessages` and `RunToolCallsInResponse`) until the model stops or the step limit is reached, then writes one prediction line (the **git diff** of the workdir) to `predictions.jsonl`.
+**Baseline** (`baseline/`, `cmd/baseline`):
 
-No per-run arguments: the full SWE-bench Lite benchmark runs in one container invocation. This is the same pattern as [Using Tools with Orla](tutorials/tutorial-tools-vllm-ollama-sglang.md): **ExecuteWithMessages** and **RunToolCallsInResponse** implement the ReAct loop.
+1. **Loads instances** from `/dataset/test` (sorted order).
+2. **Registers** one SGLang backend (Qwen3-8B at `http://sglang:30000/v1`) with the Orla daemon. SGLang must use `--tool-call-parser qwen` (the deploy compose includes it).
+3. **Adds** the `run_bash` tool (runs one bash command in the instance workdir `/workdir/<instance_id>`).
+4. **For each instance**: prepares the workdir, runs a ReAct loop (`ExecuteWithMessages` and `RunToolCallsInResponse`) until the model stops or the step limit, then appends one prediction (git diff) to `predictions.jsonl`. Writes **metrics** (end-to-end, per-instance, per-step times) to `metrics.json`.
 
-## Conclusion 
+**Two-stage mapping** (`two_stage_mapping/`, `cmd/two_stage_mapping`):
 
-You’ve run the Orla SWE-bench Lite baseline with SGLang and one bash tool. For tool-calling basics, see [Using Tools with Orla](tutorials/tutorial-tools-vllm-ollama-sglang.md). For a minimal SGLang-only run, see [Using Orla with SGLang](tutorials/tutorial-sglang-lily.md).
+1. **Registers** two SGLang backends: heavy (Qwen3-8B) and light (Qwen3-4B).
+2. **For each instance**: runs a **router** (heavy model) to classify the task as light or heavy, then runs the same ReAct loop as the baseline using the **light** or **heavy** model accordingly. Appends predictions to `predictions.jsonl` (model_name_or_path `orla-two-stage`) and writes metrics to `metrics.json`.
+
+No per-run arguments: each experiment runs in one container invocation. This matches [Using Tools with Orla](tutorials/tutorial-tools-vllm-ollama-sglang.md): **ExecuteWithMessages** and **RunToolCallsInResponse** implement the ReAct loop.
+
+## Conclusion
+
+You’ve run the Orla SWE-bench Lite experiments (baseline and/or two-stage mapping) with SGLang and one bash tool. For tool-calling basics, see [Using Tools with Orla](tutorials/tutorial-tools-vllm-ollama-sglang.md). For a minimal SGLang-only run, see [Using Orla with SGLang](tutorials/tutorial-sglang-lily.md).
