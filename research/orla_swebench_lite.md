@@ -13,36 +13,27 @@ This tutorial is for anyone who wants to research, reproduce, extend, or test Or
 [SWE-bench Lite](https://www.swebench.com/lite.html) is a curated benchmark of 300 test instances (plus 23 dev instances) from real GitHub issues. Each instance has a **problem statement**, a **repository**, and a **base commit**. The agent’s job is to produce a patch that fixes the issue. The baseline uses a single **run_bash** tool: the model runs commands (e.g. explore the repo, edit files, run tests), and the results are appended until the model stops or hits a step limit.
 
 
-## 1. Start the stack
+## 1. Start the stack and run an experiment
 
-From the **Orla repo root**:
-
-```bash
-docker compose -f deploy/docker-compose.swebench-lite.yaml up -d
-```
-
-This starts two SGLang services (heavy and light model on GPU), then Orla (after both are healthy). The run image includes the dataset and experiment binaries; experiments load instances from `/dataset/test` and run them sequentially. The run service does not start until you run it manually (see step 2).
-
-## 2. Run an experiment
-
-Create the output directory, then run either the baseline or the two-stage mapping experiment.
+From the **Orla repo root**, create the output directory and start the stack with the experiment you want. Compose will start the SGLang services (heavy and light model) and Orla, then run the experiment.
 
 **Baseline** (single model, Qwen3-8B):
 
 ```bash
 mkdir -p deploy/output
-docker compose -f deploy/docker-compose.swebench-lite.yaml run --rm run baseline
+docker compose -f deploy/docker-compose.swebench-lite.yaml up run
 ```
 
 **Two-stage mapping** (router on heavy model, then light or heavy model per instance):
 
 ```bash
-docker compose -f deploy/docker-compose.swebench-lite.yaml run --rm run two_stage_mapping
+mkdir -p deploy/output
+RUN_TARGET=two_stage_mapping docker compose -f deploy/docker-compose.swebench-lite.yaml up run
 ```
 
-Predictions are appended to **`deploy/output/predictions.jsonl`** (one JSON object per line per instance). Timing metrics (end-to-end, per-instance, per-step) are written to **`deploy/output/metrics.json`** (overwritten each run; set `METRICS_PATH` to use a different path or keep separate files per experiment).
+Predictions are written to **`deploy/output/predictions.jsonl`** and timing metrics to **`deploy/output/metrics.json`** (set `METRICS_PATH` to use a different path). To run an experiment again without bringing the stack up first, use `docker compose run --rm run baseline` or `docker compose run --rm run two_stage_mapping` (with the stack already running via `up -d`).
 
-## 3. Stop the stack
+## 2. Stop the stack
 
 ```bash
 docker compose -f deploy/docker-compose.swebench-lite.yaml down
