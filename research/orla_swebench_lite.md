@@ -21,7 +21,7 @@ From the **Orla repo root**:
 docker compose -f deploy/docker-compose.swebench-lite.yaml up -d
 ```
 
-This starts SGLang (GPU), then Orla (after SGLang is healthy). The baseline image includes the dataset, Go, and git; the baseline discovers all instances under `/dataset` and runs them sequentially. The baseline service does not run until you run it manually (see step 2).
+This starts SGLang (GPU), then Orla (after SGLang is healthy). The run image includes the dataset and experiment binaries; the baseline discovers all instances under `/dataset` and runs them sequentially. The run service does not start until you run it manually (see step 2).
 
 ## 2. Run the full SWE-bench Lite benchmark
 
@@ -51,7 +51,7 @@ Each instance is a single JSON object with at least:
 - **`base_commit`** – Git commit the agent should work from.
 - **`problem_statement`** – The issue description (what to fix).
 
-The baseline image includes the dataset from `examples/swe_bench_lite/dataset/` (populated via `fetch_dataset.py` from [princeton-nlp/SWE-bench_Lite](https://huggingface.co/datasets/princeton-nlp/SWE-bench_Lite)).
+The image includes the dataset from `examples/swe_bench_lite/dataset/` (see [princeton-nlp/SWE-bench_Lite](https://huggingface.co/datasets/princeton-nlp/SWE-bench_Lite)).
 
 Predictions are one JSON object per line (instance_id, model_name_or_path, model_patch). You can run the [SWE-bench evaluation harness](https://www.swebench.com/SWE-bench/guides/evaluation/) against the output file.
 
