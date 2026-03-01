@@ -13,9 +13,19 @@ This tutorial is for anyone who wants to research, reproduce, extend, or test Or
 [SWE-bench Lite](https://www.swebench.com/lite.html) is a curated benchmark of 300 test instances (plus 23 dev instances) from real GitHub issues. Each instance has a **problem statement**, a **repository**, and a **base commit**. The agent’s job is to produce a patch that fixes the issue. The baseline uses a single **run_bash** tool: the model runs commands (e.g. explore the repo, edit files, run tests), and the results are appended until the model stops or hits a step limit.
 
 
-## 1. Start the stack and run an experiment
+## 1. Build the images (first time or after code changes)
 
-From the **Orla repo root**, create the output directory and start the stack with the experiment you want. Compose will start the SGLang services (heavy and light model) and Orla, then run the experiment.
+From the **Orla repo root**, build the Orla and experiment-runner images used by the compose file:
+
+```bash
+docker compose -f deploy/docker-compose.swebench-lite.yaml build
+```
+
+SGLang services use the pre-built `lmsysorg/sglang:latest` image and do not need to be built.
+
+## 2. Start the stack and run an experiment
+
+Create the output directory and start the stack with the experiment you want. Compose will start the SGLang services (heavy and light model) and Orla, then run the experiment.
 
 **Baseline** (single model, Qwen3-8B):
 
@@ -31,9 +41,33 @@ mkdir -p deploy/output
 RUN_TARGET=two_stage_mapping docker compose -f deploy/docker-compose.swebench-lite.yaml up
 ```
 
-This starts all services (SGLang, Orla, and the experiment runner) and attaches to their logs in the foreground. Predictions are written to **`deploy/output/predictions.jsonl`** and timing metrics to **`deploy/output/metrics.json`** (set `METRICS_PATH` to use a different path). To run an experiment again without bringing the stack up first, use `docker compose run --rm run baseline` or `docker compose run --rm run two_stage_mapping` (with the stack already running via `up -d`).
+If the run container already exists (e.g. you ran baseline before), add `--force-recreate` so it picks up the new `RUN_TARGET`: 
 
-## 2. Stop the stack
+```bash
+RUN_TARGET=two_stage_mapping docker compose -f deploy/docker-compose.swebench-lite.yaml up --force-recreate
+```
+
+With `sudo`, use: 
+
+```bash
+sudo env RUN_TARGET=two_stage_mapping docker compose -f deploy/docker-compose.swebench-lite.yaml up --force-recreate
+```
+
+This starts all services (SGLang, Orla, and the experiment runner) and attaches to their logs in the foreground. Predictions are written to **`deploy/output/predictions.jsonl`** and timing metrics to **`deploy/output/metrics.json`** (set `METRICS_PATH` to use a different path). 
+
+To run an experiment again without bringing the stack up first (with the stack already running via `up -d`), use 
+
+```bash
+docker compose run --rm -e RUN_TARGET=baseline run
+```
+
+or 
+
+```bash
+docker compose run --rm -e RUN_TARGET=two_stage_mapping run
+```
+
+## 3. Stop the stack
 
 ```bash
 docker compose -f deploy/docker-compose.swebench-lite.yaml down
