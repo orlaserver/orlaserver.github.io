@@ -125,8 +125,10 @@ func main() {
 		log.Fatal("register backend: ", err)
 	}
 
-	agent := orla.NewAgent(client, backend)
-	agent.SetMaxTokens(512)
+	agent := orla.NewAgent(client)
+	stage := orla.NewAgentStage("story_telling", backend)
+	stage.SetMaxTokens(512)
+	agent.SetStage(stage)
 
 	prompt := "Tell me a short, cheerful story about a cat called Lily. Two or three paragraphs is enough."
 	resp, err := agent.Execute(ctx, prompt)
@@ -190,8 +192,10 @@ func main() {
 		log.Fatal("register backend: ", err)
 	}
 
-	agent := orla.NewAgent(client, backend)
-	agent.SetMaxTokens(512)
+	agent := orla.NewAgent(client)
+	stage := orla.NewAgentStage("story_telling", backend)
+	stage.SetMaxTokens(512)
+	agent.SetStage(stage)
 
 	prompt := "Tell me a short, cheerful story about a cat called Lily. Two or three paragraphs is enough."
 	stream, err := agent.ExecuteStream(ctx, prompt)

@@ -106,7 +106,7 @@ if err != nil {
 
 ## 4. Agent loop with tools
 
-Create an agent, attach the tool, and run a loop: send messages (including tool-result messages), and stop when the model returns no tool calls.
+Create an agent and a stage (with your backend), add the tool to the stage, set the stage on the agent, and run a loop: send messages (including tool-result messages), and stop when the model returns no tool calls.
 
 ```go
 package main
@@ -129,10 +129,11 @@ func main() {
         log.Fatal("register backend: ", err)
     }
 
-    agent := orla.NewAgent(client, backend)
-    agent.SetMaxTokens(512)
+    agent := orla.NewAgent(client)
+    stage := orla.NewAgentStage("weather_reporting", backend)
+    stage.SetMaxTokens(512)
 
-    // Define and add the tool
+    // Define and add the tool to the stage
     tool, err := orla.NewTool(
         "get_weather",
         "Get the current weather for a location.",
@@ -164,9 +165,10 @@ func main() {
     if err != nil {
         log.Fatal(err)
     }
-    if err := agent.AddTool(tool); err != nil {
+    if err := stage.AddTool(tool); err != nil {
         log.Fatal(err)
     }
+    agent.SetStage(stage)
 
     // Conversation: start with one user message
     prompt := "What's the weather in Paris? Reply in one sentence."
@@ -208,7 +210,7 @@ Okay, the user asked for the weather in Paris, and I called the get_weather func
 The weather in Paris is sunny with a temperature of 22°C.
 ```
 
-- **ExecuteWithMessages** sends the current `messages` and the agent’s tools to the backend. The model may return text and/or **tool_calls**.
+- **ExecuteWithMessages** sends the current `messages` and the current stage’s tools to the backend. The model may return text and/or **tool_calls**.
 - **RunToolCallsInResponse** parses `resp.ToolCalls`, runs each tool by name (using your `Run`), and returns the corresponding **tool-result messages** (role `"tool"`, content, tool_call_id, tool_name).
 - You append the assistant message (the model’s content) and those tool messages, then call **ExecuteWithMessages** again. The loop ends when the model responds with no tool calls.
 
@@ -238,8 +240,9 @@ func main() {
         log.Fatal("register backend: ", err)
     }
 
-    agent := orla.NewAgent(client, backend)
-    agent.SetMaxTokens(512)
+    agent := orla.NewAgent(client)
+    stage := orla.NewAgentStage("story_telling", backend)
+    stage.SetMaxTokens(512)
 
     tool, err := orla.NewTool(
         "get_weather",
@@ -272,9 +275,10 @@ func main() {
     if err != nil {
         log.Fatal(err)
     }
-    if err := agent.AddTool(tool); err != nil {
+    if err := stage.AddTool(tool); err != nil {
         log.Fatal(err)
     }
+    agent.SetStage(stage)
 
     prompt := "What's the weather in Tokyo? One sentence."
     messages := []orla.Message{{Role: "user", Content: prompt}}
@@ -332,7 +336,7 @@ Okay, the user asked for the weather in Tokyo in one sentence. I called the get_
 It's sunny in Tokyo with a temperature of 22°C.
 ```
 
-- **ExecuteStreamWithMessages** takes the same `messages` (and tools) as the non-streaming call but returns a channel of events.
+- **ExecuteStreamWithMessages** takes the same `messages` (and the current stage’s tools) as the non-streaming call but returns a channel of events.
 - **ConsumeStream** reads the channel, optionally runs your handler for each event (e.g. print content/thinking), and returns the full **InferenceResponse** when the stream sends **done**. That response includes **ToolCalls**.
 - The rest of the loop is unchanged: append the assistant message and tool-result messages, then call **ExecuteStreamWithMessages** again until the model returns no tool calls.
 
