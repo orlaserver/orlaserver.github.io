@@ -135,4 +135,4 @@ The hypothesis is that SJF scheduling reduces **average instance completion time
 
 ## Conclusion
 
-You’ve run the Orla SWE-bench Lite experiments (baseline, two-stage mapping, and/or complexity scheduling) with SGLang using the text-based agent loop. For tool-calling with Orla, see [Using Tools with Orla](tutorials/tutorial-tools-vllm-ollama-sglang.md). For a multi-agent workflow demo, see [Multi-Agent Workflow](tutorials/tutorial-workflow-customer-support.md). For a minimal SGLang-only run, see [Using Orla with SGLang](tutorials/tutorial-sglang-lily.md).
+You’ve run the Orla SWE-bench Lite experiments (baseline, two-stage mapping, and/or complexity scheduling) with SGLang using the text-based agent loop. For tool-calling with Orla, see [Using Tools with Orla](tutorials/tutorial-tools-vllm-ollama-sglang.md). For a multi-agent workflow demo, see [Multi-Agent Workflow (Customer Support)](research/orla_workflow_customer_support.md). For a minimal SGLang-only run, see [Using Orla with SGLang](tutorials/tutorial-sglang-lily.md).

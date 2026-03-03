@@ -1,4 +1,4 @@
-# Tutorial: Multi-Agent Workflow with Orla
+# Multi-Agent Workflow with Orla
 
 This tutorial runs a multi-agent workflow using [Orla](https://github.com/dorcha-inc/orla) and two [SGLang](https://sgl-project.github.io/) backends. The workflow processes a customer support ticket through a four-stage pipeline spanning two agents: a triage agent (light model) classifies and prioritizes the ticket, then a resolver agent (heavy model) drafts a reply and checks it for quality. This demonstrates Orla's full abstraction stack: Workflow, Agent, Stage DAG, Stage Mapping, Scheduling, and Context Passing.
 
@@ -214,4 +214,4 @@ The resolver agent then runs on the heavy backend. The `draft_response` stage ge
 
 On the server side, each backend maintains per-stage request queues. The triage agent's stages use FCFS scheduling, which is sufficient for lightweight classification. The resolver agent's stages use Priority scheduling with hints, so when multiple tickets are competing for the heavy backend simultaneously, higher-priority tickets (e.g. critical billing issues) are served before lower-priority ones.
 
-For more on Orla's scheduling and stage routing, see [Using Tools with Orla](tutorial-tools-vllm-ollama-sglang.md). For the SWE-bench experiment that uses Priority scheduling with score prediction, see [Orla SWE-bench Lite](../research/orla_swebench_lite.md).
+For more on Orla's scheduling and stage routing, see [Using Tools with Orla](tutorials/tutorial-tools-vllm-ollama-sglang.md). For the SWE-bench experiment that uses Priority scheduling with score prediction, see [Orla SWE-bench Lite](orla_swebench_lite.md).
