@@ -11,5 +11,5 @@
   * [Using Orla with SGLang](tutorials/tutorial-sglang-lily.md)
   * [Using Tools with Orla](tutorials/tutorial-tools-vllm-ollama-sglang.md)
 * Research Tutorials
-  * [Orla Stage Mapping with SWE-bench Lite](research/orla_swebench_lite.md)
+  * [Single-Shot SWE-bench Lite Experiments](research/orla_swebench_lite.md)
   * [Multi-Agent Workflow (Customer Support)](research/orla_workflow_customer_support.md)

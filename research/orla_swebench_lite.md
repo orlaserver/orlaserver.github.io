@@ -1,87 +1,105 @@
-# Tutorial: Experiment with Orla Stage Mapping with SWE-bench Lite
+# Tutorial: Single-Shot SWE-bench Lite Experiments
 
-This tutorial is for anyone who wants to research, reproduce, extend, or test Orla’s stage mapping and scheduling functionality. It runs [Orla](https://github.com/dorcha-inc/orla) SWE-bench Lite experiments in Docker: a **text-based** ReAct loop (model outputs THOUGHT + bash code blocks; we parse and execute) against [SWE-bench Lite](https://www.swebench.com/lite.html) instances. Three experiments are available:
+This tutorial runs [Orla](https://github.com/dorcha-inc/orla) single-shot SWE-bench Lite experiments in Docker. Each of the 300 [SWE-bench Lite](https://www.swebench.com/lite.html) instances gets **one inference call** containing the problem statement and oracle-provided source files. All instances are submitted **concurrently**, stressing Orla's server-side scheduling. Three experiment modes are available:
 
-- **baseline** — single model (Qwen3-8B).
-- **two_stage_mapping** — router on light model, then light or heavy model per instance; light and heavy backends run **concurrently**.
-- **two_stage_mapping_complexity_sched** — same routing as above, plus **complexity-aware scheduling** on the heavy backend: a `ScorePredictor` estimates task complexity (1–5), and the heavy queue is sorted simplest-first (Shortest Job First) using Orla’s Priority scheduling.
+- **baseline** — all instances go to a single heavy model (Qwen3-8B), FCFS scheduling, submitted concurrently.
+- **stage_mapping** — `OneBitStageMapper` routes each instance to a light model (Qwen3-4B) or the heavy model, FCFS scheduling per backend, concurrent submission.
+- **sjf** — same routing as stage_mapping, plus **Shortest Job First** priority scheduling on the heavy backend: shorter prompts (by character count) are scheduled first, since prompt length correlates with prefill time and likely output length. No predictor LLM call is needed.
 
 ## What you need
 
 - **Docker and Docker Compose** (Compose V2).
-- **NVIDIA GPU** and [NVIDIA Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/install-guide.html) for SGLang.
+- **NVIDIA GPU** and [NVIDIA Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/install-guide.html) for SGLang or vLLM.
 - **Orla repo** cloned so you can run from the repo root.
 
 ## What is SWE-bench Lite?
 
-[SWE-bench Lite](https://www.swebench.com/lite.html) is a curated benchmark of 300 test instances (plus 23 dev instances) from real GitHub issues. Each instance has a **problem statement**, a **repository**, and a **base commit**. The agent’s job is to produce a patch that fixes the issue. The agent uses a **text-based** loop (no tool-calling API): the model outputs a THOUGHT and a single bash command in a code block; we parse it, run it in the instance workdir, and feed the output back. This repeats until the model stops or hits the step limit.
+[SWE-bench Lite](https://www.swebench.com/lite.html) is a curated benchmark of 300 test instances from real GitHub issues. Each instance has a **problem statement**, a **repository**, and a **base commit**. The task is to produce a unified diff patch that fixes the issue.
 
+In our single-shot design, we provide the model with **oracle context**: the source files that the gold patch modifies, read from the repository at the base commit. The model must produce a correct unified diff in a single response.
 
 ## 1. Build the images (first time or after code changes)
 
-From the **Orla repo root**, build the Orla and experiment-runner images used by the compose file:
+From the **Orla repo root**, build the Orla and experiment-runner images:
+
+**SGLang** (default):
 
 ```bash
 docker compose -f deploy/docker-compose.swebench-lite.yaml build
 ```
 
-SGLang services use the pre-built `lmsysorg/sglang:latest` image and do not need to be built.
+**vLLM**:
+
+```bash
+docker compose -f deploy/docker-compose.swebench-lite.vllm.yaml build
+```
 
 ## 2. Start the stack and run an experiment
 
-Create the output directory and start the stack with the experiment you want. Compose will start the SGLang services (heavy and light model) and Orla, then run the experiment.
+Create the output directory and start the stack with the experiment you want. Use `docker-compose.swebench-lite.yaml` for **SGLang** or `docker-compose.swebench-lite.vllm.yaml` for **vLLM**.
 
-**Baseline** (single model, Qwen3-8B):
+### SGLang
 
-```bash
-mkdir -p deploy/output
-docker compose -f deploy/docker-compose.swebench-lite.yaml up
-```
-
-**Two-stage mapping** (router on light model, then light or heavy model per instance; light and heavy run in parallel):
+**Baseline** (single heavy model, FCFS):
 
 ```bash
 mkdir -p deploy/output
-RUN_TARGET=two_stage_mapping docker compose -f deploy/docker-compose.swebench-lite.yaml up
+RUN_TARGET=single_shot_baseline docker compose -f deploy/docker-compose.swebench-lite.yaml up
 ```
 
-**Two-stage mapping with complexity scheduling** (same routing + SJF scheduling on heavy backend):
+**Stage mapping** (router on light model, FCFS per backend):
 
 ```bash
 mkdir -p deploy/output
-RUN_TARGET=two_stage_mapping_complexity_sched docker compose -f deploy/docker-compose.swebench-lite.yaml up
+RUN_TARGET=single_shot_stage_mapping docker compose -f deploy/docker-compose.swebench-lite.yaml up
 ```
 
-If the run container already exists (e.g. you ran baseline before), add `--force-recreate` so it picks up the new `RUN_TARGET`: 
+**SJF** (stage mapping + shortest-job-first on heavy):
 
 ```bash
-RUN_TARGET=two_stage_mapping docker compose -f deploy/docker-compose.swebench-lite.yaml up --force-recreate
+mkdir -p deploy/output
+RUN_TARGET=single_shot_sjf docker compose -f deploy/docker-compose.swebench-lite.yaml up
 ```
 
-With `sudo`, use: 
+### vLLM
+
+The same experiments work with vLLM. Use `docker-compose.swebench-lite.vllm.yaml` instead; the vLLM compose sets `BACKEND_PROVIDER=vllm` and the backend URLs automatically.
+
+**Baseline**:
 
 ```bash
-sudo env RUN_TARGET=two_stage_mapping docker compose -f deploy/docker-compose.swebench-lite.yaml up --force-recreate
+mkdir -p deploy/output
+RUN_TARGET=single_shot_baseline docker compose -f deploy/docker-compose.swebench-lite.vllm.yaml up
 ```
 
-This starts all services (SGLang, Orla, and the experiment runner) and attaches to their logs in the foreground. Predictions are written to **`deploy/output/predictions.jsonl`** and metrics (timing and token counts per instance/step) to **`deploy/output/metrics.json`** (set `METRICS_PATH` to use a different path). 
-
-To run an experiment again without bringing the stack up first (with the stack already running via `up -d`), use 
+**Stage mapping**:
 
 ```bash
-docker compose run --rm -e RUN_TARGET=baseline run
+mkdir -p deploy/output
+RUN_TARGET=single_shot_stage_mapping docker compose -f deploy/docker-compose.swebench-lite.vllm.yaml up
 ```
 
-or 
+**SJF**:
 
 ```bash
-docker compose run --rm -e RUN_TARGET=two_stage_mapping run
+mkdir -p deploy/output
+RUN_TARGET=single_shot_sjf docker compose -f deploy/docker-compose.swebench-lite.vllm.yaml up
 ```
 
-or
+### Tips
+
+If the run container already exists, add `--force-recreate` so it picks up the new `RUN_TARGET`:
 
 ```bash
-docker compose run --rm -e RUN_TARGET=two_stage_mapping_complexity_sched run
+RUN_TARGET=single_shot_sjf docker compose -f deploy/docker-compose.swebench-lite.yaml up --force-recreate
+```
+
+Predictions are written to **`deploy/output/predictions.jsonl`** and metrics to **`deploy/output/metrics.json`**. To re-run with the stack already up (`up -d`):
+
+```bash
+docker compose run --rm -e RUN_TARGET=single_shot_baseline run
+docker compose run --rm -e RUN_TARGET=single_shot_stage_mapping run
+docker compose run --rm -e RUN_TARGET=single_shot_sjf run
 ```
 
 ## 3. Stop the stack
@@ -90,49 +108,60 @@ docker compose run --rm -e RUN_TARGET=two_stage_mapping_complexity_sched run
 docker compose -f deploy/docker-compose.swebench-lite.yaml down
 ```
 
-Use `down -v` to remove the SGLang model cache volume.
+Use `down -v` to remove the model cache volume.
 
 ## Instance JSON format
 
-Each instance is a single JSON object with at least:
+Each instance is a single JSON object with:
 
-- **`instance_id`** – Identifier (e.g. `django__django-11099`).
-- **`repo`** – Repository (e.g. `django/django`).
-- **`base_commit`** – Git commit the agent should work from.
-- **`problem_statement`** – The issue description (what to fix).
+- **`instance_id`** — Identifier (e.g. `django__django-11099`).
+- **`repo`** — Repository (e.g. `django/django`).
+- **`base_commit`** — Git commit the agent should work from.
+- **`problem_statement`** — The issue description (what to fix).
+- **`patch`** — The gold unified diff (used for oracle context gathering).
 
-The image includes the dataset as `dataset.zip` (unzipped at build time to `/dataset`). The baseline runs instances from `/dataset/test`. Source: [princeton-nlp/SWE-bench_Lite](https://huggingface.co/datasets/princeton-nlp/SWE-bench_Lite).
+The image includes the dataset as `dataset.zip` (unzipped at build time to `/dataset`). Source: [princeton-nlp/SWE-bench_Lite](https://huggingface.co/datasets/princeton-nlp/SWE-bench_Lite). To regenerate with the latest data, run `python examples/swe_bench_lite/scripts/prepare_dataset.py`.
 
-Predictions are one JSON object per line (instance_id, model_name_or_path, model_patch). You can run the [SWE-bench evaluation harness](https://www.swebench.com/SWE-bench/guides/evaluation/) against the output file.
+Predictions are one JSON object per line (`instance_id`, `model_name_or_path`, `model_patch`). You can run the [SWE-bench evaluation harness](https://www.swebench.com/SWE-bench/guides/evaluation/) against the output file.
 
 ## How the experiments work
 
-All experiments live under `examples/swe_bench_lite/` and use shared helpers from `shared/` (including metrics recording). They are invoked via `make baseline`, `make two_stage_mapping`, or `make two_stage_mapping_complexity_sched` (or the same targets as the container command).
+All experiments are in a single binary (`single_shot`) under `examples/swe_bench_lite/`. The mode is selected by the `EXPERIMENT_MODE` environment variable (set automatically by the Makefile targets). The binary reads the dataset, prepares workdirs, builds prompts with oracle context, and submits all instances concurrently to Orla.
 
-**Baseline** (`baseline/`, `cmd/baseline`):
+**Phase 1 — Prompt building** (all modes):
 
-1. **Loads instances** from `/dataset/test` (sorted order).
-2. **Registers** one SGLang backend (Qwen3-8B at `http://sglang:30000/v1`) with the Orla daemon.
-3. **For each instance**: prepares the workdir, runs a **text-based ReAct loop**: call `ExecuteWithMessages`, parse the first `\`\`\`orla_bash` code block from the response, execute that command in `/workdir/<instance_id>`, append the output as a user message, repeat until no bash block is found or the step limit. Appends one prediction (git diff) to `predictions.jsonl`. Writes **metrics** (end-to-end, per-instance, per-step times and token counts) to `metrics.json`.
+For each instance, the experiment parses the gold patch to extract modified file paths, reads those files from the repository at the base commit, and assembles a single-shot prompt: system message (produce a unified diff), problem statement, repository info, and the full source of each relevant file.
 
-**Two-stage mapping** (`two_stage_mapping/`, `cmd/two_stage_mapping`):
+**Phase 1b — Routing** (stage_mapping and sjf modes):
 
-1. **Registers** two SGLang backends: heavy (Qwen3-8B) and light (Qwen3-4B).
-2. **Phase 1**: For each instance, prepares the workdir and runs a **router** (on the **light** model) to classify the task as light or heavy; builds a light queue and a heavy queue.
-3. **Phase 2**: Runs **one worker for the light backend** and **one worker for the heavy backend** concurrently. Each worker drains its queue (same text-based ReAct loop as baseline), so light and heavy instances are processed in parallel. Appends predictions to `predictions.jsonl` (model_name_or_path `orla-two-stage`) and writes metrics to `metrics.json`.
+The `OneBitStageMapper` classifies each instance as "light" or "heavy" by asking the light model whether the fix looks simple (single file, clear bug, config tweak) or complex (multiple files, unclear root cause, API changes). Light instances go to the Qwen3-4B backend; heavy instances go to Qwen3-8B.
 
-No per-run arguments: each experiment runs in one container invocation. The ReAct loop uses **ExecuteWithMessages** and parses bash commands from the model’s text output (no tool-calling API).
+**Phase 1c — SJF priority assignment** (sjf mode only):
 
-**Two-stage mapping with complexity scheduling** (`two_stage_mapping_complexity_sched/`, `cmd/two_stage_mapping_complexity_sched`):
+Heavy instances are sorted by prompt length (ascending). Each heavy instance gets `priority = maxPromptLen - len(prompt)`, so shorter prompts receive higher priority. The heavy stage is configured with `SchedulingPolicyPriority`, and each request carries its priority via `SchedulingHints`. Orla's server-side scheduler picks the highest-priority request first.
 
-1. **Registers** the same two SGLang backends as two-stage mapping: heavy (Qwen3-8B) and light (Qwen3-4B).
-2. **Phase 1 – Routing**: Same as two-stage mapping: each instance is routed to light or heavy via the `OneBitStageMapper`.
-3. **Phase 1b – Complexity prediction**: For each **heavy** instance, a `ScorePredictor` (backed by the light model) estimates task complexity on a 1–5 scale. The scheduling priority is set to `6 - complexity`, implementing **Shortest Job First (SJF)**: simpler tasks get higher priority and are scheduled before complex ones on the heavy backend.
-4. **Phase 2**: Heavy jobs are sorted by priority (simplest first). Light and heavy workers run concurrently, same as two-stage mapping. Each heavy request carries its priority via `SchedulingHints`, and the heavy backend uses `SchedulingPolicyPriority` to schedule accordingly.
-5. **Metrics**: In addition to the standard per-instance timing and token counts, this experiment records `complexity` (predicted 1–5 score) and `queue_position` (position in the sorted heavy queue) for each instance.
+**Phase 2 — Concurrent submission** (all modes):
 
-The hypothesis is that SJF scheduling reduces **average instance completion time** and **queue wait time** on the heavy backend, since shorter tasks no longer wait behind longer ones. The additional overhead is one lightweight inference call per heavy instance for complexity prediction.
+All instances are submitted simultaneously as goroutines, each calling `stage.Execute`. Orla's server-side queues handle contention. This creates the realistic multi-agent scenario where scheduling policy matters.
+
+**Metrics collected per instance:**
+
+| Metric | Description |
+|--------|-------------|
+| `prompt_length` | Prompt length in characters |
+| `prompt_tokens` | Prompt tokens (from response) |
+| `completion_tokens` | Completion tokens (from response) |
+| `queue_position` | Position in submission order for that backend |
+| `queue_wait_ms` | Time spent in Orla's server queue |
+| `ttft_ms` | Time to first token |
+| `tpot_ms` | Time per output token |
+| `duration_ms` | Wall clock from submit to response |
+| `backend_latency_ms` | Backend-reported latency |
+| `mapped_stage` | Which backend (light/heavy/single) |
+| `priority` | Scheduling priority (sjf mode) |
+
+The SJF hypothesis is that shorter prompts correlate with faster inference (less prefill, often shorter output). By scheduling them first, the heavy backend clears quick jobs faster, reducing average completion time and queue wait time across all instances.
 
 ## Conclusion
 
-You’ve run the Orla SWE-bench Lite experiments (baseline, two-stage mapping, and/or complexity scheduling) with SGLang using the text-based agent loop. For tool-calling with Orla, see [Using Tools with Orla](tutorials/tutorial-tools-vllm-ollama-sglang.md). For a multi-agent workflow demo, see [Multi-Agent Workflow (Customer Support)](research/orla_workflow_customer_support.md). For a minimal SGLang-only run, see [Using Orla with SGLang](tutorials/tutorial-sglang-lily.md).
+You've run the Orla single-shot SWE-bench Lite experiments (baseline, stage mapping, and/or SJF scheduling). For tool-calling with Orla, see [Using Tools with Orla](tutorials/tutorial-tools-vllm-ollama-sglang.md). For a multi-agent workflow demo, see [Multi-Agent Workflow (Customer Support)](research/orla_workflow_customer_support.md). For a minimal SGLang-only run, see [Using Orla with SGLang](tutorials/tutorial-sglang-lily.md).

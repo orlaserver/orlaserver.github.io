@@ -33,13 +33,21 @@ The `classify` stage produces structured JSON output via a schema, ensuring the 
 
 ## 1. Start the backends and Orla
 
-The workflow uses two SGLang backends: a **light** model (Qwen3-4B) for triage and a **heavy** model (Qwen3-8B) for resolution. Start the stack from the Orla repo root:
+The workflow uses two SGLang backends: a **light** model (Qwen3-4B) for triage and a **heavy** model (Qwen3-8B) for resolution. Use the **workflow-demo** compose file so you get a clean stack and avoid network conflicts with other compose projects (e.g. SWE-bench Lite). You can run with **SGLang** (default) or **vLLM**. From the Orla repo root:
+
+**SGLang** (default):
 
 ```bash
-docker compose -f deploy/docker-compose.swebench-lite.yaml up -d sglang sglang-light orla
+docker compose -f deploy/docker-compose.workflow-demo.yaml up -d
 ```
 
-This starts the heavy SGLang backend on port 30000, the light SGLang backend on port 30001, and the Orla server on port 8081. Wait for the backends to finish loading their models (check logs with `docker compose -f deploy/docker-compose.swebench-lite.yaml logs -f sglang sglang-light`).
+**vLLM** (two vLLM containers: heavy on 8000, light on 8001):
+
+```bash
+docker compose -f deploy/docker-compose.workflow-demo.vllm.yaml up -d
+```
+
+This starts the heavy SGLang backend on port 30000, the light SGLang backend on port 30001, and the Orla server on port 8081. Wait for the backends to finish loading their models (check logs with `docker compose -f deploy/docker-compose.workflow-demo.yaml logs -f sglang sglang-light`).
 
 Verify Orla is healthy:
 
@@ -165,14 +173,19 @@ The demo includes a built-in sample ticket (a duplicate billing charge complaint
 TICKET_PATH=/path/to/ticket.txt go run ./examples/workflow_demo/cmd/workflow_demo
 ```
 
-You can also override the backend URLs and models with environment variables if your setup differs:
+You can override the backend URLs and models with environment variables. When using the **vLLM** stack, set `VLLM_LIGHT_URL` and `VLLM_HEAVY_URL` (these must be URLs the Orla container can resolve, e.g. `http://vllm-light:8000/v1` and `http://vllm-heavy:8000/v1` when Orla runs in the same compose):
 
 ```bash
+# SGLang (default)
 ORLA_URL=http://localhost:8081 \
-LIGHT_MODEL=Qwen/Qwen3-4B-Instruct-2507 \
-HEAVY_MODEL=Qwen/Qwen3-8B \
 SGLANG_LIGHT_URL=http://sglang-light:30000/v1 \
 SGLANG_HEAVY_URL=http://sglang:30000/v1 \
+go run ./examples/workflow_demo/cmd/workflow_demo
+
+# vLLM (when using docker-compose.workflow-demo.vllm.yaml)
+ORLA_URL=http://localhost:8081 \
+VLLM_LIGHT_URL=http://vllm-light:8000/v1 \
+VLLM_HEAVY_URL=http://vllm-heavy:8000/v1 \
 go run ./examples/workflow_demo/cmd/workflow_demo
 ```
 
@@ -199,8 +212,12 @@ You should see output similar to:
 ## 4. Stop the stack
 
 ```bash
-docker compose -f deploy/docker-compose.swebench-lite.yaml down
+docker compose -f deploy/docker-compose.workflow-demo.yaml down
+# or, if you used vLLM:
+docker compose -f deploy/docker-compose.workflow-demo.vllm.yaml down
 ```
+
+If you see a "network not found" or permission error when starting containers, try bringing the stack down and removing orphan containers first: `docker compose -f deploy/docker-compose.workflow-demo.yaml down --remove-orphans`, then run `up -d` again. On Linux you may need `sudo` for Docker commands.
 
 ## Control Flow
 
