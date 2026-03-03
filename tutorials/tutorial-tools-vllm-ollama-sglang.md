@@ -106,7 +106,7 @@ if err != nil {
 
 ## 4. Agent loop with tools
 
-Create an agent and a stage (with your backend), add the tool to the stage, set the stage on the agent, and run a loop: send messages (including tool-result messages), and stop when the model returns no tool calls.
+Create a stage (with your backend and client), add the tool to it, and run a loop: send messages (including tool-result messages), and stop when the model returns no tool calls.
 
 ```go
 package main
@@ -129,8 +129,8 @@ func main() {
         log.Fatal("register backend: ", err)
     }
 
-    agent := orla.NewAgent(client)
-    stage := orla.NewAgentStage("weather_reporting", backend)
+    stage := orla.NewStage("weather_reporting", backend)
+    stage.Client = client
     stage.SetMaxTokens(512)
 
     // Define and add the tool to the stage
@@ -168,14 +168,13 @@ func main() {
     if err := stage.AddTool(tool); err != nil {
         log.Fatal(err)
     }
-    agent.SetStage(stage)
 
     // Conversation: start with one user message
     prompt := "What's the weather in Paris? Reply in one sentence."
     messages := []orla.Message{{Role: "user", Content: prompt}}
 
     for {
-        resp, err := agent.ExecuteWithMessages(ctx, messages)
+        resp, err := stage.ExecuteWithMessages(ctx, messages)
         if err != nil {
             log.Fatal(err)
         }
@@ -188,7 +187,7 @@ func main() {
         // Append assistant turn (content) then tool-result messages
         messages = append(messages, orla.Message{Role: "assistant", Content: resp.Content})
 
-        toolMessages, err := agent.RunToolCallsInResponse(ctx, resp)
+        toolMessages, err := stage.RunToolCallsInResponse(ctx, resp)
         if err != nil {
             log.Fatal(err)
         }
@@ -211,7 +210,7 @@ The weather in Paris is sunny with a temperature of 22°C.
 ```
 
 - **ExecuteWithMessages** sends the current `messages` and the current stage’s tools to the backend. The model may return text and/or **tool_calls**.
-- **RunToolCallsInResponse** parses `resp.ToolCalls`, runs each tool by name (using your `Run`), and returns the corresponding **tool-result messages** (role `"tool"`, content, tool_call_id, tool_name).
+- **`stage.RunToolCallsInResponse`** parses `resp.ToolCalls`, runs each tool by name (using your `Run`), and returns the corresponding **tool-result messages** (role `"tool"`, content, tool_call_id, tool_name).
 - You append the assistant message (the model’s content) and those tool messages, then call **ExecuteWithMessages** again. The loop ends when the model responds with no tool calls.
 
 This flow is the same for **vLLM**, **Ollama**, and **SGLang**; only the backend registration (name, endpoint, type, model_id) changes.
@@ -240,8 +239,8 @@ func main() {
         log.Fatal("register backend: ", err)
     }
 
-    agent := orla.NewAgent(client)
-    stage := orla.NewAgentStage("story_telling", backend)
+    stage := orla.NewStage("story_telling", backend)
+    stage.Client = client
     stage.SetMaxTokens(512)
 
     tool, err := orla.NewTool(
@@ -278,19 +277,17 @@ func main() {
     if err := stage.AddTool(tool); err != nil {
         log.Fatal(err)
     }
-    agent.SetStage(stage)
-
     prompt := "What's the weather in Tokyo? One sentence."
     messages := []orla.Message{{Role: "user", Content: prompt}}
 
     for {
-        stream, err := agent.ExecuteStreamWithMessages(ctx, messages)
+        stream, err := stage.ExecuteStreamWithMessages(ctx, messages)
         if err != nil {
             log.Fatal(err)
         }
 
         // Print content and thinking as they arrive; ConsumeStream returns the full response on "done"
-        resp, err := agent.ConsumeStream(ctx, stream, func(ev orla.StreamEvent) error {
+        resp, err := stage.ConsumeStream(ctx, stream, func(ev orla.StreamEvent) error {
             if ev.Type == "content" {
                 fmt.Print(ev.Content)
             }
@@ -309,7 +306,7 @@ func main() {
         }
 
         messages = append(messages, orla.Message{Role: "assistant", Content: resp.Content})
-        toolMessages, err := agent.RunToolCallsInResponse(ctx, resp)
+        toolMessages, err := stage.RunToolCallsInResponse(ctx, resp)
         if err != nil {
             log.Fatal(err)
         }
@@ -337,7 +334,7 @@ It's sunny in Tokyo with a temperature of 22°C.
 ```
 
 - **ExecuteStreamWithMessages** takes the same `messages` (and the current stage’s tools) as the non-streaming call but returns a channel of events.
-- **ConsumeStream** reads the channel, optionally runs your handler for each event (e.g. print content/thinking), and returns the full **InferenceResponse** when the stream sends **done**. That response includes **ToolCalls**.
+- **`stage.ConsumeStream`** reads the channel, optionally runs your handler for each event (e.g. print content/thinking), and returns the full **InferenceResponse** when the stream sends **done**. That response includes **ToolCalls**.
 - The rest of the loop is unchanged: append the assistant message and tool-result messages, then call **ExecuteStreamWithMessages** again until the model returns no tool calls.
 
 ## 6. Backend-specific notes
@@ -346,7 +343,30 @@ It's sunny in Tokyo with a temperature of 22°C.
 - **Ollama**: Uses `tool_name` and content for tool results. Ollama does not yet support per-call IDs, so when the same tool is called multiple times in one turn, matching is by order.
 - **SGLang**: Use the OpenAI-compatible API (`NewSGLangBackend` with endpoint `http://sglang:30000/v1`). Behavior matches vLLM for tool results and you get TTFT/TPOT in streaming.
 
-## 7. Stop the stack
+## 7. Scheduling and stage routing (optional)
+
+Orla supports **two-level scheduling** on the server. Each LLM request carries a globally unique **stage ID** (auto-generated when you create a `Stage`). On the server, each backend maintains per-stage queues:
+
+1. **Stage scheduling** selects which stage queue to service next on a backend (`SetSchedulingPolicy`).
+2. **Request scheduling** orders requests within a single stage queue (`SetRequestSchedulingPolicy`).
+
+```go
+stage := orla.NewStage("heavy", heavyBackend)
+stage.SetSchedulingPolicy(orla.SchedulingPolicyPriority)
+stage.SetRequestSchedulingPolicy("fifo")
+priority := 9
+stage.SetSchedulingHints(&orla.SchedulingHints{
+    Priority: &priority,
+})
+```
+
+- `scheduling_policy` defaults to `fcfs` (first-come-first-served across stage queues).
+- `request_scheduling_policy` defaults to `fifo` (arrival order within a stage queue). Set to `priority` to pick the highest-priority request first.
+- Scheduler metrics are returned in `response.metrics` (`queue_wait_ms`, `scheduler_decision_ms`, `dispatch_ms`, `backend_latency_ms`).
+
+For stage routing, use the `StageMapper` interface (`OneBitStageMapper` and `ThresholdStageMapper` are built-ins). For workflow-level stage-to-backend assignment, use the `StageMapping` interface.
+
+## 8. Stop the stack
 
 ```bash
 docker compose -f deploy/docker-compose.vllm.yaml down   # or ollama / sglang

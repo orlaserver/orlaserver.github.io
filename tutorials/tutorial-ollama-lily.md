@@ -80,9 +80,9 @@ You should get a successful response (e.g. HTTP 200).
 
 The Orla API exposes **`POST /api/v1/execute`**: you send a `backend` name (a backend you registered), a `prompt` (or `messages`), and optional `max_tokens` and `stream`. The response contains the model output in `response.content`.
 
-### Using the Go client and Agent API
+### Using the Go client
 
-Create a file `main.go` in the Orla repo root. The program registers the Ollama backend, creates an agent with the prompt, and runs the execute request:
+Create a file `main.go` in the Orla repo root. The program registers the Ollama backend, creates a stage with the prompt, and runs the execute request:
 
 ```go
 package main
@@ -106,13 +106,12 @@ func main() {
 		log.Fatal("register backend: ", err)
 	}
 
-	agent := orla.NewAgent(client)
-	stage := orla.NewAgentStage("story_telling", backend)
+	stage := orla.NewStage("story_telling", backend)
+	stage.Client = client
 	stage.SetMaxTokens(512)
-	agent.SetStage(stage)
 
 	prompt := "Tell me a short, cheerful story about a cat called Lily. Two or three paragraphs is enough."
-	resp, err := agent.Execute(ctx, prompt)
+	resp, err := stage.Execute(ctx, prompt)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -139,7 +138,7 @@ Before long, Lily's music had woken up the whole house, and her humans came runn
 
 ### Streamed output
 
-To see the story as it is generated, use the agent’s **ExecuteStream** and **ConsumeStream**:
+To see the story as it is generated, use the stage’s **ExecuteStream** and **ConsumeStream**:
 
 ```go
 package main
@@ -161,18 +160,17 @@ func main() {
 		log.Fatal("register backend: ", err)
 	}
 
-	agent := orla.NewAgent(client)
-	stage := orla.NewAgentStage("story_telling", backend)
+	stage := orla.NewStage("story_telling", backend)
+	stage.Client = client
 	stage.SetMaxTokens(512)
-	agent.SetStage(stage)
 
 	prompt := "Tell me a short, cheerful story about a cat called Lily. Two or three paragraphs is enough."
-	stream, err := agent.ExecuteStream(ctx, prompt)
+	stream, err := stage.ExecuteStream(ctx, prompt)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	resp, err := agent.ConsumeStream(ctx, stream, func(ev orla.StreamEvent) error {
+	resp, err := stage.ConsumeStream(ctx, stream, func(ev orla.StreamEvent) error {
 		if ev.Type == "content" {
 			fmt.Print(ev.Content)
 		}
