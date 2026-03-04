@@ -4,7 +4,7 @@ This tutorial runs a multi-agent workflow using [Orla](https://github.com/dorcha
 
 ## Architecture
 
-![Workflow DAG](workflow_demo.svg)
+<img src="workflow_demo.svg" alt="Workflow DAG: triage, resolver, and escalation agents" style="max-width: 560px; height: auto; display: block; margin-left: auto; margin-right: auto;" />
 
 <!-- ```
 Workflow
