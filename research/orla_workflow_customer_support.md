@@ -4,6 +4,8 @@ This tutorial runs a multi-agent workflow using [Orla](https://github.com/dorcha
 
 ## Architecture
 
+![Workflow DAG](workflow_demo.svg)
+
 <!-- ```
 Workflow
   |
@@ -344,5 +346,3 @@ When the triage agent finishes, the workflow executor calls the context passing 
 The resolver and escalation agents then run concurrently. Inside the resolver, `draft_response` generates a personalized customer reply and `policy_check` identifies applicable support policies -- both running in parallel on the heavy backend. Once both complete, `final_review` reads both results and checks the draft against the identified policies for compliance, tone, and completeness. Meanwhile, the escalation agent's single `route_ticket` stage runs on the light backend, producing a structured JSON decision about whether the ticket needs human escalation and which team should handle it.
 
 On the server side, each backend maintains per-stage request queues. The triage and escalation agents' stages use FCFS scheduling, sufficient for lightweight work on the light model. The resolver agent's stages use Priority scheduling with hints taken directly from the triage agent's structured output, so when multiple tickets compete for the heavy backend simultaneously, higher-priority tickets (e.g. a critical billing issue assigned priority 10 by the triage model) are served before lower-priority ones (e.g. a general inquiry assigned priority 2).
-
-For more on Orla's scheduling and stage routing, see [Using Tools with Orla](tutorials/tutorial-tools-vllm-ollama-sglang.md). For the SWE-bench experiment that uses Priority scheduling with score prediction, see [Orla SWE-bench Lite](orla_swebench_lite.md).
