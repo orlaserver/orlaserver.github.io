@@ -1,5 +1,10 @@
 ## Overview
 
+Agentic systems mark a shift in how LLMs are used, moving beyond basic chatbots to solve complex tasks by iteratively reasoning over context, generating intermediate outputs, invoking external tools, and incorporating tool results into subsequent inference. Existing LLM serving systems such as SGLang and vLLM optimize at the request level and do not address the serving challenges that agentic systems introduce: tasks decompose into stages with different computational requirements, coordinate across heterogeneous backends and devices, and benefit from managing inference memory at agent boundaries rather than request boundaries.
+
+Orla is an agentic serving stack that separates request execution from agent-loop policy. Orla sits above existing LLM serving backends and provides agent-granularity control through three mechanisms: a policy surface for heterogeneous model routing across backends, per-stage inference optimization, and agent-aware scheduling and KV cache management at agent boundaries rather than request boundaries.
+
+<!-- 
 Large Language Models (LLMs) are increasingly used in agentic systems that perform specialized tasks 
 through iterative loops of inference and tool invocation. These systems introduce serving challenges 
 that differ from traditional LLM workloads. They have separate execution stages that differ in computational requirements
@@ -8,7 +13,7 @@ They also benefit from managing inference-state lifecycles such as  KV cache man
 rather than request boundaries. Existing LLM serving systems like SGLang, vLLM, and Ollama optimize at the 
 request level and cannot address these agent-level concerns.
 
-Orla is an execution engine for agents and agentic workflows that that sits above LLM backends such as Ollama, SGLang, and vLLM. It lets users specify inference controls at agent-level granularity. These controls include which model and backend to use per step, how to manage inference state (e.g. KV cache), and how to coordinate multiple agents or workflow stages. LLM serving systems optimize at the *request* level using speculative decoding, prefill/decode, batching, per-request cache, and other techniques. Agentic systems decompose tasks into multiple steps that share context, have different computational requirements, and span heterogeneous backends. Orla addresses that gap. It optimizes for *end-to-end* agent completion time and cost, with policies expressed per agent profile and per workflow stage.
+Orla is an execution engine for agents and agentic workflows that that sits above LLM backends such as Ollama, SGLang, and vLLM. It lets users specify inference controls at agent-level granularity. These controls include which model and backend to use per step, how to manage inference state (e.g. KV cache), and how to coordinate multiple agents or workflow stages. LLM serving systems optimize at the *request* level using speculative decoding, prefill/decode, batching, per-request cache, and other techniques. Agentic systems decompose tasks into multiple steps that share context, have different computational requirements, and span heterogeneous backends. Orla addresses that gap. It optimizes for *end-to-end* agent completion time and cost, with policies expressed per agent profile and per workflow stage. -->
 
 ## Team
 
@@ -16,6 +21,7 @@ The Orla agentic server was originally developed in [Dr. Minlan Yu](https://minl
 
 - [Hayder Tirmazi](https://jadidbourbaki.github.io/jadidbourbaki/): developer and maintainer of Orla.
 - [Dr. Rana Shahout](https://sites.google.com/view/ranash): primary researcher of the agentic systems project at Harvard.
+- [Dr. Michael Mitzenmacher](https://www.eecs.harvard.edu/~michaelm/): principal investigator.
 - [Dr. Minlan Yu](https://minlanyu.seas.harvard.edu/): principal investigator.
 
 ## Sponsors and Acknowledgements
@@ -24,7 +30,7 @@ We would like to thank [Dr. Minlan Yu](https://minlanyu.seas.harvard.edu/)'s lab
 [Akamai Technologies](https://www.akamai.com/) for providing the compute resources that made developing Orla and conducting research with it possible. We would like to thank the [Craig McLuckie](https://www.linkedin.com/in/craigmcluckie/) (founder of kubernetes) for early insight into Orla server and providing us with some sage advice on
 developing and releasing open-source software.
 
-## Preliminary Benchmarks
+<!-- ## Preliminary Benchmarks
 
 ![End-to-end completion time: Orla vs SGLang (datacenter) and Orla vs Ollama (edge)](end_to_end_comparison.png)
 
@@ -50,7 +56,7 @@ routes all agent task to Ollama. The Orla-enabled configuration behaves similarl
 All experiments run on the same hardware, an AMD EPYC 7313 server equipped with an NVIDIA RTX PRO 6000 Blackwell Server Edition GPU. 
 We measure latency per stage, total task completion time, and inference cost calculated from token counts across all stages. We run each configuration 4 times.
 We discard the first run as a warmup and report the mean and standard deviation
-for the 3 remaining non-warmup runs.
+for the 3 remaining non-warmup runs. -->
 
 ## Source code
 Orla's [github repository](https://github.com/dorcha-inc/orla).
