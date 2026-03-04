@@ -253,29 +253,72 @@ go run ./examples/workflow_demo/cmd/workflow_demo
 You should see output similar to:
 
 ```
-2025/07/20 14:30:01 ================================================
-2025/07/20 14:30:01 Running customer support workflow demo
-2025/07/20 14:30:01 ================================================
-2025/07/20 14:30:01 Stage mapping validated: 7 stages assigned to backends
-2025/07/20 14:30:01 Executing customer support workflow...
-2025/07/20 14:30:03 === Agent: triage ===
-2025/07/20 14:30:03   Stage classify:
-2025/07/20 14:30:03     {"category":"billing","product":"Pro subscription","key_issue":"Duplicate $49.99 charge on credit card for Pro subscription"}
-2025/07/20 14:30:03   Stage sentiment:
-2025/07/20 14:30:03     {"sentiment":"frustrated","urgency_signals":["URGENT","ASAP","tight budget","extra $50 really hurts"]}
-2025/07/20 14:30:04   Stage prioritize:
-2025/07/20 14:30:04     {"severity":"high","priority":7,"reasoning":"Duplicate billing charge with immediate financial impact on a frustrated customer"}
-2025/07/20 14:30:04 Triage assigned scheduling priority 7 to resolver
-2025/07/20 14:30:07 === Agent: resolver ===
-2025/07/20 14:30:07   Stage draft_response:
-2025/07/20 14:30:07     Dear Alex, Thank you for reaching out and for being a loyal Pro subscriber for 2 years...
-2025/07/20 14:30:07   Stage policy_check:
-2025/07/20 14:30:07     Applicable policies: (1) Duplicate charge refund within 5 business days per billing SLA...
-2025/07/20 14:30:09   Stage final_review:
-2025/07/20 14:30:09     APPROVED. The response addresses the billing issue with a clear refund commitment and complies with...
-2025/07/20 14:30:08 === Agent: escalation ===
-2025/07/20 14:30:08   Stage route_ticket:
-2025/07/20 14:30:08     {"escalate":true,"reason":"Duplicate charge requires billing team verification for refund processing","suggested_team":"billing"}
+2026/03/04 07:48:15 ================================================                                                            
+2026/03/04 07:48:15 Running customer support workflow demo                                                                      
+2026/03/04 07:48:15 ================================================                                                            
+2026/03/04 07:48:15 Stage mapping validated: 7 stages assigned to backends                                                      
+2026/03/04 07:48:15 Executing customer support workflow...                                                                      
+2026/03/04 07:48:16 Triage assigned scheduling priority 9 to resolver                                                           
+2026/03/04 07:48:30 === Agent: triage ===                                                                                       
+2026/03/04 07:48:30   sentiment (stage id: trusting_snyder):                                                                    
+2026/03/04 07:48:30     {
+  "sentiment": "frustrated",
+  "urgency_signals": [
+    "URGENT",
+    "I need a refund for the duplicate charge ASAP",
+    "I'm on a tight budget this month and that extra $50 really hurts"
+  ]
+}
+2026/03/04 07:48:30   classify (stage id: determined_goldwasser):
+2026/03/04 07:48:30     {
+  "category": "billing",
+  "key_issue": "Customer reports a duplicate charge of $49.99 for their Pro subscription, requesting a refund.",
+  "product": "Pro subscription"
+}
+2026/03/04 07:48:30   prioritize (stage id: competent_buck):
+2026/03/04 07:48:30     {  
+  "priority": 9,  
+  "reasoning": "The customer is frustrated and explicitly requests an urgent refund due to a duplicate charge that impacts their budget, indicating high financial and emotional urgency."  
+  ,  
+  "severity": "high"  
+}
+2026/03/04 07:48:30 === Agent: escalation ===
+2026/03/04 07:48:30   route_ticket (stage id: stupefied_mirzakhani):
+2026/03/04 07:48:30     {
+  "escalate": true,
+  "reason": "The ticket requires human escalation due to the high severity, customer sentiment, and financial impact. The customer reports a duplicate charge of $49.99 (totaling $99.98), which is a direct billing error with clear financial consequences. The customer is explicitly frustrated and requests an urgent refund, citing a tight budget and emotional distress. While automated systems may detect duplicate charges, the need for manual verification of subscription record...
+2026/03/04 07:48:30 === Agent: resolver ===
+2026/03/04 07:48:30   policy_check (stage id: relaxed_easley):
+2026/03/04 07:48:30     Based on the **ticket classification** and **sentiment**, here is a comprehensive breakdown of **applicable support policies, refund rules, SLA commitments, and constraints** the response agent must follow:
+
+---
+
+### ✅ **1. Ticket Classification Summary**
+- **Category:** Billing  
+- **Key Issue:** Customer reports a duplicate charge of $49.99 for their Pro subscription, requesting a refund.  
+- **Product:** Pro subscription ($49.99/month)  
+- **Customer Name:** Leonhard Euler  
+- **Email:** le...
+2026/03/04 07:48:30   draft_response (stage id: wonderful_chaum):
+2026/03/04 07:48:30     Subject: Refund for Duplicate Charge - Urgent
+
+Dear Leonhard Euler,
+
+Thank you for reaching out and for bringing this issue to our attention. We sincerely apologize for the inconvenience and frustr
+ation caused by the duplicate charge on your Pro subscription. We understand how concerning this must be, especially given your 
+tight budget, and we are committed to resolving this matter as quickly as possible.
+
+We have already initiated a refund for the duplicate charge of $49.99 and it should be pro...
+2026/03/04 07:48:30   final_review (stage id: vigorous_keldysh): 
+2026/03/04 07:48:30     **REVIEW OUTCOME: APPROVED**
+
+**Summary:**
+The draft reply complies with all applicable policies, maintains a professional and empathetic tone, and addresses all aspects o
+f the customer's concern comprehensively.
+
+- **Policy Compliance:** The response acknowledges the duplicate charge, confirms the refund process, and aligns with the 5–7 bu
+siness day refund timeline. It also addresses the urgency signal and financial hardship, which requires an expedited refund. The
+ mention of investigating th...
 ```
 
 Note that the resolver and escalation agents run concurrently -- the escalation result may appear before the resolver finishes, since it runs on the lighter model.
