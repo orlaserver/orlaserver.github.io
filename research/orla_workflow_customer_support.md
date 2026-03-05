@@ -1,40 +1,38 @@
-# Multi-Agent Workflow with Orla
+# Multi-Stage Workflow with Orla
 
-This tutorial runs a multi-agent workflow using [Orla](https://github.com/dorcha-inc/orla) and two [SGLang](https://sgl-project.github.io/) backends. The workflow processes a customer support ticket through a seven-stage pipeline spanning three agents: a triage agent (light model) classifies, analyzes sentiment, and prioritizes the ticket in a parallel diamond DAG; then a resolver agent (heavy model) and an escalation agent (light model) run in parallel -- the resolver drafts and reviews a reply while the escalation agent decides whether human intervention is needed. This demonstrates Orla's full abstraction stack: Workflow, Agent, Stage DAG, Stage Mapping, Scheduling, and Context Passing, including both intra-agent parallelism (diamond DAGs) and inter-agent parallelism (workflow-level fan-out).
+This tutorial runs a multi-stage workflow using [Orla](https://github.com/dorcha-inc/orla) and two [SGLang](https://sgl-project.github.io/) backends. The workflow processes a customer support ticket through a four-stage pipeline: a classification stage (light model) extracts structured ticket metadata; a policy check stage (heavy model) reads company policy via tool call and renders an accept/deny decision; a reply stage (heavy model) composes and sends a customer email via tool call; and a routing stage (heavy model) acknowledges receipt, looks up internal teams, and creates an internal ticket -- all via tool calls. This demonstrates Orla's full abstraction stack: Workflow, Stage DAG, Stage Mapping, Scheduling, and tool-calling agent loops.
 
 ## Architecture
 
-<img src="research/workflow_demo.svg" alt="Workflow DAG: triage, resolver, and escalation agents" style="max-width: 560px; height: auto; display: block; margin-left: auto; margin-right: auto;" />
+<img src="research/workflow_demo.svg" alt="Workflow DAG: classify, policy_check, reply, and route_ticket stages" style="max-width: 560px; height: auto; display: block; margin-left: auto; margin-right: auto;" />
 
 <!-- ```
 Workflow
   |
-  +-- Agent "triage" (light model, FCFS)
-  |     +-- Stage "classify"    -> structured JSON: category, product, key issue
-  |     +-- Stage "sentiment"   -> structured JSON: sentiment, urgency signals
-  |     |   (classify and sentiment run in parallel)
-  |     +-- Stage "prioritize"  -> structured JSON: severity, priority, reasoning
-  |         (depends on both classify and sentiment)
+  +-- Stage "classify"       (light model, single-shot, FCFS) -> structured JSON: category, product, key issue, customer request
   |
-  +-- Agent "resolver" (heavy model, Priority; depends on "triage")
-  |     +-- Stage "draft_response" -> personalized customer reply
-  |     +-- Stage "policy_check"   -> applicable policies and constraints
-  |     |   (draft_response and policy_check run in parallel)
-  |     +-- Stage "final_review"   -> compliance review (depends on both)
+  +-- Stage "policy_check"   (heavy model, agent-loop, Priority; depends on classify)
+  |     tool: read_policy_yaml -> structured JSON: accept/deny + reasoning
   |
-  +-- Agent "escalation" (light model, FCFS; depends on "triage", parallel with "resolver")
-        +-- Stage "route_ticket"   -> structured JSON: escalate, reason, suggested team
+  +-- Stage "reply"          (heavy model, agent-loop, Priority; depends on policy_check)
+  |     tool: send_email -> structured JSON: email_sent + summary
+  |
+  +-- Stage "route_ticket"   (heavy model, agent-loop, Priority; depends on classify)
+        tools: send_email, read_team_descriptions, send_ticket -> free-text summary
 ``` -->
 
-This demo exercises every layer of the Orla abstraction stack. Within each agent, stages form a DAG. The triage agent has a diamond-shaped DAG: `classify` and `sentiment` are independent roots that run in parallel, and `prioritize` depends on both (fan-in), waiting for both to complete before deciding severity. The resolver agent mirrors this shape: `draft_response` and `policy_check` run in parallel, and `final_review` depends on both.
+<!-- ```
+classify ──┬──▶ policy_check ──▶ reply
+           └──▶ route_ticket
+``` -->
 
-The workflow itself is also a DAG of agents. The `resolver` and `escalation` agents both depend on the `triage` agent, so after triage completes they run in parallel -- the resolver on the heavy backend and the escalation agent on the light backend. This demonstrates fan-out at the workflow level.
+The demo exercises every layer of the Orla abstraction stack. Stage 1 (`classify`) is a single-shot structured-output call on the light model that extracts the ticket category, product, key issue, and what the customer is actually asking for. Stage 2 (`policy_check`) runs as an agent loop on the heavy model: it calls the `read_policy_yaml` tool to retrieve company policy for the ticket's category, then renders an accept/deny decision with reasoning as structured output. Stage 3 (`reply`) composes a professional customer email based on the policy decision and classification, then sends it via the `send_email` tool. Stage 4 (`route_ticket`) runs in parallel with Stages 2 and 3 (it only depends on `classify`): it sends an acknowledgment email, reads internal team descriptions, and creates a routed internal ticket -- executing three tool calls in sequence.
 
 Before execution, Stage Mapping validates the plan. Each stage is explicitly assigned to a backend (light or heavy), and `ExplicitStageMapping` checks that every stage points to a registered backend. This catches configuration errors before any inference happens.
 
-On the server side, Orla uses two-level scheduling. The triage and escalation agents' stages run with FCFS (first-come, first-served), appropriate for lightweight classification work. The resolver agent's stages use Priority scheduling, with the numeric priority produced directly by the triage agent's `prioritize` stage and injected via context passing, so when multiple tickets compete for the heavy backend, urgent ones are served first.
+On the server side, Orla uses two-level scheduling. The classification stage runs with FCFS (first-come, first-served), appropriate for a lightweight single-shot call. The remaining stages use Priority scheduling with hints set dynamically based on the classification output, so when multiple tickets compete for the heavy backend, urgent ones are served first.
 
-Four of the seven stages produce structured JSON output via schemas (`classify`, `sentiment`, `prioritize`, and `route_ticket`), ensuring downstream stages and the context passing function always receive machine-parseable data rather than free-form text. Context passing connects the agents: when the triage agent finishes, its structured outputs are injected into both the resolver and escalation agents' prompts, and the numeric priority from the `prioritize` stage is set as the scheduling hint on the resolver's stages.
+Two of the four stages produce structured JSON output via schemas (`classify` and `policy_check`), ensuring downstream stages always receive machine-parseable data. The agent-loop stages (`policy_check`, `reply`, `route_ticket`) demonstrate Orla's tool-calling support: each stage is given tools, and the agent-loop executor handles the Gen → Tool → Gen cycle automatically. Context between stages is passed via `PromptBuilder` functions: each downstream stage reads upstream results from the `map[string]*StageResult` and constructs its prompt accordingly.
 
 ## What you need
 
@@ -45,7 +43,7 @@ Four of the seven stages produce structured JSON output via schemas (`classify`,
 
 ## 1. Start the backends and Orla
 
-The workflow uses two SGLang backends: a **light** model (Qwen3-4B) for triage and escalation, and a **heavy** model (Qwen3-8B) for resolution. Use the **workflow-demo** compose file so you get a clean stack and avoid network conflicts with other compose projects (e.g. SWE-bench Lite). You can run with **SGLang** (default) or **vLLM**. From the Orla repo root:
+The workflow uses two SGLang backends: a **light** model (Qwen3-4B) for classification, and a **heavy** model (Qwen3-8B) for policy checking, reply composition, and ticket routing. Use the **workflow-demo** compose file so you get a clean stack and avoid network conflicts with other compose projects (e.g. SWE-bench Lite). You can run with **SGLang** (default) or **vLLM**. From the Orla repo root:
 
 **SGLang** (default):
 
@@ -84,85 +82,100 @@ client.RegisterBackend(ctx, lightBackend)
 client.RegisterBackend(ctx, heavyBackend)
 ```
 
-### Agent 1: triage (diamond DAG)
+### Stage 1: classify (single-shot, structured output)
 
-The triage agent has three stages in a diamond DAG. `classify` and `sentiment` are independent roots that run in parallel, both analyzing the raw ticket. `prioritize` depends on both and produces the final severity and numeric scheduling priority:
+The classification stage extracts structured metadata from the raw ticket. It runs as a single-shot call on the light model with a JSON schema enforcing the output format:
 
 ```go
-triage := orla.NewAgent(client)
-triage.Name = "triage"
+wf := orla.NewWorkflow(client)
 
 classifyStage := orla.NewStage("classify", lightBackend)
-classifyStage.SetResponseFormat(orla.NewStructuredOutputRequest("ticket_classify", classifySchema))
+classifyStage.SetMaxTokens(512)
+classifyStage.SetTemperature(0)
 classifyStage.SetSchedulingPolicy(orla.SchedulingPolicyFCFS)
-classifyStage.Prompt = fmt.Sprintf("Classify this support ticket...\n\n%s", ticket)
-
-sentimentStage := orla.NewStage("sentiment", lightBackend)
-sentimentStage.SetResponseFormat(orla.NewStructuredOutputRequest("ticket_sentiment", sentimentSchema))
-sentimentStage.SetSchedulingPolicy(orla.SchedulingPolicyFCFS)
-sentimentStage.Prompt = fmt.Sprintf("Determine the customer's sentiment and urgency signals...\n\n%s", ticket)
-
-prioritizeStage := orla.NewStage("prioritize", lightBackend)
-prioritizeStage.SetResponseFormat(orla.NewStructuredOutputRequest("ticket_priority", prioritySchema))
-prioritizeStage.SetPromptBuilder(func(results map[string]*orla.StageResult) (string, error) {
-    classification := results[classifyStage.ID]
-    sentiment := results[sentimentStage.ID]
-    return fmt.Sprintf("Assign a severity and priority (1-10)...\n\n%s\n\n%s",
-        classification.Response.Content, sentiment.Response.Content), nil
-})
-
-triage.AddStage(classifyStage)
-triage.AddStage(sentimentStage)
-triage.AddStage(prioritizeStage)
-triage.AddDependency(prioritizeStage.ID, classifyStage.ID)
-triage.AddDependency(prioritizeStage.ID, sentimentStage.ID)
+classifyStage.SetResponseFormat(orla.NewStructuredOutputRequest("ticket_classify", classifySchema))
+classifyStage.Prompt = fmt.Sprintf(
+    "You are a customer support triage system. Classify this support ticket.\n"+
+        "Extract the category, product, a one-sentence summary of the core issue, "+
+        "and what the customer is actually asking for.\n\nTicket:\n%s", ticket)
 ```
 
-Because `classify` and `sentiment` have no dependency between them, Orla's DAG executor fires both concurrently. The `prioritize` stage waits for both to finish before running.
+### Stage 2: policy_check (agent-loop with tool)
 
-### Agent 2: resolver (diamond DAG)
-
-The resolver agent also has a diamond DAG. `draft_response` and `policy_check` run in parallel on the heavy backend, and `final_review` depends on both. No priority hint is set statically -- it is injected by the context passing function using the triage agent's structured output:
+The policy check stage runs as an agent loop. It has access to a `read_policy_yaml` tool that retrieves company policy for a given category. The model calls the tool, reads the policy, then renders a structured accept/deny decision:
 
 ```go
-resolver := orla.NewAgent(client)
-resolver.Name = "resolver"
-
-draftStage := orla.NewStage("draft_response", heavyBackend)
-draftStage.SetSchedulingPolicy(orla.SchedulingPolicyPriority)
+policyTool, _ := readPolicyYAMLTool()
 
 policyStage := orla.NewStage("policy_check", heavyBackend)
-policyStage.SetSchedulingPolicy(orla.SchedulingPolicyPriority)
-
-reviewStage := orla.NewStage("final_review", heavyBackend)
-reviewStage.SetSchedulingPolicy(orla.SchedulingPolicyPriority)
-reviewStage.SetPromptBuilder(func(results map[string]*orla.StageResult) (string, error) {
-    draft := results[draftStage.ID]
-    policies := results[policyStage.ID]
-    return fmt.Sprintf("Review this draft against the policies...\n\n%s\n\n%s",
-        draft.Response.Content, policies.Response.Content), nil
+policyStage.SetExecutionMode(orla.ExecutionModeAgentLoop)
+policyStage.SetMaxTurns(5)
+policyStage.SetResponseFormat(orla.NewStructuredOutputRequest("policy_decision", policyDecisionSchema))
+policyStage.AddTool(policyTool)
+policyStage.SetPromptBuilder(func(results map[string]*orla.StageResult) (string, error) {
+    classification := results[classifyStage.ID]
+    return fmt.Sprintf(
+        "Use the read_policy_yaml tool to retrieve the policy for the ticket's category. "+
+            "Then decide whether to ACCEPT or DENY the customer's request.\n\n"+
+            "Ticket Classification:\n%s\n\nOriginal Ticket:\n%s",
+        classification.Response.Content, ticket), nil
 })
 
-resolver.AddStage(draftStage)
-resolver.AddStage(policyStage)
-resolver.AddStage(reviewStage)
-resolver.AddDependency(reviewStage.ID, draftStage.ID)
-resolver.AddDependency(reviewStage.ID, policyStage.ID)
+wf.AddStage(policyStage)
+wf.AddDependency(policyStage.ID, classifyStage.ID)
 ```
 
-### Agent 3: escalation
+The agent-loop executor handles the Gen → Tool(read_policy_yaml) → Gen → Structured Output cycle automatically.
 
-The escalation agent has a single stage that decides whether the ticket needs human intervention. It runs on the light backend in parallel with the resolver:
+### Stage 3: reply (agent-loop with tool)
+
+The reply stage composes a customer email based on the policy decision and sends it using the `send_email` tool. It depends on `policy_check`:
 
 ```go
-escalation := orla.NewAgent(client)
-escalation.Name = "escalation"
+emailTool, _ := sendEmailTool()
 
-routeStage := orla.NewStage("route_ticket", lightBackend)
-routeStage.SetSchedulingPolicy(orla.SchedulingPolicyFCFS)
-routeStage.SetResponseFormat(orla.NewStructuredOutputRequest("ticket_escalation", escalationSchema))
+replyStage := orla.NewStage("reply", heavyBackend)
+replyStage.SetExecutionMode(orla.ExecutionModeAgentLoop)
+replyStage.SetMaxTurns(5)
+replyStage.SetResponseFormat(orla.NewStructuredOutputRequest("reply_confirmation", replyConfirmationSchema))
+replyStage.AddTool(emailTool)
+replyStage.SetPromptBuilder(func(results map[string]*orla.StageResult) (string, error) {
+    classification := results[classifyStage.ID]
+    policyResult := results[policyStage.ID]
+    return fmt.Sprintf(
+        "Compose a professional reply based on the policy decision and send it "+
+            "using the send_email tool.\n\n"+
+            "Policy Decision:\n%s\n\nTicket Classification:\n%s\n\nOriginal Ticket:\n%s",
+        policyResult.Response.Content, classification.Response.Content, ticket), nil
+})
 
-escalation.AddStage(routeStage)
+wf.AddStage(replyStage)
+wf.AddDependency(replyStage.ID, policyStage.ID)
+```
+
+### Stage 4: route_ticket (agent-loop with multiple tools)
+
+The routing stage runs in parallel with Stages 2 and 3 because it only depends on `classify`. It has three tools: `send_email` (acknowledgment), `read_team_descriptions` (team lookup), and `send_ticket` (internal routing). The agent loop executes all three tool calls in sequence:
+
+```go
+routeStage := orla.NewStage("route_ticket", heavyBackend)
+routeStage.SetExecutionMode(orla.ExecutionModeAgentLoop)
+routeStage.SetMaxTurns(10)
+routeStage.AddTool(emailToolRoute)
+routeStage.AddTool(teamsTool)
+routeStage.AddTool(ticketTool)
+routeStage.SetPromptBuilder(func(results map[string]*orla.StageResult) (string, error) {
+    classification := results[classifyStage.ID]
+    return fmt.Sprintf(
+        "1. Send an acknowledgment email to the customer.\n"+
+            "2. Read the team descriptions to find the right team.\n"+
+            "3. Create an internal support ticket for that team.\n\n"+
+            "Ticket Classification:\n%s\n\nOriginal Ticket:\n%s",
+        classification.Response.Content, ticket), nil
+})
+
+wf.AddStage(routeStage)
+wf.AddDependency(routeStage.ID, classifyStage.ID)
 ```
 
 ### Stage mapping
@@ -170,8 +183,7 @@ escalation.AddStage(routeStage)
 Before execution, `ExplicitStageMapping` validates that every stage is assigned to a registered backend:
 
 ```go
-allStages := []*orla.Stage{classifyStage, sentimentStage, prioritizeStage,
-    draftStage, policyStage, reviewStage, routeStage}
+allStages := []*orla.Stage{classifyStage, policyStage, replyStage, routeStage}
 mapping := &orla.ExplicitStageMapping{}
 output, _ := mapping.Map(&orla.StageMappingInput{
     Stages:   allStages,
@@ -180,47 +192,15 @@ output, _ := mapping.Map(&orla.StageMappingInput{
 orla.ApplyStageMappingOutput(allStages, output)
 ```
 
-### Workflow with context passing
+### Execute the workflow
 
-The workflow defines the agent dependency graph and a context passing function. Both `resolver` and `escalation` depend on `triage`, so they run in parallel after triage completes. The context passing function feeds triage output into both downstream agents and sets the resolver's scheduling priority from the `prioritize` stage's structured JSON:
+With all stages and dependencies added, execute the workflow:
 
 ```go
-wf := orla.NewWorkflow()
-wf.AddAgent(triage)
-wf.AddAgent(resolver)
-wf.AddAgent(escalation)
-wf.AddDependency("resolver", "triage")
-wf.AddDependency("escalation", "triage")
-
-wf.SetContextPassingFn(func(upstream map[string]*orla.AgentResult, downstream *orla.Agent) error {
-    triageResult := upstream["triage"]
-
-    // Read structured outputs from each triage stage.
-    classifyOutput := triageResult.StageResults[classifyStage.ID].Response.Content
-    sentimentOutput := triageResult.StageResults[sentimentStage.ID].Response.Content
-    prioritizeOutput := triageResult.StageResults[prioritizeStage.ID].Response.Content
-
-    var p struct{ Priority int `json:"priority"` }
-    json.Unmarshal([]byte(prioritizeOutput), &p)
-
-    switch downstream.Name {
-    case "resolver":
-        // Set scheduling priority and prompts for both parallel root stages.
-        for _, s := range downstream.Stages() {
-            s.SetSchedulingHints(&orla.SchedulingHints{Priority: &p.Priority})
-            // ... set draft_response and policy_check prompts
-        }
-    case "escalation":
-        // Set route_ticket prompt from all triage outputs.
-        for _, s := range downstream.Stages() {
-            // ... set route_ticket prompt
-        }
-    }
-    return nil
-})
-
 results, _ := wf.Execute(ctx)
 ```
+
+The DAG executor starts `classify` first (no dependencies). Once it completes, both `policy_check` and `route_ticket` become unblocked and run in parallel. `policy_check` calls its tool, renders a decision, and when it finishes, `reply` becomes unblocked and runs. Meanwhile, `route_ticket` independently executes its three-tool sequence. Context between stages is handled by `PromptBuilder` functions on each stage.
 
 ## 3. Run the demo
 
@@ -252,79 +232,6 @@ VLLM_HEAVY_URL=http://vllm-heavy:8000/v1 \
 go run ./examples/workflow_demo/cmd/workflow_demo
 ```
 
-You should see output similar to:
-
-```
-2026/03/04 07:48:15 ================================================                                                            
-2026/03/04 07:48:15 Running customer support workflow demo                                                                      
-2026/03/04 07:48:15 ================================================                                                            
-2026/03/04 07:48:15 Stage mapping validated: 7 stages assigned to backends                                                      
-2026/03/04 07:48:15 Executing customer support workflow...                                                                      
-2026/03/04 07:48:16 Triage assigned scheduling priority 9 to resolver                                                           
-2026/03/04 07:48:30 === Agent: triage ===                                                                                       
-2026/03/04 07:48:30   sentiment (stage id: trusting_snyder):                                                                    
-2026/03/04 07:48:30     {
-  "sentiment": "frustrated",
-  "urgency_signals": [
-    "URGENT",
-    "I need a refund for the duplicate charge ASAP",
-    "I'm on a tight budget this month and that extra $50 really hurts"
-  ]
-}
-2026/03/04 07:48:30   classify (stage id: determined_goldwasser):
-2026/03/04 07:48:30     {
-  "category": "billing",
-  "key_issue": "Customer reports a duplicate charge of $49.99 for their Pro subscription, requesting a refund.",
-  "product": "Pro subscription"
-}
-2026/03/04 07:48:30   prioritize (stage id: competent_buck):
-2026/03/04 07:48:30     {  
-  "priority": 9,  
-  "reasoning": "The customer is frustrated and explicitly requests an urgent refund due to a duplicate charge that impacts their budget, indicating high financial and emotional urgency."  
-  ,  
-  "severity": "high"  
-}
-2026/03/04 07:48:30 === Agent: escalation ===
-2026/03/04 07:48:30   route_ticket (stage id: stupefied_mirzakhani):
-2026/03/04 07:48:30     {
-  "escalate": true,
-  "reason": "The ticket requires human escalation due to the high severity, customer sentiment, and financial impact. The customer reports a duplicate charge of $49.99 (totaling $99.98), which is a direct billing error with clear financial consequences. The customer is explicitly frustrated and requests an urgent refund, citing a tight budget and emotional distress. While automated systems may detect duplicate charges, the need for manual verification of subscription record...
-2026/03/04 07:48:30 === Agent: resolver ===
-2026/03/04 07:48:30   policy_check (stage id: relaxed_easley):
-2026/03/04 07:48:30     Based on the **ticket classification** and **sentiment**, here is a comprehensive breakdown of **applicable support policies, refund rules, SLA commitments, and constraints** the response agent must follow:
-
----
-
-### ✅ **1. Ticket Classification Summary**
-- **Category:** Billing  
-- **Key Issue:** Customer reports a duplicate charge of $49.99 for their Pro subscription, requesting a refund.  
-- **Product:** Pro subscription ($49.99/month)  
-- **Customer Name:** Leonhard Euler  
-- **Email:** le...
-2026/03/04 07:48:30   draft_response (stage id: wonderful_chaum):
-2026/03/04 07:48:30     Subject: Refund for Duplicate Charge - Urgent
-
-Dear Leonhard Euler,
-
-Thank you for reaching out and for bringing this issue to our attention. We sincerely apologize for the inconvenience and frustr
-ation caused by the duplicate charge on your Pro subscription. We understand how concerning this must be, especially given your 
-tight budget, and we are committed to resolving this matter as quickly as possible.
-
-We have already initiated a refund for the duplicate charge of $49.99 and it should be pro...
-2026/03/04 07:48:30   final_review (stage id: vigorous_keldysh): 
-2026/03/04 07:48:30     **REVIEW OUTCOME: APPROVED**
-
-**Summary:**
-The draft reply complies with all applicable policies, maintains a professional and empathetic tone, and addresses all aspects o
-f the customer's concern comprehensively.
-
-- **Policy Compliance:** The response acknowledges the duplicate charge, confirms the refund process, and aligns with the 5–7 bu
-siness day refund timeline. It also addresses the urgency signal and financial hardship, which requires an expedited refund. The
- mention of investigating th...
-```
-
-Note that the resolver and escalation agents run concurrently -- the escalation result may appear before the resolver finishes, since it runs on the lighter model.
-
 ## 4. Stop the stack
 
 ```bash
@@ -337,12 +244,10 @@ If you see a "network not found" or permission error when starting containers, t
 
 ## Control Flow
 
-The workflow executor walks the agent dependency graph and runs agents in topological order. Because both `resolver` and `escalation` depend on `triage`, the triage agent always runs first. Once triage completes, the executor launches the resolver and escalation agents concurrently -- this is the workflow-level fan-out.
+The workflow executor walks the stage dependency graph and runs stages in topological order. `classify` is the only root with no dependencies, so the DAG executor fires it first on the light backend. It sends the raw ticket and receives structured JSON back (category, product, key issue, and customer request).
 
-Inside the triage agent, stages execute in DAG order. The `classify` and `sentiment` stages are both roots with no dependencies, so the DAG executor fires them in parallel on the light backend. `classify` sends the raw ticket and receives structured JSON back (category, product, key issue), while `sentiment` independently analyzes the customer's emotional state and extracts urgency signals. Once both complete, the `prioritize` stage's `PromptBuilder` reads both results and constructs a prompt asking the model to assign a severity and numeric scheduling priority (1--10), also as structured JSON. This diamond decomposition -- parallel analysis followed by a join -- keeps each inference call focused and demonstrates that Orla's stage DAG executor can exploit parallelism within a single agent.
+Once `classify` completes, two stages become unblocked: `policy_check` and `route_ticket`. Both run in parallel on the heavy backend. `policy_check` enters an agent loop: the model generates a request to call `read_policy_yaml` with the ticket's category, the tool returns the relevant policy document, and the model then generates a structured accept/deny decision with reasoning. Meanwhile, `route_ticket` enters its own agent loop with three tools: it first calls `send_email` to acknowledge receipt to the customer, then calls `read_team_descriptions` to discover available internal teams, and finally calls `send_ticket` to create an internal ticket routed to the appropriate team. The agent-loop executor manages the Gen → Tool → Gen cycle for each stage automatically.
 
-When the triage agent finishes, the workflow executor calls the context passing function once for each downstream agent before launching it. For the resolver, the function injects the full triage output into `draft_response`'s prompt, passes the classification and sentiment specifically to `policy_check`, and reads the numeric `priority` field from the `prioritize` stage's structured JSON to set as the scheduling hint on all resolver stages. For the escalation agent, it passes the classification, sentiment, and priority assessment to `route_ticket` so the model can make an informed escalation decision. Because the triage agent produces the priority directly as an integer, no client-side mapping is needed.
+Once `policy_check` finishes, `reply` becomes unblocked. It enters an agent loop, composes a professional customer reply based on the policy decision and ticket classification, then calls `send_email` to send it. The `reply` stage produces a structured confirmation indicating whether the email was sent and a brief summary.
 
-The resolver and escalation agents then run concurrently. Inside the resolver, `draft_response` generates a personalized customer reply and `policy_check` identifies applicable support policies -- both running in parallel on the heavy backend. Once both complete, `final_review` reads both results and checks the draft against the identified policies for compliance, tone, and completeness. Meanwhile, the escalation agent's single `route_ticket` stage runs on the light backend, producing a structured JSON decision about whether the ticket needs human escalation and which team should handle it.
-
-On the server side, each backend maintains per-stage request queues. The triage and escalation agents' stages use FCFS scheduling, sufficient for lightweight work on the light model. The resolver agent's stages use Priority scheduling with hints taken directly from the triage agent's structured output, so when multiple tickets compete for the heavy backend simultaneously, higher-priority tickets (e.g. a critical billing issue assigned priority 10 by the triage model) are served before lower-priority ones (e.g. a general inquiry assigned priority 2).
+Scheduling hints are set dynamically in the `PromptBuilder` for the `reply` stage based on the classification output: billing and technical tickets get higher priority (8) than other categories (5). Because the agent-loop stages (`policy_check`, `reply`, `route_ticket`) all use Priority scheduling on the heavy backend, Orla's scheduler can prioritize urgent tickets when multiple workflows compete for the same backend simultaneously.

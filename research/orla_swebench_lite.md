@@ -142,7 +142,7 @@ Heavy instances are sorted by prompt length (ascending). Each heavy instance get
 
 **Phase 2 — Concurrent submission** (all modes):
 
-All instances are submitted simultaneously as goroutines, each calling `stage.Execute`. Orla's server-side queues handle contention. This creates the realistic multi-agent scenario where scheduling policy matters.
+All instances are submitted simultaneously as goroutines, each calling `stage.Execute`. Orla's server-side queues handle contention. This creates the realistic multi-stage scenario where scheduling policy matters.
 
 **Metrics collected per instance:**
 
@@ -164,4 +164,4 @@ The SJF hypothesis is that shorter prompts correlate with faster inference (less
 
 ## Conclusion
 
-You've run the Orla single-shot SWE-bench Lite experiments (baseline, stage mapping, and/or SJF scheduling). For tool-calling with Orla, see [Using Tools with Orla](tutorials/tutorial-tools-vllm-ollama-sglang.md). For a multi-agent workflow demo, see [Multi-Agent Workflow (Customer Support)](research/orla_workflow_customer_support.md). For a minimal SGLang-only run, see [Using Orla with SGLang](tutorials/tutorial-sglang-lily.md).
+You've run the Orla single-shot SWE-bench Lite experiments (baseline, stage mapping, and/or SJF scheduling). For tool-calling with Orla, see [Using Tools with Orla](tutorials/tutorial-tools-vllm-ollama-sglang.md). For a multi-stage workflow demo, see [Multi-Stage Workflow (Customer Support)](research/orla_workflow_customer_support.md). For a minimal SGLang-only run, see [Using Orla with SGLang](tutorials/tutorial-sglang-lily.md).

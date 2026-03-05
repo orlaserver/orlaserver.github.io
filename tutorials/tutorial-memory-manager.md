@@ -1,8 +1,8 @@
 # Tutorial: Managing KV Cache with the Memory Manager
 
-LLM backends like vLLM and SGLang maintain a KV cache that stores intermediate attention state. In multi-agent workflows, stages often share context. A triage agent's output feeds into a resolver agent, which feeds into a reviewer. If the KV cache from earlier stages is evicted prematurely, the backend must recompute the prefix from scratch, wasting GPU cycles. Conversely, holding onto cache from a completed workflow wastes GPU memory that new requests need.
+LLM backends like vLLM and SGLang maintain a KV cache that stores intermediate attention state. In multi-stage workflows, stages often share context. A triage stage's output feeds into a resolver stage, which feeds into a reviewer. If the KV cache from earlier stages is evicted prematurely, the backend must recompute the prefix from scratch, wasting GPU cycles. Conversely, holding onto cache from a completed workflow wastes GPU memory that new requests need.
 
-Orla's Memory Manager solves this by making workflow-aware decisions about when to preserve or flush KV cache at stage, agent, and workflow boundaries. It implements three policies by default:
+Orla's Memory Manager solves this by making workflow-aware decisions about when to preserve or flush KV cache at stage and workflow boundaries. It implements three policies by default:
 
 - **Preserve on Small Increment**: keep the cache when the new stage adds only a small number of tokens to the existing context.
 - **Flush at Boundary**: release cache when a workflow completes or the backend/model changes between stages.
@@ -35,17 +35,19 @@ The example uses `NewFlushAtBoundaryPolicy()`, which flushes the KV cache when t
 If you create a Workflow without setting a memory policy, Orla uses `NewDefaultMemoryPolicy()` automatically. This composes the preserve-on-small-increment and flush-at-boundary policies with sensible defaults (preserve threshold of 256 tokens). For most workloads this is all you need:
 
 ```go
-wf := orla.NewWorkflow()
+wf := orla.NewWorkflow(client)
 // No SetMemoryPolicy call -- the default policy applies.
-wf.AddAgent(triageAgent)
-wf.AddAgent(resolverAgent)
-wf.AddDependency("resolver", "triage")
+wf.AddStage(classifyStage)
+wf.AddStage(prioritizeStage)
+wf.AddStage(draftStage)
+wf.AddDependency(prioritizeStage.ID, classifyStage.ID)
+wf.AddDependency(draftStage.ID, prioritizeStage.ID)
 
 results, err := wf.Execute(ctx)
 ```
 
 Under the hood, the Memory Manager:
-- Preserves cache between stages within the same agent when the context grows by fewer than 256 tokens (avoiding recomputation of the shared prefix).
+- Preserves cache between stages on the same backend when the context grows by fewer than 256 tokens (avoiding recomputation of the shared prefix).
 - Flushes cache when a workflow completes, freeing GPU memory for the next workflow.
 - Flushes cache when a stage switches to a different backend or model (the old backend's cache is no longer useful).
 
@@ -54,7 +56,7 @@ Under the hood, the Memory Manager:
 You can adjust the preserve threshold to match your workload. A higher threshold means the Memory Manager preserves cache even when stages add more tokens, trading GPU memory for compute savings:
 
 ```go
-wf := orla.NewWorkflow()
+wf := orla.NewWorkflow(client)
 wf.SetMemoryPolicy(orla.NewDefaultMemoryPolicy(
 	orla.WithPreserveThreshold(512), // preserve up to 512 new tokens
 ))
@@ -153,7 +155,7 @@ type CacheEvent struct {
 	NextStageModel   string
 	DeltaTokens      int
 	TotalTokens      int
-	TransitionType   string // "stage", "agent", "workflow_complete"
+	TransitionType   string // "stage", "workflow_complete"
 }
 ```
 
@@ -194,7 +196,7 @@ Stage-level `CachePolicy` overrides (set via `SetCachePolicy`) are sent with eac
 
 ## Full example: customer support workflow with memory management
 
-Putting it all together with a two-agent workflow:
+Putting it all together with a multi-stage workflow:
 
 ```go
 package main
@@ -217,9 +219,10 @@ func main() {
 		log.Fatal(err)
 	}
 
-	// Triage agent: classify and prioritize.
-	triage := orla.NewAgent(client)
-	triage.Name = "triage"
+	wf := orla.NewWorkflow(client)
+	wf.SetMemoryPolicy(orla.NewDefaultMemoryPolicy(
+		orla.WithPreserveThreshold(512),
+	))
 
 	classify := orla.NewStage("classify", heavy)
 	classify.SetMaxTokens(128)
@@ -227,7 +230,7 @@ func main() {
 
 	prioritize := orla.NewStage("prioritize", heavy)
 	prioritize.SetMaxTokens(128)
-	prioritize.SetCachePolicy(orla.CachePolicyPreserve) // keep cache for resolver
+	prioritize.SetCachePolicy(orla.CachePolicyPreserve) // keep cache for draft
 	prioritize.SetPromptBuilder(func(results map[string]*orla.StageResult) (string, error) {
 		cr := results[classify.ID]
 		if cr == nil || cr.Response == nil {
@@ -236,41 +239,34 @@ func main() {
 		return fmt.Sprintf("Prioritize based on: %s", cr.Response.Content), nil
 	})
 
-	triage.AddStage(classify)
-	triage.AddStage(prioritize)
-	triage.AddDependency(prioritize.ID, classify.ID)
-
-	// Resolver agent: draft a response using triage context.
-	resolver := orla.NewAgent(client)
-	resolver.Name = "resolver"
-
 	draft := orla.NewStage("draft", heavy)
 	draft.SetMaxTokens(512)
-	draft.Prompt = "Draft a customer response based on the triage output."
+	draft.SetPromptBuilder(func(results map[string]*orla.StageResult) (string, error) {
+		pr := results[prioritize.ID]
+		if pr == nil || pr.Response == nil {
+			return "", fmt.Errorf("missing prioritize result")
+		}
+		return fmt.Sprintf("Draft a customer response based on: %s", pr.Response.Content), nil
+	})
 
-	resolver.AddStage(draft)
-
-	// Workflow with tuned memory policy.
-	wf := orla.NewWorkflow()
-	wf.SetMemoryPolicy(orla.NewDefaultMemoryPolicy(
-		orla.WithPreserveThreshold(512),
-	))
-	wf.AddAgent(triage)
-	wf.AddAgent(resolver)
-	wf.AddDependency("resolver", "triage")
+	wf.AddStage(classify)
+	wf.AddStage(prioritize)
+	wf.AddStage(draft)
+	wf.AddDependency(prioritize.ID, classify.ID)
+	wf.AddDependency(draft.ID, prioritize.ID)
 
 	results, err := wf.Execute(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	fmt.Println("Draft:", results["resolver"].StageResults[draft.ID].Response.Content)
+	fmt.Println("Draft:", results[draft.ID].Response.Content)
 }
 ```
 
-The Memory Manager preserves cache between `classify` and `prioritize` (small increment on the same backend), honors the explicit `CachePolicyPreserve` on `prioritize` so the resolver's draft benefits from the cached prefix, and flushes everything when `Execute()` returns and the workflow-complete notification reaches the server.
+The Memory Manager preserves cache between `classify` and `prioritize` (small increment on the same backend), honors the explicit `CachePolicyPreserve` on `prioritize` so the draft benefits from the cached prefix, and flushes everything when `Execute()` returns and the workflow-complete notification reaches the server.
 
 ## Next steps
 
 - See [Concurrent Stages](tutorials/tutorial-concurrent-stages.md) for configuring backend concurrency alongside the Memory Manager.
-- See the [Multi-Agent Workflow tutorial](research/orla_workflow_customer_support.md) for the full seven-stage customer support pipeline.
+- See the [Workflow tutorial](research/orla_workflow_customer_support.md) for the full seven-stage customer support pipeline.

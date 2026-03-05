@@ -70,7 +70,7 @@ Lists registered backend names.
 
 Register a backend before calling execute with that `backend` name.
 
-### Agent Execution
+### Stage Execution
 
 ```bash
 POST /api/v1/execute

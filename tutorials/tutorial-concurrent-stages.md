@@ -26,7 +26,7 @@ The example registers a backend with `SetMaxConcurrency(4)` and runs two paralle
 
 ## Why concurrency matters
 
-Consider a workflow where two agents fan out after triage and run in parallel on the same heavy backend. Without concurrency, the resolver and escalation requests queue behind each other on the heavy backend, even though the GPU could batch them together. With `SetMaxConcurrency(4)`, up to four requests can be in-flight on the heavy backend simultaneously, and the backend's internal scheduler handles GPU batching.
+Consider a workflow where multiple stages fan out after classification and run in parallel on the same heavy backend. Without concurrency, the policy check and routing requests queue behind each other on the heavy backend, even though the GPU could batch them together. With `SetMaxConcurrency(4)`, up to four requests can be in-flight on the heavy backend simultaneously, and the backend's internal scheduler handles GPU batching.
 
 ## 1. Register a backend with concurrency
 
@@ -60,9 +60,9 @@ func main() {
 
 A value of `0` or `1` means serial dispatch (the default). Any value above `1` spawns that many worker goroutines inside the Orla server for this backend.
 
-## 2. Run parallel stages in an Agent DAG
+## 2. Run parallel stages in a Workflow
 
-With concurrency enabled, independent stages in an Agent DAG naturally benefit. When two stages have no dependency between them, the Agent executor launches them concurrently, and both requests reach the backend workers in parallel:
+With concurrency enabled, independent stages in a Workflow naturally benefit. When two stages have no dependency between them, the Workflow executor launches them concurrently, and both requests reach the backend workers in parallel:
 
 ```go
 package main
@@ -85,8 +85,7 @@ func main() {
 		log.Fatal("register backend: ", err)
 	}
 
-	agent := orla.NewAgent(client)
-	agent.Name = "parallel_demo"
+	wf := orla.NewWorkflow(client)
 
 	stageA := orla.NewStage("summarize", backend)
 	stageA.SetMaxTokens(256)
@@ -96,15 +95,15 @@ func main() {
 	stageB.SetMaxTokens(256)
 	stageB.Prompt = "Extract all named entities from this report: ..."
 
-	if err := agent.AddStage(stageA); err != nil {
+	if err := wf.AddStage(stageA); err != nil {
 		log.Fatal(err)
 	}
-	if err := agent.AddStage(stageB); err != nil {
+	if err := wf.AddStage(stageB); err != nil {
 		log.Fatal(err)
 	}
 	// No dependency between stageA and stageB -- they run concurrently.
 
-	results, err := agent.ExecuteDAG(ctx)
+	results, err := wf.Execute(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -150,4 +149,4 @@ This means SJF (Shortest Job First) or priority scheduling still controls orderi
 ## Next steps
 
 - Combine concurrency with the [Memory Manager](tutorials/tutorial-memory-manager.md) to manage KV cache lifecycle across concurrent workflows.
-- See the [Multi-Agent Workflow tutorial](research/orla_workflow_customer_support.md) for a full workflow example with fan-out across agents and backends.
+- See the [Workflow tutorial](research/orla_workflow_customer_support.md) for a full workflow example with fan-out across stages and backends.

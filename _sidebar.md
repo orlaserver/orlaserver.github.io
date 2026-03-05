@@ -14,4 +14,4 @@
   * [Memory Manager](tutorials/tutorial-memory-manager.md)
 * Research Tutorials
   * [Single-Shot SWE-bench Lite Experiments](research/orla_swebench_lite.md)
-  * [Multi-Agent Workflow (Customer Support)](research/orla_workflow_customer_support.md)
+  * [Multi-Stage Workflow (Customer Support)](research/orla_workflow_customer_support.md)
