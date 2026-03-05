@@ -210,6 +210,49 @@ From the Orla repo root, run the workflow demo:
 go run ./examples/workflow_demo/cmd/workflow_demo
 ```
 
+The output should be something like
+
+```bash
+2026/03/05 13:46:28 ================================================
+2026/03/05 13:46:28 Running customer support workflow demo
+2026/03/05 13:46:28 ================================================
+2026/03/05 13:46:28 Stage mapping validated: 4 stages assigned to backends
+2026/03/05 13:46:28 Executing customer support workflow...
+2026/03/05 13:46:28   Stage DAG:
+2026/03/05 13:46:28     classify ──┬──▶ policy_check ──▶ reply
+2026/03/05 13:46:28                └──▶ route_ticket
+2026/03/05 13:46:32 [send_email] To: leonhard.euler@email.com | Subject: Acknowledgment of Your Ticket
+2026/03/05 13:46:32 [send_ticket] Team: billing | Priority: high
+2026/03/05 13:46:36   classify:
+2026/03/05 13:46:36     {
+  "category": "billing",
+  "customer_request": "Refund for a duplicate charge of $49.99 made on October 3 and October 5 for my Pro subscription, as I did not authorize a second subscription.",
+  "key_issue": "The customer was charged twice for their Pro subscription in October, resulting in a total of $99.98, and is requesting a refund for the duplicate payment.",
+  "product": "Pro subscription"
+}
+2026/03/05 13:46:36   policy_check:
+2026/03/05 13:46:36     {
+  "applicable_policy": "billing",
+  "decision": "accept",
+  "reasoning": "The customer was charged twice for their Pro subscription, which is a billing issue. The company's policy states that duplicate charges should be refunded within 5 business days. The customer is requesting a refund for the duplicate payment, which aligns with the policy. The dashboard performance issue is unrelated to the refund request and can be addressed separately."
+}
+2026/03/05 13:46:36   reply:
+2026/03/05 13:46:36     {
+  "email_sent": true,
+  "summary": "The refund for the duplicate charge has been processed and will be issued within 5 business days. The dashboard performance issue will be addressed separately. Thank you for your patience."
+}
+2026/03/05 13:46:36   route_ticket:
+2026/03/05 13:46:36     I have completed the following steps:
+
+1. Sent an acknowledgment email to the customer, Leonhard Euler, confirming their ticket was received.
+2. Read the team descriptions and determined that the "billing_ops" team should handle this ticket, as it involves a refund and payment dispute.
+3. Created an internal support ticket with the following details:
+   - **Ticket ID:** TKT-billing-42
+   - **Team:** billing_ops
+   - **Priority:** High (as the customer marked the issue as urgent and is on a tight...
+2026/03/05 13:46:36     (tool calls executed: 3)
+```
+
 The demo includes a built-in sample ticket (a duplicate billing charge complaint). To use your own ticket, set the `TICKET_PATH` environment variable:
 
 ```bash
