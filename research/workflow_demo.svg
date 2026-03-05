@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 300" width="720" height="300" font-family="system-ui, -apple-system, sans-serif">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 180" width="720" height="180" font-family="system-ui, -apple-system, sans-serif">
   <defs>
     <marker id="arrow" viewBox="0 0 10 7" refX="9" refY="3.5" markerWidth="10" markerHeight="7" orient="auto-start-reverse">
       <polygon points="0 0, 10 3.5, 0 7" fill="#495057"/>
@@ -6,31 +6,31 @@
   </defs>
 
   <!-- Stage 1: classify -->
-  <rect x="20" y="110" width="160" height="60" rx="10" fill="#b2f2bb" stroke="#1e1e1e" stroke-width="1.5"/>
-  <text x="100" y="135" text-anchor="middle" font-size="15" font-weight="600" fill="#1e1e1e">classify</text>
-  <text x="100" y="155" text-anchor="middle" font-size="11" fill="#495057">single-shot · light</text>
+  <rect x="10" y="60" width="150" height="60" rx="10" fill="#b2f2bb" stroke="#1e1e1e" stroke-width="1.5"/>
+  <text x="85" y="85" text-anchor="middle" font-size="15" font-weight="600" fill="#1e1e1e">classify</text>
+  <text x="85" y="105" text-anchor="middle" font-size="11" fill="#495057">single-shot · light</text>
 
-  <!-- Stage 2: policy_check -->
-  <rect x="260" y="30" width="180" height="60" rx="10" fill="#a5d8ff" stroke="#1e1e1e" stroke-width="1.5"/>
-  <text x="350" y="55" text-anchor="middle" font-size="15" font-weight="600" fill="#1e1e1e">policy_check</text>
-  <text x="350" y="75" text-anchor="middle" font-size="11" fill="#495057">agent-loop · heavy</text>
+  <!-- Stage 2: policy_check (top row) -->
+  <rect x="250" y="15" width="160" height="60" rx="10" fill="#a5d8ff" stroke="#1e1e1e" stroke-width="1.5"/>
+  <text x="330" y="40" text-anchor="middle" font-size="15" font-weight="600" fill="#1e1e1e">policy_check</text>
+  <text x="330" y="60" text-anchor="middle" font-size="11" fill="#495057">agent-loop · heavy</text>
 
-  <!-- Stage 3: reply -->
-  <rect x="520" y="30" width="160" height="60" rx="10" fill="#ffec99" stroke="#1e1e1e" stroke-width="1.5"/>
-  <text x="600" y="55" text-anchor="middle" font-size="15" font-weight="600" fill="#1e1e1e">reply</text>
-  <text x="600" y="75" text-anchor="middle" font-size="11" fill="#495057">agent-loop · heavy</text>
+  <!-- Stage 3: reply (top row) -->
+  <rect x="500" y="15" width="140" height="60" rx="10" fill="#ffec99" stroke="#1e1e1e" stroke-width="1.5"/>
+  <text x="570" y="40" text-anchor="middle" font-size="15" font-weight="600" fill="#1e1e1e">reply</text>
+  <text x="570" y="60" text-anchor="middle" font-size="11" fill="#495057">agent-loop · heavy</text>
 
-  <!-- Stage 4: route_ticket -->
-  <rect x="260" y="190" width="180" height="60" rx="10" fill="#d0bfff" stroke="#1e1e1e" stroke-width="1.5"/>
-  <text x="350" y="215" text-anchor="middle" font-size="15" font-weight="600" fill="#1e1e1e">route_ticket</text>
-  <text x="350" y="235" text-anchor="middle" font-size="11" fill="#495057">agent-loop · heavy</text>
+  <!-- Stage 4: route_ticket (bottom row) -->
+  <rect x="250" y="105" width="160" height="60" rx="10" fill="#d0bfff" stroke="#1e1e1e" stroke-width="1.5"/>
+  <text x="330" y="130" text-anchor="middle" font-size="15" font-weight="600" fill="#1e1e1e">route_ticket</text>
+  <text x="330" y="150" text-anchor="middle" font-size="11" fill="#495057">agent-loop · heavy</text>
 
   <!-- Arrow: classify → policy_check -->
-  <line x1="180" y1="125" x2="258" y2="75" stroke="#495057" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <line x1="160" y1="80" x2="248" y2="48" stroke="#495057" stroke-width="1.5" marker-end="url(#arrow)"/>
 
   <!-- Arrow: policy_check → reply -->
-  <line x1="440" y1="60" x2="518" y2="60" stroke="#495057" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <line x1="410" y1="45" x2="498" y2="45" stroke="#495057" stroke-width="1.5" marker-end="url(#arrow)"/>
 
   <!-- Arrow: classify → route_ticket -->
-  <line x1="180" y1="155" x2="258" y2="205" stroke="#495057" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <line x1="160" y1="100" x2="248" y2="132" stroke="#495057" stroke-width="1.5" marker-end="url(#arrow)"/>
 </svg>

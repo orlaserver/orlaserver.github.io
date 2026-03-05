@@ -1,6 +1,6 @@
 # Multi-Stage Workflow with Orla
 
-This tutorial runs a multi-stage workflow using [Orla](https://github.com/dorcha-inc/orla) and two [SGLang](https://sgl-project.github.io/) backends. The workflow processes a customer support ticket through a four-stage pipeline: a classification stage (light model) extracts structured ticket metadata; a policy check stage (heavy model) reads company policy via tool call and renders an accept/deny decision; a reply stage (heavy model) composes and sends a customer email via tool call; and a routing stage (heavy model) acknowledges receipt, looks up internal teams, and creates an internal ticket -- all via tool calls. This demonstrates Orla's full abstraction stack: Workflow, Stage DAG, Stage Mapping, Scheduling, and tool-calling agent loops.
+This tutorial runs a multi-stage workflow using [Orla](https://github.com/dorcha-inc/orla) and two [SGLang](https://sgl-project.github.io/) backends. The workflow processes a customer support ticket through a four-stage pipeline: a classification stage (light model) extracts structured ticket metadata and decides whether the ticket needs human escalation; a policy check stage (heavy model) reads company policy via tool call and renders an accept/deny decision; a reply stage (heavy model) composes and sends a customer email via tool call; and a routing stage (heavy model) conditionally either routes an escalated ticket to a human team or notifies the team that the ticket was resolved automatically. The policy check → reply chain and the route_ticket stage run in parallel after classification. This demonstrates Orla's full abstraction stack: Workflow, Stage DAG, Stage Mapping, Scheduling, and tool-calling agent loops.
 
 ## Architecture
 
@@ -21,12 +21,12 @@ Workflow
         tools: send_email, read_team_descriptions, send_ticket -> free-text summary
 ``` -->
 
-<!-- ```
+  <!--
 classify ──┬──▶ policy_check ──▶ reply
            └──▶ route_ticket
-``` -->
+-->
 
-The demo exercises every layer of the Orla abstraction stack. Stage 1 (`classify`) is a single-shot structured-output call on the light model that extracts the ticket category, product, key issue, and what the customer is actually asking for. Stage 2 (`policy_check`) runs as an agent loop on the heavy model: it calls the `read_policy_yaml` tool to retrieve company policy for the ticket's category, then renders an accept/deny decision with reasoning as structured output. Stage 3 (`reply`) composes a professional customer email based on the policy decision and classification, then sends it via the `send_email` tool. Stage 4 (`route_ticket`) runs in parallel with Stages 2 and 3 (it only depends on `classify`): it sends an acknowledgment email, reads internal team descriptions, and creates a routed internal ticket -- executing three tool calls in sequence.
+The demo exercises every layer of the Orla abstraction stack. Stage 1 (`classify`) is a single-shot structured-output call on the light model that extracts the ticket category, product, key issue, customer request, and whether the ticket needs human escalation (`needs_escalation`). Stage 2 (`policy_check`) runs as an agent loop on the heavy model: it calls the `read_policy_yaml` tool to retrieve company policy for the ticket's category, then renders an accept/deny decision with reasoning as structured output. Stage 3 (`reply`) composes a professional customer email based on the policy decision and classification, then sends it via the `send_email` tool. Stage 4 (`route_ticket`) runs in parallel with Stages 2 and 3 (it only depends on `classify`): if the classifier decided the ticket needs escalation, it reads team descriptions, creates a routed internal ticket, and emails the responsible team; if not, it notifies the team that the ticket is being resolved automatically.
 
 Before execution, Stage Mapping validates the plan. Each stage is explicitly assigned to a backend (light or heavy), and `ExplicitStageMapping` checks that every stage points to a registered backend. This catches configuration errors before any inference happens.
 
@@ -84,7 +84,7 @@ client.RegisterBackend(ctx, heavyBackend)
 
 ### Stage 1: classify (single-shot, structured output)
 
-The classification stage extracts structured metadata from the raw ticket. It runs as a single-shot call on the light model with a JSON schema enforcing the output format:
+The classification stage extracts structured metadata from the raw ticket and decides whether the ticket needs human escalation. It runs as a single-shot call on the light model with a JSON schema enforcing the output format (fields: `category`, `product`, `key_issue`, `customer_request`, `needs_escalation`, `escalation_reason`):
 
 ```go
 wf := orla.NewWorkflow(client)
@@ -97,7 +97,8 @@ classifyStage.SetResponseFormat(orla.NewStructuredOutputRequest("ticket_classify
 classifyStage.Prompt = fmt.Sprintf(
     "You are a customer support triage system. Classify this support ticket.\n"+
         "Extract the category, product, a one-sentence summary of the core issue, "+
-        "and what the customer is actually asking for.\n\nTicket:\n%s", ticket)
+        "and what the customer is actually asking for.\n"+
+        "Also decide if this ticket needs human escalation.\n\nTicket:\n%s", ticket)
 ```
 
 ### Stage 2: policy_check (agent-loop with tool)
@@ -153,9 +154,12 @@ wf.AddStage(replyStage)
 wf.AddDependency(replyStage.ID, policyStage.ID)
 ```
 
-### Stage 4: route_ticket (agent-loop with multiple tools)
+### Stage 4: route_ticket (agent-loop with multiple tools, conditional on escalation)
 
-The routing stage runs in parallel with Stages 2 and 3 because it only depends on `classify`. It has three tools: `send_email` (acknowledgment), `read_team_descriptions` (team lookup), and `send_ticket` (internal routing). The agent loop executes all three tool calls in sequence:
+The routing stage runs in parallel with Stages 2 and 3 because it only depends on `classify`. It has three tools: `send_email`, `read_team_descriptions`, and `send_ticket`. Its behavior branches on the `needs_escalation` flag from the classify output:
+
+- **Needs escalation:** reads team descriptions, creates a routed internal ticket for the appropriate human team, and emails the team about the escalation.
+- **No escalation:** reads team descriptions and sends an informational email to the responsible team letting them know the ticket is being handled automatically by the resolver (Stages 2 and 3).
 
 ```go
 routeStage := orla.NewStage("route_ticket", heavyBackend)
@@ -166,12 +170,20 @@ routeStage.AddTool(teamsTool)
 routeStage.AddTool(ticketTool)
 routeStage.SetPromptBuilder(func(results map[string]*orla.StageResult) (string, error) {
     classification := results[classifyStage.ID]
-    return fmt.Sprintf(
-        "1. Send an acknowledgment email to the customer.\n"+
-            "2. Read the team descriptions to find the right team.\n"+
-            "3. Create an internal support ticket for that team.\n\n"+
-            "Ticket Classification:\n%s\n\nOriginal Ticket:\n%s",
-        classification.Response.Content, ticket), nil
+    // Parse needs_escalation from classify output to branch behavior
+    var classifyOut struct {
+        NeedsEscalation  bool   `json:"needs_escalation"`
+        EscalationReason string `json:"escalation_reason"`
+    }
+    json.Unmarshal([]byte(classification.Response.Content), &classifyOut)
+
+    if classifyOut.NeedsEscalation {
+        // Route to human team
+        return fmt.Sprintf("... escalation prompt with reason: %s ...",
+            classifyOut.EscalationReason), nil
+    }
+    // Notify team of auto-resolution
+    return fmt.Sprintf("... notification prompt ..."), nil
 })
 
 wf.AddStage(routeStage)
@@ -200,7 +212,7 @@ With all stages and dependencies added, execute the workflow:
 results, _ := wf.Execute(ctx)
 ```
 
-The DAG executor starts `classify` first (no dependencies). Once it completes, both `policy_check` and `route_ticket` become unblocked and run in parallel. `policy_check` calls its tool, renders a decision, and when it finishes, `reply` becomes unblocked and runs. Meanwhile, `route_ticket` independently executes its three-tool sequence. Context between stages is handled by `PromptBuilder` functions on each stage.
+The DAG executor starts `classify` first (no dependencies). Once it completes, both `policy_check` and `route_ticket` become unblocked and run in parallel. `policy_check` calls its tool, renders a decision, and when it finishes, `reply` becomes unblocked and runs. Meanwhile, `route_ticket` reads the `needs_escalation` flag from the classification and either routes an escalated ticket to a human team or notifies the team of auto-resolution. Context between stages is handled by `PromptBuilder` functions on each stage.
 
 ## 3. Run the demo
 
@@ -287,9 +299,9 @@ If you see a "network not found" or permission error when starting containers, t
 
 ## Control Flow
 
-The workflow executor walks the stage dependency graph and runs stages in topological order. `classify` is the only root with no dependencies, so the DAG executor fires it first on the light backend. It sends the raw ticket and receives structured JSON back (category, product, key issue, and customer request).
+The workflow executor walks the stage dependency graph and runs stages in topological order. `classify` is the only root with no dependencies, so the DAG executor fires it first on the light backend. It sends the raw ticket and receives structured JSON back (category, product, key issue, customer request, and `needs_escalation`).
 
-Once `classify` completes, two stages become unblocked: `policy_check` and `route_ticket`. Both run in parallel on the heavy backend. `policy_check` enters an agent loop: the model generates a request to call `read_policy_yaml` with the ticket's category, the tool returns the relevant policy document, and the model then generates a structured accept/deny decision with reasoning. Meanwhile, `route_ticket` enters its own agent loop with three tools: it first calls `send_email` to acknowledge receipt to the customer, then calls `read_team_descriptions` to discover available internal teams, and finally calls `send_ticket` to create an internal ticket routed to the appropriate team. The agent-loop executor manages the Gen → Tool → Gen cycle for each stage automatically.
+Once `classify` completes, two stages become unblocked: `policy_check` and `route_ticket`. Both run in parallel on the heavy backend. `policy_check` enters an agent loop: the model generates a request to call `read_policy_yaml` with the ticket's category, the tool returns the relevant policy document, and the model then generates a structured accept/deny decision with reasoning. Meanwhile, `route_ticket` reads the `needs_escalation` flag from the classification output. If escalation is needed, it enters an agent loop that reads team descriptions, creates a routed internal ticket for the appropriate human team, and emails the team about the escalation. If escalation is not needed, it instead sends an informational email to the responsible team letting them know the ticket is being handled automatically by the resolver stages.
 
 Once `policy_check` finishes, `reply` becomes unblocked. It enters an agent loop, composes a professional customer reply based on the policy decision and ticket classification, then calls `send_email` to send it. The `reply` stage produces a structured confirmation indicating whether the email was sent and a brief summary.
 
