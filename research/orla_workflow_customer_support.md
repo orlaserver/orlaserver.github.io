@@ -1,6 +1,6 @@
 # Multi-Stage Workflow with Orla
 
-This tutorial runs a multi-stage workflow using [Orla](https://github.com/dorcha-inc/orla) and two [SGLang](https://sgl-project.github.io/) backends. The workflow processes a customer support ticket through a four-stage pipeline: a classification stage (light model) extracts structured ticket metadata and decides whether the ticket needs human escalation; a policy check stage (heavy model) reads company policy via tool call and renders an accept/deny decision; a reply stage (heavy model) composes and sends a customer email via tool call; and a routing stage (heavy model) conditionally either routes an escalated ticket to a human team or notifies the team that the ticket was resolved automatically. The policy check → reply chain and the route_ticket stage run in parallel after classification. This demonstrates Orla's full abstraction stack: Workflow, Stage DAG, Stage Mapping, Scheduling, and tool-calling agent loops.
+This tutorial runs a multi-stage workflow using [Orla](https://github.com/dorcha-inc/orla) and two [SGLang](https://sgl-project.github.io/) backends. The workflow processes a customer support ticket through a four-stage pipeline: a classification stage (light model) extracts structured ticket metadata and decides whether the ticket needs human escalation; a policy check stage (heavy model) reads company policy via tool call and renders an accept/deny decision; a reply stage (heavy model) either sends a brief escalation acknowledgment or a full resolution email via tool call; and a routing stage (heavy model) conditionally either routes an escalated ticket to a human team or notifies the team that the ticket was resolved automatically. The policy check → reply chain and the route_ticket stage run in parallel after classification. This demonstrates Orla's full abstraction stack: Workflow, Stage DAG, Stage Mapping, Scheduling, and tool-calling agent loops.
 
 ## Architecture
 
@@ -26,7 +26,7 @@ classify ──┬──▶ policy_check ──▶ reply
            └──▶ route_ticket
 -->
 
-The demo exercises every layer of the Orla abstraction stack. Stage 1 (`classify`) is a single-shot structured-output call on the light model that extracts the ticket category, product, key issue, customer request, and whether the ticket needs human escalation (`needs_escalation`). Stage 2 (`policy_check`) runs as an agent loop on the heavy model: it calls the `read_policy_yaml` tool to retrieve company policy for the ticket's category, then renders an accept/deny decision with reasoning as structured output. Stage 3 (`reply`) composes a professional customer email based on the policy decision and classification, then sends it via the `send_email` tool. Stage 4 (`route_ticket`) runs in parallel with Stages 2 and 3 (it only depends on `classify`): if the classifier decided the ticket needs escalation, it reads team descriptions, creates a routed internal ticket, and emails the responsible team; if not, it notifies the team that the ticket is being resolved automatically.
+The demo exercises every layer of the Orla abstraction stack. Stage 1 (`classify`) is a single-shot structured-output call on the light model that extracts the ticket category, product, key issue, customer request, and whether the ticket needs human escalation (`needs_escalation`). Stage 2 (`policy_check`) runs as an agent loop on the heavy model: it calls the `read_policy_yaml` tool to retrieve company policy for the ticket's category, then renders an accept/deny decision with reasoning as structured output. Stage 3 (`reply`) also branches on `needs_escalation`: if the ticket is escalated, it sends a brief acknowledgment to the customer; otherwise it composes a full resolution email based on the policy decision. Stage 4 (`route_ticket`) runs in parallel with Stages 2 and 3 (it only depends on `classify`): if the classifier decided the ticket needs escalation, it reads team descriptions, creates a routed internal ticket, and emails the responsible team; if not, it notifies the team that the ticket is being resolved automatically.
 
 Before execution, Stage Mapping validates the plan. Each stage is explicitly assigned to a backend (light or heavy), and `ExplicitStageMapping` checks that every stage points to a registered backend. This catches configuration errors before any inference happens.
 
@@ -128,9 +128,12 @@ wf.AddDependency(policyStage.ID, classifyStage.ID)
 
 The agent-loop executor handles the Gen → Tool(read_policy_yaml) → Gen → Structured Output cycle automatically.
 
-### Stage 3: reply (agent-loop with tool)
+### Stage 3: reply (agent-loop with tool, conditional on escalation)
 
-The reply stage composes a customer email based on the policy decision and sends it using the `send_email` tool. It depends on `policy_check`:
+The reply stage depends on `policy_check` and branches on the `needs_escalation` flag from the classify output:
+
+- **Needs escalation:** sends a brief acknowledgment email telling the customer their request is being escalated to a specialist team. It does not resolve the issue or make promises about the outcome.
+- **No escalation:** composes a full resolution email based on the policy decision (confirming the action or explaining a denial) and sends it via `send_email`.
 
 ```go
 emailTool, _ := sendEmailTool()
@@ -143,6 +146,14 @@ replyStage.AddTool(emailTool)
 replyStage.SetPromptBuilder(func(results map[string]*orla.StageResult) (string, error) {
     classification := results[classifyStage.ID]
     policyResult := results[policyStage.ID]
+    var classifyData struct {
+        NeedsEscalation bool `json:"needs_escalation"`
+    }
+    json.Unmarshal([]byte(classification.Response.Content), &classifyData)
+
+    if classifyData.NeedsEscalation {
+        return fmt.Sprintf("... escalation acknowledgment prompt ..."), nil
+    }
     return fmt.Sprintf(
         "Compose a professional reply based on the policy decision and send it "+
             "using the send_email tool.\n\n"+
@@ -303,6 +314,6 @@ The workflow executor walks the stage dependency graph and runs stages in topolo
 
 Once `classify` completes, two stages become unblocked: `policy_check` and `route_ticket`. Both run in parallel on the heavy backend. `policy_check` enters an agent loop: the model generates a request to call `read_policy_yaml` with the ticket's category, the tool returns the relevant policy document, and the model then generates a structured accept/deny decision with reasoning. Meanwhile, `route_ticket` reads the `needs_escalation` flag from the classification output. If escalation is needed, it enters an agent loop that reads team descriptions, creates a routed internal ticket for the appropriate human team, and emails the team about the escalation. If escalation is not needed, it instead sends an informational email to the responsible team letting them know the ticket is being handled automatically by the resolver stages.
 
-Once `policy_check` finishes, `reply` becomes unblocked. It enters an agent loop, composes a professional customer reply based on the policy decision and ticket classification, then calls `send_email` to send it. The `reply` stage produces a structured confirmation indicating whether the email was sent and a brief summary.
+Once `policy_check` finishes, `reply` becomes unblocked. It reads the `needs_escalation` flag from the classification. If escalation is needed, it enters an agent loop that sends a brief acknowledgment email to the customer letting them know their request is being routed to a specialist team -- it does not resolve the issue. If escalation is not needed, it composes a full resolution email based on the policy decision and sends it. Either way, the `reply` stage produces a structured confirmation indicating whether the email was sent and a brief summary.
 
 Scheduling hints are set dynamically in the `PromptBuilder` for the `reply` stage based on the classification output: billing and technical tickets get higher priority (8) than other categories (5). Because the agent-loop stages (`policy_check`, `reply`, `route_ticket`) all use Priority scheduling on the heavy backend, Orla's scheduler can prioritize urgent tickets when multiple workflows compete for the same backend simultaneously.
