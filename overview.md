@@ -1,4 +1,4 @@
-![Orla](orla_banner_no_caption.png ':size=500')
+<!-- ![Orla](orla_banner_no_caption.png ':size=500') -->
 
 ## Overview
 
