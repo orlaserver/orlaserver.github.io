@@ -36,14 +36,24 @@ Two of the four stages produce structured JSON output via schemas (`classify` an
 
 ## What you need
 
+**GPU path (SGLang / vLLM):**
+
 - Docker and Docker Compose (Compose V2).
 - An NVIDIA GPU and [NVIDIA Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/install-guide.html).
 - The [Orla repo](https://github.com/dorcha-inc/orla) cloned.
 - Go 1.25 or later.
 
+**Laptop path (Ollama, no GPU required):**
+
+- Docker and Docker Compose (Compose V2).
+- The [Orla repo](https://github.com/dorcha-inc/orla) cloned.
+- Go 1.25 or later.
+
 ## 1. Start the backends and Orla
 
-The workflow uses two SGLang backends: a **light** model (Qwen3-4B) for classification, and a **heavy** model (Qwen3-8B) for policy checking, reply composition, and ticket routing. Use the **workflow-demo** compose file so you get a clean stack and avoid network conflicts with other compose projects (e.g. SWE-bench Lite). You can run with **SGLang** (default) or **vLLM**. From the Orla repo root:
+### Option A: SGLang or vLLM with a GPU
+
+The workflow uses two backends: a **light** model (Qwen3-4B) for classification, and a **heavy** model (Qwen3-8B) for policy checking, reply composition, and ticket routing. Use the **workflow-demo** compose file so you get a clean stack and avoid network conflicts with other compose projects (e.g. SWE-bench Lite). You can run with **SGLang** (default) or **vLLM**. From the Orla repo root:
 
 **SGLang** (default):
 
@@ -67,17 +77,39 @@ curl http://localhost:8081/api/v1/health
 
 If you only have one GPU, you can run both backends on the same model by setting the environment variables in step 3.
 
+### Option B: Ollama on your Laptop
+
+If you don't have a GPU, you can run the same workflow with [Ollama](https://ollama.com/) using small Qwen3 models. From the Orla repo root:
+
+```bash
+docker compose -f deploy/docker-compose.workflow-demo.ollama.yaml up -d
+```
+
+The first run downloads `qwen3:0.6b` and `qwen3:1.7b` into a Docker volume, so it may take a few minutes. Subsequent starts reuse the cached models. Once the stack is up, verify Orla is healthy:
+
+```bash
+curl http://localhost:8081/api/v1/health
+```
+
+Both models are served by a single Ollama process; the light model (qwen3:0.6b) handles classification and the heavy model (qwen3:1.7b) handles the agent-loop stages. Output quality will be lower than the GPU models, but the full workflow — structured output, tool calls, DAG execution — works the same way.
+
 ## 2. Understand the workflow code
 
 The workflow is defined in `examples/workflow_demo/workflow_demo.go`. Here is a walkthrough of the key parts.
 
 ### Backends
 
-The demo registers two SGLang backends with Orla:
+The demo selects backends based on environment variables. The default is SGLang; set `OLLAMA_URL` for Ollama or `VLLM_LIGHT_URL`+`VLLM_HEAVY_URL` for vLLM:
 
 ```go
+// SGLang (default)
 lightBackend := orla.NewSGLangBackend("Qwen/Qwen3-4B-Instruct-2507", "http://sglang-light:30000/v1")
 heavyBackend := orla.NewSGLangBackend("Qwen/Qwen3-8B", "http://sglang:30000/v1")
+
+// Ollama (laptop — set OLLAMA_URL)
+lightBackend := orla.NewOllamaBackend("qwen3:0.6b", "http://localhost:11434")
+heavyBackend := orla.NewOllamaBackend("qwen3:1.7b", "http://localhost:11434")
+
 client.RegisterBackend(ctx, lightBackend)
 client.RegisterBackend(ctx, heavyBackend)
 ```
@@ -227,13 +259,13 @@ The DAG executor starts `classify` first (no dependencies). Once it completes, b
 
 ## 3. Run the demo
 
-From the Orla repo root, run the workflow demo:
+From the Orla repo root, run the workflow demo with the right `BACKEND` from your setup, i.e., "sglang", "vllm", or "ollama".
 
 ```bash
-go run ./examples/workflow_demo/cmd/workflow_demo
+BACKEND=<your_backend> go run ./examples/workflow_demo/cmd/workflow_demo
 ```
 
-The output should be something like
+Here is an output on SGLang on a server where the ticket was escalated:
 
 ```bash
 2026/03/05 15:32:32 ================================================
@@ -275,27 +307,63 @@ The output should be something like
 2026/03/05 15:32:39     (tool calls executed: 3)
 ```
 
+Here is a second output with Ollama on a Macbook where the ticket was not escalated:
+
+```bash
+2026/03/06 07:42:36 ================================================
+2026/03/06 07:42:36 Running customer support workflow demo
+2026/03/06 07:42:36 ================================================
+2026/03/06 07:42:36 Stage mapping validated: 4 stages assigned to backends
+2026/03/06 07:42:36 Executing customer support workflow...
+2026/03/06 07:42:36   Stage DAG:
+2026/03/06 07:42:36     classify ──┬──▶ policy_check ──▶ reply
+2026/03/06 07:42:36                └──▶ route_ticket
+2026/03/06 07:43:29 [send_email] To: leonhard.euler@email.com | Subject: Auto-Resolved Ticket: Duplicate Charges Refund Request
+2026/03/06 07:45:34   classify:
+2026/03/06 07:45:34     {"category": "billing", "customer_request": "a refund for duplicate charges", "key_issue": "duplicate charges in Pro subscription", "needs_escalation": false, "product": "Pro ($49.99/month)"}
+
+
+2026/03/06 07:45:34   policy_check:
+2026/03/06 07:45:34     {
+  "applicable_policy": "billing",
+  "decision": "accept",
+  "reasoning": "The company supports refunds for duplicate charges as per the billing policy. The customer's request aligns with the policy's provisions for resolving duplicate charges."
+}
+2026/03/06 07:45:34   reply:
+2026/03/06 07:45:34     {
+  "email_sent": true,
+  "summary": "Email sent to leonhard.euler@email.com confirming refund processing and ETA of 48 hours. Refund amount $50.00 will be processed within 48 hours. Customer can expect a refund within 48 hours and will be notified via email once processed."
+}
+2026/03/06 07:45:34   route_ticket:
+2026/03/06 07:45:34     The system identified the "billing_ops" team as responsible for the duplicate charges refund request. An automated email was sent to this team informing them of the auto-resolution status, including the customer's account details and ticket summary. The email was successfully delivered (status: sent).
+
+**Summary:**
+- Team: billing_ops
+- Action: Sent auto-resolution notification to billing team with customer details
+- Status: Email delivered successfully
+2026/03/06 07:45:34     (tool calls executed: 2)
+```
+
 The demo includes a built-in sample ticket (a duplicate billing charge complaint). To use your own ticket, set the `TICKET_PATH` environment variable:
 
 ```bash
 TICKET_PATH=/path/to/ticket.txt go run ./examples/workflow_demo/cmd/workflow_demo
 ```
 
-You can override the backend URLs and models with environment variables. When using the **vLLM** stack, set `VLLM_LIGHT_URL` and `VLLM_HEAVY_URL` (these must be URLs the Orla container can resolve, e.g. `http://vllm-light:8000/v1` and `http://vllm-heavy:8000/v1` when Orla runs in the same compose):
+Set `BACKEND` to select the inference backend. Each has sensible Docker-internal defaults matching its compose file, so no extra URL env vars are needed:
 
 ```bash
-# SGLang (default)
-ORLA_URL=http://localhost:8081 \
-SGLANG_LIGHT_URL=http://sglang-light:30000/v1 \
-SGLANG_HEAVY_URL=http://sglang:30000/v1 \
+# SGLang (default — no BACKEND needed)
 go run ./examples/workflow_demo/cmd/workflow_demo
 
-# vLLM (when using docker-compose.workflow-demo.vllm.yaml)
-ORLA_URL=http://localhost:8081 \
-VLLM_LIGHT_URL=http://vllm-light:8000/v1 \
-VLLM_HEAVY_URL=http://vllm-heavy:8000/v1 \
-go run ./examples/workflow_demo/cmd/workflow_demo
+# vLLM
+BACKEND=vllm go run ./examples/workflow_demo/cmd/workflow_demo
+
+# Ollama (laptop, no GPU)
+BACKEND=ollama go run ./examples/workflow_demo/cmd/workflow_demo
 ```
+
+You can still override individual URLs or models if needed (e.g. `SGLANG_LIGHT_URL`, `VLLM_HEAVY_URL`, `OLLAMA_URL`, `LIGHT_MODEL`, `HEAVY_MODEL`). When using Ollama, both models are served by the same process; the demo defaults to `qwen3:0.6b` (light) and `qwen3:1.7b` (heavy).
 
 ## 4. Stop the stack
 
@@ -303,6 +371,8 @@ go run ./examples/workflow_demo/cmd/workflow_demo
 docker compose -f deploy/docker-compose.workflow-demo.yaml down
 # or, if you used vLLM:
 docker compose -f deploy/docker-compose.workflow-demo.vllm.yaml down
+# or, if you used Ollama:
+docker compose -f deploy/docker-compose.workflow-demo.ollama.yaml down
 ```
 
 If you see a "network not found" or permission error when starting containers, try bringing the stack down and removing orphan containers first: `docker compose -f deploy/docker-compose.workflow-demo.yaml down --remove-orphans`, then run `up -d` again. On Linux you may need `sudo` for Docker commands.

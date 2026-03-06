@@ -1,3 +1,5 @@
+![Orla](orla_banner_no_caption.png ':size=500')
+
 ## Overview
 
 Agentic systems mark a shift in how LLMs are used, moving beyond basic chatbots to solve complex tasks by iteratively reasoning over context, generating intermediate outputs, invoking external tools, and incorporating tool results into subsequent inference. Existing LLM serving systems such as SGLang and vLLM optimize at the request level and do not address the serving challenges that agentic systems introduce: tasks decompose into stages with different computational requirements, coordinate across heterogeneous backends and devices, and benefit from managing inference memory at agent boundaries rather than request boundaries.

@@ -4,10 +4,142 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>orla</title>
+  <title>Orla — Agentic Serving Stack</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/docsify@4/lib/themes/vue.css">
-  <!-- Prism theme for code highlighting (optional; vue.css includes basic styling) -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1/themes/prism-tomorrow.min.css">
+  <style>
+    :root {
+      --theme-color: #2e7d32;
+      --theme-color-light: #4caf50;
+      --sidebar-nav-link-color--active: #2e7d32;
+      --sidebar-name-color: #2e7d32;
+    }
+
+    /* Cover page */
+    section.cover {
+      background: linear-gradient(135deg, #0d1117 0%, #161b22 40%, #1a2e1a 100%) !important;
+      color: #e6edf3;
+    }
+
+    section.cover .cover-main>p:last-child a {
+      border-radius: 2rem;
+      padding: 0.6em 2em;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      font-size: 0.9em;
+      transition: all 0.2s ease;
+    }
+
+    section.cover .cover-main>p:last-child a:first-child {
+      background-color: #2e7d32 !important;
+      color: #fff !important;
+      border: 2px solid #2e7d32;
+    }
+
+    section.cover .cover-main>p:last-child a:first-child:hover {
+      background-color: #388e3c !important;
+      border-color: #388e3c;
+    }
+
+    section.cover .cover-main>p:last-child a:last-child {
+      color: #e6edf3 !important;
+      border: 2px solid rgba(230, 237, 243, 0.3);
+    }
+
+    section.cover .cover-main>p:last-child a:last-child:hover {
+      border-color: #e6edf3;
+    }
+
+    section.cover h1 {
+      font-weight: 800;
+      font-size: 3rem;
+      margin: 0.5em 0 0.2em;
+    }
+
+    section.cover blockquote p {
+      font-size: 1.15rem !important;
+      color: #8b949e;
+    }
+
+    section.cover ul {
+      list-style: none;
+      padding: 0;
+      max-width: 540px;
+      margin: 1.5em auto;
+      text-align: left;
+    }
+
+    section.cover ul li {
+      padding: 0.35em 0;
+      font-size: 0.95rem;
+      color: #c9d1d9;
+    }
+
+    /* Sidebar refinements */
+    .sidebar {
+      border-right: 1px solid #e8e8e8;
+    }
+
+    .sidebar-nav li a {
+      font-size: 0.92rem;
+      transition: color 0.15s ease;
+    }
+
+    .sidebar-nav li a:hover {
+      color: #2e7d32;
+    }
+
+    .app-name-link {
+      font-weight: 700 !important;
+      font-size: 1.3rem !important;
+    }
+
+    /* Content typography */
+    .markdown-section h1 {
+      font-weight: 700;
+      border-bottom: 2px solid #2e7d32;
+      padding-bottom: 0.3em;
+    }
+
+    .markdown-section h2 {
+      font-weight: 600;
+      color: #1a1a1a;
+      margin-top: 2em;
+    }
+
+    .markdown-section a {
+      color: #2e7d32;
+      font-weight: 500;
+    }
+
+    .markdown-section a:hover {
+      color: #1b5e20;
+    }
+
+    /* Nicer code blocks */
+    .markdown-section pre {
+      border-radius: 8px;
+      border: 1px solid #e1e4e8;
+    }
+
+    .markdown-section code {
+      border-radius: 4px;
+    }
+
+    /* Search styling */
+    .search input {
+      border-radius: 6px !important;
+      border: 1px solid #ddd !important;
+      padding: 8px 12px !important;
+      font-size: 0.9rem !important;
+    }
+
+    .search input:focus {
+      border-color: #2e7d32 !important;
+      box-shadow: 0 0 0 2px rgba(46, 125, 50, 0.15) !important;
+    }
+  </style>
 </head>
 
 <body>
@@ -17,8 +149,15 @@
       name: 'Orla',
       repo: 'https://github.com/dorcha-inc/orla',
       loadSidebar: true,
+      coverpage: true,
+      onlyCover: false,
       subMaxLevel: 2,
       auto2top: true,
+      search: {
+        placeholder: 'Search docs...',
+        noData: 'No results.',
+        depth: 3
+      },
       copyCode: {
         buttonText: 'Copy',
         errorText: 'Error',
@@ -27,9 +166,9 @@
     };
   </script>
   <script src="https://cdn.jsdelivr.net/npm/docsify@4"></script>
+  <script src="https://cdn.jsdelivr.net/npm/docsify@4/lib/plugins/search.min.js"></script>
   <script
     src="https://cdn.jsdelivr.net/npm/docsify-plugin-flexible-alerts/dist/docsify-plugin-flexible-alerts.min.js"></script>
-  <!-- Prism language grammars (per https://docsify.js.org/#/language-highlight) -->
   <script src="https://cdn.jsdelivr.net/npm/prismjs@1/components/prism-bash.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/prismjs@1/components/prism-go.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/prismjs@1/components/prism-yaml.min.js"></script>
