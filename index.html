@@ -15,7 +15,7 @@
       --sidebar-name-color: #2e7d32;
     }
 
-    /* Cover page */
+    /* ── Cover page ────────────────────────────────────── */
     section.cover {
       background: linear-gradient(135deg, #0d1117 0%, #161b22 40%, #1a2e1a 100%) !important;
       color: #e6edf3;
@@ -78,7 +78,13 @@
       color: #c9d1d9;
     }
 
-    /* Sidebar refinements */
+    section.cover ul li::before {
+      content: "→ ";
+      color: #4caf50;
+      font-weight: 600;
+    }
+
+    /* ── Sidebar refinements ──────────────────────────── */
     .sidebar {
       border-right: 1px solid #e8e8e8;
     }
@@ -92,12 +98,35 @@
       color: #2e7d32;
     }
 
+    .sidebar-nav>ul>li>a {
+      font-weight: 600;
+      font-size: 0.95rem;
+    }
+
+    .sidebar-nav li.active>a {
+      color: #2e7d32;
+      border-right: 3px solid #2e7d32;
+    }
+
     .app-name-link {
       font-weight: 700 !important;
       font-size: 1.3rem !important;
     }
 
-    /* Content typography */
+    .sidebar-nav p {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #999;
+      margin: 1.2em 0 0.3em;
+      font-weight: 700;
+    }
+
+    /* ── Content typography ────────────────────────────── */
+    .markdown-section {
+      line-height: 1.75;
+    }
+
     .markdown-section h1 {
       font-weight: 700;
       border-bottom: 2px solid #2e7d32;
@@ -107,7 +136,11 @@
     .markdown-section h2 {
       font-weight: 600;
       color: #1a1a1a;
-      margin-top: 2em;
+      margin-top: 2.2em;
+    }
+
+    .markdown-section h3 {
+      margin-top: 1.6em;
     }
 
     .markdown-section a {
@@ -119,17 +152,73 @@
       color: #1b5e20;
     }
 
-    /* Nicer code blocks */
+    /* ── Code blocks ──────────────────────────────────── */
     .markdown-section pre {
       border-radius: 8px;
       border: 1px solid #e1e4e8;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
     }
 
     .markdown-section code {
       border-radius: 4px;
     }
 
-    /* Search styling */
+    /* ── Blockquotes ──────────────────────────────────── */
+    .markdown-section blockquote {
+      border-left: 4px solid #2e7d32;
+      padding: 0.8em 1em;
+      background: #f6f8fa;
+      border-radius: 0 6px 6px 0;
+      margin: 1.2em 0;
+    }
+
+    .markdown-section blockquote p {
+      margin: 0;
+    }
+
+    /* ── Tables ───────────────────────────────────────── */
+    .markdown-section table {
+      border-collapse: collapse;
+      width: 100%;
+      margin: 1.2em 0;
+    }
+
+    .markdown-section table th {
+      background: #f6f8fa;
+      font-weight: 600;
+      text-align: left;
+      padding: 0.6em 1em;
+      border-bottom: 2px solid #d0d7de;
+    }
+
+    .markdown-section table td {
+      padding: 0.5em 1em;
+      border-bottom: 1px solid #e8e8e8;
+    }
+
+    .markdown-section table tr:hover td {
+      background: #f9fafb;
+    }
+
+    /* ── Callout boxes (tip / warning) ────────────────── */
+    .markdown-section .tip,
+    .markdown-section .warning {
+      padding: 1em 1.2em;
+      border-radius: 6px;
+      margin: 1.2em 0;
+    }
+
+    .markdown-section .tip {
+      background: #e8f5e9;
+      border-left: 4px solid #2e7d32;
+    }
+
+    .markdown-section .warning {
+      background: #fff3e0;
+      border-left: 4px solid #e65100;
+    }
+
+    /* ── Search styling ───────────────────────────────── */
     .search input {
       border-radius: 6px !important;
       border: 1px solid #ddd !important;
@@ -140,6 +229,108 @@
     .search input:focus {
       border-color: #2e7d32 !important;
       box-shadow: 0 0 0 2px rgba(46, 125, 50, 0.15) !important;
+    }
+
+    /* ── Adventure cards (CYOA flow) ──────────────────── */
+    .adventure-cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 1rem;
+      margin: 1.5em 0;
+    }
+
+    .adventure-card {
+      border: 2px solid #e1e4e8;
+      border-radius: 12px;
+      padding: 1.4em 1.2em;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      background: #fff;
+      user-select: none;
+    }
+
+    .adventure-card:hover {
+      border-color: #2e7d32;
+      box-shadow: 0 4px 12px rgba(46, 125, 50, 0.12);
+      transform: translateY(-2px);
+    }
+
+    .adventure-card:active {
+      transform: translateY(0);
+    }
+
+    .adventure-card.selected {
+      border-color: #2e7d32;
+      background: #e8f5e9;
+      box-shadow: 0 0 0 3px rgba(46, 125, 50, 0.2);
+    }
+
+    .adventure-card .card-icon {
+      font-size: 2rem;
+      margin-bottom: 0.5em;
+      display: block;
+    }
+
+    .adventure-card .card-title {
+      font-weight: 700;
+      font-size: 1.05rem;
+      color: #1a1a1a;
+      margin-bottom: 0.3em;
+    }
+
+    .adventure-card .card-desc {
+      font-size: 0.85rem;
+      color: #666;
+      line-height: 1.4;
+    }
+
+    .adventure-hidden {
+      display: none !important;
+    }
+
+    .adventure-visible {
+      display: block !important;
+    }
+
+    .adventure-reset {
+      display: inline-block;
+      margin-top: 0.8em;
+      font-size: 0.9rem;
+      color: #2e7d32;
+      cursor: pointer;
+      font-weight: 500;
+    }
+
+    .adventure-reset:hover {
+      text-decoration: underline;
+    }
+
+    @media (max-width: 600px) {
+      .adventure-cards {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* ── Footer ───────────────────────────────────────── */
+    .site-footer {
+      text-align: center;
+      padding: 2em 1em;
+      margin-top: 4em;
+      border-top: 1px solid #e8e8e8;
+      font-size: 0.85rem;
+      color: #666;
+    }
+
+    .site-footer a {
+      color: #2e7d32;
+      text-decoration: none;
+      margin: 0 0.6em;
+      font-weight: 500;
+    }
+
+    .site-footer a:hover {
+      text-decoration: underline;
     }
   </style>
 </head>
@@ -164,7 +355,68 @@
         buttonText: 'Copy',
         errorText: 'Error',
         successText: 'Copied!'
-      }
+      },
+      plugins: [
+        function adventurePlugin(hook) {
+          hook.doneEach(function () {
+            var cards = document.querySelectorAll('.adventure-card[data-adventure]');
+            if (!cards.length) return;
+
+            cards.forEach(function (card) {
+              card.addEventListener('click', function () {
+                var group = card.getAttribute('data-adventure-group');
+                var target = card.getAttribute('data-adventure');
+
+                // Deselect siblings in same group
+                document.querySelectorAll('.adventure-card[data-adventure-group="' + group + '"]')
+                  .forEach(function (c) { c.classList.remove('selected'); });
+                card.classList.add('selected');
+
+                // Hide all sections in this group, show the target
+                document.querySelectorAll('[data-adventure-section-group="' + group + '"]')
+                  .forEach(function (s) { s.classList.add('adventure-hidden'); s.classList.remove('adventure-visible'); });
+
+                var section = document.querySelector('[data-adventure-section="' + target + '"]');
+                if (section) {
+                  section.classList.remove('adventure-hidden');
+                  section.classList.add('adventure-visible');
+                }
+
+                // If this is GPU selection, show the sub-cards
+                if (target === 'gpu') {
+                  var sub = document.querySelector('[data-adventure-section="gpu-sub"]');
+                  if (sub) { sub.classList.remove('adventure-hidden'); sub.classList.add('adventure-visible'); }
+                }
+              });
+            });
+
+            // Reset buttons
+            document.querySelectorAll('.adventure-reset').forEach(function (btn) {
+              btn.addEventListener('click', function () {
+                document.querySelectorAll('.adventure-card').forEach(function (c) { c.classList.remove('selected'); });
+                document.querySelectorAll('[data-adventure-section]').forEach(function (s) {
+                  s.classList.add('adventure-hidden');
+                  s.classList.remove('adventure-visible');
+                });
+                document.querySelectorAll('[data-adventure-section-group]').forEach(function (s) {
+                  s.classList.add('adventure-hidden');
+                  s.classList.remove('adventure-visible');
+                });
+              });
+            });
+          });
+        },
+        function footerPlugin(hook) {
+          hook.afterEach(function (html) {
+            var footer = '<div class="site-footer">' +
+              '<a href="https://github.com/dorcha-inc/orla">GitHub</a>' +
+              '<a href="https://discord.gg/orla">Discord</a>' +
+              '<a href="https://arxiv.org/abs/2503.19552">Paper</a>' +
+              '</div>';
+            return html + footer;
+          });
+        }
+      ]
     };
   </script>
   <script src="https://cdn.jsdelivr.net/npm/docsify@4"></script>
@@ -175,6 +427,7 @@
   <script src="https://cdn.jsdelivr.net/npm/prismjs@1/components/prism-go.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/prismjs@1/components/prism-yaml.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/docsify-copy-code@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/docsify-tabs@1"></script>
 </body>
 
 </html>

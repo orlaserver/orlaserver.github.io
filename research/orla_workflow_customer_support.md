@@ -34,40 +34,78 @@ On the server side, Orla uses two-level scheduling. The classification stage run
 
 Two of the four stages produce structured JSON output via schemas (`classify` and `policy_check`), ensuring downstream stages always receive machine-parseable data. The agent-loop stages (`policy_check`, `reply`, `route_ticket`) demonstrate Orla's tool-calling support: each stage is given tools, and the agent-loop executor handles the Gen → Tool → Gen cycle automatically. Context between stages is passed via `PromptBuilder` functions: each downstream stage reads upstream results from the `map[string]*StageResult` and constructs its prompt accordingly.
 
-## What you need
+## Choose Your Setup
 
-**GPU path (SGLang / vLLM):**
+<div style="text-align:center; margin: 1.5em 0;">
+  <img src="assets/choose-adventure.png" alt="Choose Your Own Adventure" style="max-width: 320px; height: auto; border-radius: 8px; box-shadow: 0 4px 16px rgba(0,0,0,0.12);" />
+</div>
+
+Pick the path that matches your hardware. Each one walks you through the full workflow demo end to end. We recommend the first path if you have a well-provisioned NVIDIA GPU as it demonstrates Orla running on top of SGLang and vLLM backends. The second path runs Orla on top of Ollama. The third path lets you try Orla as a standalone agent but, due to infrastructure requirements, cannot run the full customer support workflow.
+
+<div class="adventure-cards" data-adventure-group="hw">
+  <div class="adventure-card" data-adventure="gpu" data-adventure-group="hw">
+    <span class="card-icon">🖥️</span>
+    <div class="card-title">NVIDIA GPU</div>
+    <div class="card-desc">Server or workstation with an NVIDIA GPU and at least 98 GB of GPU Memory.</div>
+  </div>
+  <div class="adventure-card" data-adventure="laptop" data-adventure-group="hw">
+    <span class="card-icon">💻</span>
+    <div class="card-title">Mac / Linux</div>
+    <div class="card-desc">Laptop or server with at least 16 GB of main memory.</div>
+  </div>
+  <div class="adventure-card" data-adventure="standalone" data-adventure-group="hw">
+    <span class="card-icon">🤷</span>
+    <div class="card-title">Any Mac or Linux Computer</div>
+    <div class="card-desc">Try Orla as a standalone agent.</div>
+  </div>
+</div>
+
+<!-- GPU sub-selection -->
+<div data-adventure-section="gpu-sub" data-adventure-section-group="hw" class="adventure-hidden">
+
+**Which LLM backend do you prefer?**
+
+<div class="adventure-cards" data-adventure-group="gpu-backend">
+  <div class="adventure-card" data-adventure="sglang" data-adventure-group="gpu-backend">
+    <span class="card-icon">🎲</span>
+    <div class="card-title">SGLang</div>
+    <!-- <div class="card-desc">RadixAttention, continuous batching, fast structured output.</div> -->
+  </div>
+  <div class="adventure-card" data-adventure="vllm" data-adventure-group="gpu-backend">
+    <span class="card-icon">🪙</span>
+    <div class="card-title">vLLM</div>
+    <!-- <div class="card-desc">PagedAttention, broad model support, tensor parallelism.</div> -->
+  </div>
+</div>
+</div>
+
+<!-- ── SGLang path ─────────────────────────────────── -->
+<div data-adventure-section="sglang" data-adventure-section-group="gpu-backend" class="adventure-hidden">
+
+### SGLang Path
+
+<span class="adventure-reset">← Start over</span>
+
+**Prerequisites:**
 
 - Docker and Docker Compose (Compose V2).
 - An NVIDIA GPU and [NVIDIA Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/install-guide.html).
 - The [Orla repo](https://github.com/dorcha-inc/orla) cloned.
 - Go 1.25 or later.
 
-**Laptop path (Ollama, no GPU required):**
+**1. Start the backends and Orla**
 
-- Docker and Docker Compose (Compose V2).
-- The [Orla repo](https://github.com/dorcha-inc/orla) cloned.
-- Go 1.25 or later.
-
-## 1. Start the backends and Orla
-
-### Option A: SGLang or vLLM with a GPU
-
-The workflow uses two backends: a **light** model (Qwen3-4B) for classification, and a **heavy** model (Qwen3-8B) for policy checking, reply composition, and ticket routing. Use the **workflow-demo** compose file so you get a clean stack and avoid network conflicts with other compose projects (e.g. SWE-bench Lite). You can run with **SGLang** (default) or **vLLM**. From the Orla repo root:
-
-**SGLang** (default):
+The workflow uses two SGLang backends: a **light** model (Qwen3-4B) for classification and a **heavy** model (Qwen3-8B) for the agent-loop stages. From the Orla repo root:
 
 ```bash
 docker compose -f deploy/docker-compose.workflow-demo.yaml up -d
 ```
 
-**vLLM** (two vLLM containers: heavy on 8000, light on 8001):
+Wait for models to load (check logs):
 
 ```bash
-docker compose -f deploy/docker-compose.workflow-demo.vllm.yaml up -d
+docker compose -f deploy/docker-compose.workflow-demo.yaml logs -f sglang sglang-light
 ```
-
-This starts the heavy SGLang backend on port 30000, the light SGLang backend on port 30001, and the Orla server on port 8081. Wait for the backends to finish loading their models (check logs with `docker compose -f deploy/docker-compose.workflow-demo.yaml logs -f sglang sglang-light`).
 
 Verify Orla is healthy:
 
@@ -75,17 +113,91 @@ Verify Orla is healthy:
 curl http://localhost:8081/api/v1/health
 ```
 
-If you only have one GPU, you can run both backends on the same model by setting the environment variables in step 3.
+If you only have one GPU, you can run both backends on the same model by setting the environment variables in the run step.
 
-### Option B: Ollama on your Laptop
+**2. Run the demo**
 
-If you don't have a GPU, you can run the same workflow with [Ollama](https://ollama.com/) using small Qwen3 models. From the Orla repo root:
+```bash
+go run ./examples/workflow_demo/cmd/workflow_demo
+```
+
+SGLang is the default backend — no `BACKEND` env var needed.
+
+**3. Stop the stack**
+
+```bash
+docker compose -f deploy/docker-compose.workflow-demo.yaml down
+```
+
+</div>
+
+<!-- ── vLLM path ───────────────────────────────────── -->
+<div data-adventure-section="vllm" data-adventure-section-group="gpu-backend" class="adventure-hidden">
+
+### vLLM Path
+
+<span class="adventure-reset">← Start over</span>
+
+**Prerequisites:**
+
+- Docker and Docker Compose (Compose V2).
+- An NVIDIA GPU and [NVIDIA Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/install-guide.html).
+- The [Orla repo](https://github.com/dorcha-inc/orla) cloned.
+- Go 1.25 or later.
+
+**1. Start the backends and Orla**
+
+Two vLLM containers: heavy on port 8000, light on port 8001. From the Orla repo root:
+
+```bash
+docker compose -f deploy/docker-compose.workflow-demo.vllm.yaml up -d
+```
+
+Wait for models to load, then verify Orla is healthy:
+
+```bash
+curl http://localhost:8081/api/v1/health
+```
+
+**2. Run the demo**
+
+```bash
+BACKEND=vllm go run ./examples/workflow_demo/cmd/workflow_demo
+```
+
+**3. Stop the stack**
+
+```bash
+docker compose -f deploy/docker-compose.workflow-demo.vllm.yaml down
+```
+
+</div>
+
+<!-- ── Ollama path ──────────────────────────────────── -->
+<div data-adventure-section="laptop" data-adventure-section-group="hw" class="adventure-hidden">
+
+### Ollama Path
+
+<span class="adventure-reset">← Start over</span>
+
+**Prerequisites:**
+
+- Docker and Docker Compose (Compose V2).
+- At least 16 GB of main memory.
+- The [Orla repo](https://github.com/dorcha-inc/orla) cloned.
+- Go 1.25 or later.
+
+**1. Start the backends and Orla**
+
+From the Orla repo root:
 
 ```bash
 docker compose -f deploy/docker-compose.workflow-demo.ollama.yaml up -d
 ```
 
-The first run downloads `qwen3:0.6b` and `qwen3:1.7b` into a Docker volume, so it may take a few minutes. Subsequent starts reuse the cached models. Once the stack is up, verify Orla is healthy:
+The first run downloads `qwen3:0.6b` and `qwen3:1.7b` into a Docker volume, so it may take a few minutes. Subsequent starts reuse the cached models.
+
+Verify Orla is healthy:
 
 ```bash
 curl http://localhost:8081/api/v1/health
@@ -93,7 +205,36 @@ curl http://localhost:8081/api/v1/health
 
 Both models are served by a single Ollama process; the light model (qwen3:0.6b) handles classification and the heavy model (qwen3:1.7b) handles the agent-loop stages. Output quality will be lower than the GPU models, but the full workflow — structured output, tool calls, DAG execution — works the same way.
 
-## 2. Understand the workflow code
+**2. Run the demo**
+
+```bash
+BACKEND=ollama go run ./examples/workflow_demo/cmd/workflow_demo
+```
+
+**3. Stop the stack**
+
+```bash
+docker compose -f deploy/docker-compose.workflow-demo.ollama.yaml down
+```
+
+</div>
+
+<!-- ── Standalone agent path ────────────────────────── -->
+<div data-adventure-section="standalone" data-adventure-section-group="hw" class="adventure-hidden">
+
+### Standalone Agent (Homebrew)
+
+<span class="adventure-reset">← Start over</span>
+
+You don't need Docker or a GPU for this path. Install Orla as a standalone agent via Homebrew and start experimenting right away.
+
+Head over to the **[Getting Started guide](https://orlaserver.github.io/#/getting-started)** for installation instructions.
+
+</div>
+
+---
+
+## Understand the workflow code
 
 The workflow is defined in `examples/workflow_demo/workflow_demo.go`. Here is a walkthrough of the key parts.
 
@@ -257,13 +398,15 @@ results, _ := wf.Execute(ctx)
 
 The DAG executor starts `classify` first (no dependencies). Once it completes, both `policy_check` and `route_ticket` become unblocked and run in parallel. `policy_check` calls its tool, renders a decision, and when it finishes, `reply` becomes unblocked and runs. Meanwhile, `route_ticket` reads the `needs_escalation` flag from the classification and either routes an escalated ticket to a human team or notifies the team of auto-resolution. Context between stages is handled by `PromptBuilder` functions on each stage.
 
-## 3. Run the demo
+## Example output
 
-From the Orla repo root, run the workflow demo with the right `BACKEND` from your setup, i.e., "sglang", "vllm", or "ollama".
+The demo includes a built-in sample ticket (a duplicate billing charge complaint). To use your own ticket, set the `TICKET_PATH` environment variable:
 
 ```bash
-BACKEND=<your_backend> go run ./examples/workflow_demo/cmd/workflow_demo
+TICKET_PATH=/path/to/ticket.txt go run ./examples/workflow_demo/cmd/workflow_demo
 ```
+
+You can override individual URLs or models if needed (e.g. `SGLANG_LIGHT_URL`, `VLLM_HEAVY_URL`, `OLLAMA_URL`, `LIGHT_MODEL`, `HEAVY_MODEL`). When using Ollama, both models are served by the same process; the demo defaults to `qwen3:0.6b` (light) and `qwen3:1.7b` (heavy).
 
 Here is an output on SGLang on a server where the ticket was escalated:
 
@@ -343,39 +486,6 @@ Here is a second output with Ollama on a Macbook where the ticket was not escala
 - Status: Email delivered successfully
 2026/03/06 07:45:34     (tool calls executed: 2)
 ```
-
-The demo includes a built-in sample ticket (a duplicate billing charge complaint). To use your own ticket, set the `TICKET_PATH` environment variable:
-
-```bash
-TICKET_PATH=/path/to/ticket.txt go run ./examples/workflow_demo/cmd/workflow_demo
-```
-
-Set `BACKEND` to select the inference backend. Each has sensible Docker-internal defaults matching its compose file, so no extra URL env vars are needed:
-
-```bash
-# SGLang (default — no BACKEND needed)
-go run ./examples/workflow_demo/cmd/workflow_demo
-
-# vLLM
-BACKEND=vllm go run ./examples/workflow_demo/cmd/workflow_demo
-
-# Ollama (laptop, no GPU)
-BACKEND=ollama go run ./examples/workflow_demo/cmd/workflow_demo
-```
-
-You can still override individual URLs or models if needed (e.g. `SGLANG_LIGHT_URL`, `VLLM_HEAVY_URL`, `OLLAMA_URL`, `LIGHT_MODEL`, `HEAVY_MODEL`). When using Ollama, both models are served by the same process; the demo defaults to `qwen3:0.6b` (light) and `qwen3:1.7b` (heavy).
-
-## 4. Stop the stack
-
-```bash
-docker compose -f deploy/docker-compose.workflow-demo.yaml down
-# or, if you used vLLM:
-docker compose -f deploy/docker-compose.workflow-demo.vllm.yaml down
-# or, if you used Ollama:
-docker compose -f deploy/docker-compose.workflow-demo.ollama.yaml down
-```
-
-If you see a "network not found" or permission error when starting containers, try bringing the stack down and removing orphan containers first: `docker compose -f deploy/docker-compose.workflow-demo.yaml down --remove-orphans`, then run `up -d` again. On Linux you may need `sudo` for Docker commands.
 
 ## Control Flow
 
