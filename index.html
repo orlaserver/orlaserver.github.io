@@ -157,41 +157,142 @@
       color: #1b5e20;
     }
 
-    /* ── Code blocks ──────────────────────────────────── */
+    /* ── Code blocks (Stripe-style) ─────────────────────── */
     .markdown-section pre {
-      border-radius: 8px;
-      border: 1px solid #e1e4e8;
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+      background: #0a0e1a !important;
+      border-radius: 10px;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
+      padding: 1.2em 1.4em;
+      margin: 1.4em 0;
+      position: relative;
+      overflow: auto;
+    }
+
+    .markdown-section pre>code {
+      background: none !important;
+      padding: 0;
+      font-size: 0.875rem;
+      font-family: 'SF Mono', 'Fira Code', 'Fira Mono', Menlo, Consolas, monospace;
+      line-height: 1.6;
+      color: #e1e4e8;
     }
 
     .markdown-section code {
-      border-radius: 4px;
+      border-radius: 5px;
       background: #f0f2f5;
-      padding: 0.15em 0.4em;
-      font-size: 0.88em;
-    }
-
-    .markdown-section pre code {
-      background: none;
-      padding: 0;
-      font-size: inherit;
-    }
-
-    .markdown-section pre {
-      position: relative;
+      padding: 0.15em 0.45em;
+      font-size: 0.87em;
+      font-family: 'SF Mono', 'Fira Code', 'Fira Mono', Menlo, Consolas, monospace;
+      color: #1a1a2e;
     }
 
     .markdown-section pre::after {
       content: attr(data-lang);
       position: absolute;
-      top: 0.4em;
-      right: 0.6em;
-      font-size: 0.7rem;
+      top: 0.55em;
+      right: 3em;
+      font-size: 0.65rem;
       font-weight: 600;
       text-transform: uppercase;
-      letter-spacing: 0.05em;
-      color: rgba(255, 255, 255, 0.4);
+      letter-spacing: 0.06em;
+      color: rgba(255, 255, 255, 0.25);
       pointer-events: none;
+    }
+
+    .docsify-copy-code-button {
+      position: absolute !important;
+      top: 8px !important;
+      right: 8px !important;
+      background: transparent !important;
+      color: transparent !important;
+      border: none !important;
+      border-radius: 6px !important;
+      width: 36px !important;
+      height: 36px !important;
+      padding: 0 !important;
+      cursor: pointer !important;
+      transition: background 0.15s ease !important;
+      overflow: hidden !important;
+      font-size: 0 !important;
+    }
+
+    .docsify-copy-code-button::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='rgba(255,255,255,0.5)' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='9' y='9' width='13' height='13' rx='2' ry='2'/%3E%3Cpath d='M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: center;
+      background-size: 18px;
+    }
+
+    .docsify-copy-code-button:hover {
+      background: rgba(255, 255, 255, 0.1) !important;
+    }
+
+    .docsify-copy-code-button:hover::after {
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='rgba(255,255,255,0.85)' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='9' y='9' width='13' height='13' rx='2' ry='2'/%3E%3Cpath d='M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1'/%3E%3C/svg%3E");
+    }
+
+    .docsify-copy-code-button:active {
+      transform: scale(0.92);
+    }
+
+    .docsify-copy-code-button.copied::after {
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%234caf50' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='20 6 9 17 4 12'/%3E%3C/svg%3E") !important;
+    }
+
+    /* Prism token overrides for dark background */
+    .token.comment,
+    .token.prolog,
+    .token.doctype,
+    .token.cdata {
+      color: #6a737d;
+    }
+
+    .token.punctuation {
+      color: #89929b;
+    }
+
+    .token.property,
+    .token.tag,
+    .token.boolean,
+    .token.number,
+    .token.constant {
+      color: #79c0ff;
+    }
+
+    .token.string,
+    .token.char,
+    .token.attr-value {
+      color: #a5d6ff;
+    }
+
+    .token.selector,
+    .token.attr-name {
+      color: #7ee787;
+    }
+
+    .token.function,
+    .token.builtin {
+      color: #d2a8ff;
+    }
+
+    .token.keyword,
+    .token.operator {
+      color: #ff7b72;
+    }
+
+    .token.variable {
+      color: #ffa657;
+    }
+
+    .token.class-name {
+      color: #f0883e;
     }
 
     /* ── Blockquotes ──────────────────────────────────── */
@@ -560,10 +661,22 @@
           hook.afterEach(function (html) {
             var footer = '<div class="site-footer">' +
               '<a href="https://github.com/dorcha-inc/orla">GitHub</a>' +
-              '<a href="https://discord.gg/orla">Discord</a>' +
-              '<a href="https://arxiv.org/abs/2503.19552">Paper</a>' +
+              '<a href="https://discord.gg/bzKYCFewPT">Discord</a>' +
+              // '<a href="TODO">Paper</a>' +
               '</div>';
             return html + footer;
+          });
+        },
+        function copyFeedbackPlugin(hook) {
+          hook.doneEach(function () {
+            document.querySelectorAll('.docsify-copy-code-button').forEach(function (btn) {
+              if (btn._copyBound) return;
+              btn._copyBound = true;
+              btn.addEventListener('click', function () {
+                btn.classList.add('copied');
+                setTimeout(function () { btn.classList.remove('copied'); }, 1500);
+              });
+            });
           });
         },
         function tocVisibilityPlugin(hook) {
