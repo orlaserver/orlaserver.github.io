@@ -14,5 +14,5 @@
   * [Concurrent Stages](tutorials/tutorial-concurrent-stages.md)
   * [Memory Manager](tutorials/tutorial-memory-manager.md)
 * Research Tutorials
-  * [Single-Shot SWE-bench Lite Experiments](research/orla_swebench_lite.md)
+  * [Single-Shot SWE-bench Experiments](research/orla_swebench_lite.md)
   * [Multi-Stage Workflow (Customer Support)](research/orla_workflow_customer_support.md)
