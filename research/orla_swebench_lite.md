@@ -1,4 +1,4 @@
-# Tutorial: Single-Shot SWE-bench Lite Experiments
+# Tutorial: Single-Shot SWE-bench Experiments
 
 This tutorial runs [Orla](https://github.com/dorcha-inc/orla) single-shot SWE-bench Lite experiments in Docker. Each of the 300 [SWE-bench Lite](https://www.swebench.com/lite.html) instances gets **one inference call** containing the problem statement and oracle-provided source files. All instances are submitted **concurrently**, stressing Orla's server-side scheduling. Three experiment modes are available:
 
@@ -120,7 +120,7 @@ Each instance is a single JSON object with:
 - **`problem_statement`** — The issue description (what to fix).
 - **`patch`** — The gold unified diff (used for oracle context gathering).
 
-The image includes the dataset as `dataset.zip` (unzipped at build time to `/dataset`). Source: [princeton-nlp/SWE-bench_Lite](https://huggingface.co/datasets/princeton-nlp/SWE-bench_Lite). To regenerate with the latest data, run `python examples/swe_bench_lite/scripts/prepare_dataset.py`.
+The image includes the dataset (Lite: `dataset.zip`; Full: `dataset_full_001.zip` .. `dataset_full_008.zip`) unzipped at build time to `/dataset`. Source: [princeton-nlp/SWE-bench_Lite](https://huggingface.co/datasets/princeton-nlp/SWE-bench_Lite) (Lite) or [princeton-nlp/SWE-bench](https://huggingface.co/datasets/princeton-nlp/SWE-bench) (Full). To regenerate, run `python examples/swe_bench_lite/scripts/prepare_dataset.py` (or `FULL_SWE_BENCH=1 python ...` for full).
 
 Predictions are one JSON object per line (`instance_id`, `model_name_or_path`, `model_patch`). You can run the [SWE-bench evaluation harness](https://www.swebench.com/SWE-bench/guides/evaluation/) against the output file.
 
@@ -161,6 +161,31 @@ All instances are submitted simultaneously as goroutines, each calling `stage.Ex
 | `priority` | Scheduling priority (sjf mode) |
 
 The SJF hypothesis is that shorter prompts correlate with faster inference (less prefill, often shorter output). By scheduling them first, the heavy backend clears quick jobs faster, reducing average completion time and queue wait time across all instances.
+
+## Running full SWE-bench (optional)
+
+By default, the experiments use **SWE-bench Lite** (~300 instances). To run on **full SWE-bench** (~2,294 instances), set `FULL_SWE_BENCH=1` when building and running:
+
+**Build** (include the chunked full dataset in the image):
+
+```bash
+FULL_SWE_BENCH=1 docker compose -f deploy/docker-compose.swebench-lite.vllm.yaml build
+```
+
+**Run**:
+
+```bash
+mkdir -p deploy/output
+FULL_SWE_BENCH=1 RUN_TARGET=single_shot_baseline docker compose -f deploy/docker-compose.swebench-lite.vllm.yaml up
+```
+
+Full runs take significantly longer. For a quick subset test, add `MAX_INSTANCES=50`:
+
+```bash
+FULL_SWE_BENCH=1 MAX_INSTANCES=50 RUN_TARGET=single_shot_baseline docker compose -f deploy/docker-compose.swebench-lite.vllm.yaml up
+```
+
+The same applies with SGLang: use `docker-compose.swebench-lite.yaml` instead of the vLLM compose file.
 
 ## Conclusion
 
