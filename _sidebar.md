@@ -15,4 +15,5 @@
   * [Memory Manager](tutorials/tutorial-memory-manager.md)
 * Research Tutorials
   * [Single-Shot SWE-bench Experiments](research/orla_swebench_lite.md)
+  * [DAG-Math Memory Management Evaluation](research/orla_dag_math_memory_eval.md)
   * [Multi-Stage Workflow (Customer Support)](research/orla_workflow_customer_support.md)
