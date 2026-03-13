@@ -29,7 +29,7 @@ The Orla agentic server was originally developed in [Dr. Minlan Yu](https://minl
 
 ## Sponsors and Acknowledgements
 
-We would like to thank [Dr. Minlan Yu](https://minlanyu.seas.harvard.edu/)'s lab at Harvard, the [Kempner Institute for the Study of Natural and Artificial Intelligence](https://kempnerinstitute.harvard.edu/) at Harvard, and
+We would like to thank the [Kempner Institute for the Study of Natural and Artificial Intelligence](https://kempnerinstitute.harvard.edu/) at Harvard, and
 [Akamai Technologies](https://www.akamai.com/) for providing the compute resources that made developing Orla and conducting research with it possible. We would like to thank the [Craig McLuckie](https://www.linkedin.com/in/craigmcluckie/) (founder of kubernetes) for early insight into Orla server and providing us with some sage advice on
 developing and releasing open-source software.
 
