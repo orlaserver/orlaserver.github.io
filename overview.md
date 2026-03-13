@@ -8,7 +8,7 @@ Orla simplifies this process by separating workflow-level decisions from request
 
 The system exposes three core components: a Stage Mapper for heterogeneous model routing, a Workflow Orchestrator for executing and scheduling stages, and a Memory Manager that manages KV cache across workflow stages.
 
-![Orla Architecture](orla_top_level_arch.pdf)
+![Orla Architecture](orla_top_level.svg)
 
 <!-- 
 Large Language Models (LLMs) are increasingly used in agentic systems that perform specialized tasks 
