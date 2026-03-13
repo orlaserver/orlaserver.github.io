@@ -7,6 +7,9 @@ Orla is a library for building and running LLM-based agentic systems. Modern age
 Orla simplifies this process by separating workflow-level decisions from request execution. Developers define workflows as stages, while Orla handles how those stages are mapped to models and backends, scheduled and executed, and coordinated through shared inference state.
 
 The system exposes three core components: a Stage Mapper for heterogeneous model routing, a Workflow Orchestrator for executing and scheduling stages, and a Memory Manager that manages KV cache across workflow stages.
+
+![Orla Architecture](orla_top_level_arch.pdf)
+
 <!-- 
 Large Language Models (LLMs) are increasingly used in agentic systems that perform specialized tasks 
 through iterative loops of inference and tool invocation. These systems introduce serving challenges 
