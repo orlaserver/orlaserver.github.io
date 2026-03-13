@@ -1,6 +1,6 @@
 ![logo](orla_banner_no_caption.png ':size=400')
 
-> An open-source serving stack for agentic workflows that decouples request execution from agent-loop policy
+> A Library for Serving LLM-Based Multi-Agent Systems
 
 - Heterogeneous model routing across SGLang, vLLM, and Ollama
 - Agent-aware KV cache management with priority scheduling
