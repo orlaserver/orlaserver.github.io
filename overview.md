@@ -2,10 +2,11 @@
 
 ## Overview
 
-Agentic systems mark a shift in how LLMs are used, moving beyond basic chatbots to solve complex tasks by iteratively reasoning over context, generating intermediate outputs, invoking external tools, and incorporating tool results into subsequent inference. Existing LLM serving systems such as SGLang and vLLM optimize at the request level and do not address the serving challenges that agentic systems introduce: tasks decompose into stages with different computational requirements, coordinate across heterogeneous backends and devices, and benefit from managing inference memory at agent boundaries rather than request boundaries.
+Orla is a library for building and running LLM-based agentic systems. Modern agentic applications are workflows that combine multiple LLM calls, tool invocations, and heterogeneous infrastructure. Today, developers often stitch these pieces together manually using orchestration code, LLM serving engines, and tool execution logic.
 
-Orla is an agentic serving stack that separates request execution from agent-loop policy. Orla sits above existing LLM serving backends and provides agent-granularity control through three mechanisms: a policy surface for heterogeneous model routing across backends, per-stage inference optimization, and agent-aware scheduling and KV cache management at agent boundaries rather than request boundaries.
+Orla simplifies this process by separating workflow-level decisions from request execution. Developers define workflows as stages, while Orla handles how those stages are mapped to models and backends, scheduled and executed, and coordinated through shared inference state.
 
+The system exposes three core components: a Stage Mapper for heterogeneous model routing, a Workflow Orchestrator for executing and scheduling stages, and a Memory Manager that manages KV cache across workflow stages.
 <!-- 
 Large Language Models (LLMs) are increasingly used in agentic systems that perform specialized tasks 
 through iterative loops of inference and tool invocation. These systems introduce serving challenges 
@@ -22,9 +23,9 @@ Orla is an execution engine for agents and agentic workflows that that sits abov
 The Orla agentic server was originally developed in [Dr. Minlan Yu](https://minlanyu.seas.harvard.edu/)'s lab at Harvard University as part of a broader research investigation on agentic systems.
 
 - [Hayder Tirmazi](https://jadidbourbaki.github.io/jadidbourbaki/): developer and maintainer of Orla.
-- [Dr. Rana Shahout](https://sites.google.com/view/ranash): primary researcher of the agentic systems project at Harvard.
-- [Dr. Michael Mitzenmacher](https://www.eecs.harvard.edu/~michaelm/): principal investigator.
-- [Dr. Minlan Yu](https://minlanyu.seas.harvard.edu/): principal investigator.
+- [Rana Shahout](https://sites.google.com/view/ranash): primary researcher of the agentic systems project at Harvard.
+- [Michael Mitzenmacher](https://www.eecs.harvard.edu/~michaelm/): principal investigator.
+- [Minlan Yu](https://minlanyu.seas.harvard.edu/): principal investigator.
 
 ## Sponsors and Acknowledgements
 
