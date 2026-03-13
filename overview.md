@@ -20,7 +20,7 @@ Orla is an execution engine for agents and agentic workflows that that sits abov
 
 ## Team
 
-The Orla agentic server was originally developed in [Dr. Minlan Yu](https://minlanyu.seas.harvard.edu/)'s lab at Harvard University as part of a broader research investigation on agentic systems.
+The Orla agentic server was originally developed in [Minlan Yu](https://minlanyu.seas.harvard.edu/)'s lab at Harvard University as part of a broader research investigation on agentic systems.
 
 - [Hayder Tirmazi](https://jadidbourbaki.github.io/jadidbourbaki/): developer and maintainer of Orla.
 - [Rana Shahout](https://sites.google.com/view/ranash): primary researcher of the agentic systems project at Harvard.
