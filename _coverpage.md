@@ -2,10 +2,9 @@
 
 > A Library for Serving LLM-Based Multi-Agent Systems
 
-- Heterogeneous model routing across SGLang, vLLM, and Ollama
-- Agent-aware KV cache management with priority scheduling
-- DAG-based multi-stage workflows with structured output
-- Tool-calling agent loops with automatic execution
+- Stage Mapper: Route stages across heterogeneous models and backends (SGLang, vLLM, Ollama)
+- Workflow Orchestrator: Execute DAG-based multi-stage workflows with scheduling and tool-calling loops
+- Memory Manager: Manage KV cache across stages to reduce redundant prefill
 
 [Docs](overview.md)
 [Demo](research/orla_workflow_customer_support.md)
