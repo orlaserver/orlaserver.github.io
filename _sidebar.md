@@ -13,6 +13,7 @@
   * [Using Tools with Orla](tutorials/tutorial-tools-vllm-ollama-sglang.md)
   * [Concurrent Stages](tutorials/tutorial-concurrent-stages.md)
   * [Memory Manager](tutorials/tutorial-memory-manager.md)
+  * [Using Orla with LangGraph](tutorials/tutorial-langgraph.md)
 * Research Tutorials
   * [Single-Shot SWE-bench Experiments](research/orla_swebench_lite.md)
   * [DAG-Math Memory Management Evaluation](research/orla_dag_math_memory_eval.md)
