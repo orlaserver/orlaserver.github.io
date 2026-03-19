@@ -27,7 +27,7 @@ cd orla
 docker compose -f deploy/docker-compose.vllm.yaml up -d
 ```
 
-This runs vLLM on port 8000 and Orla on port 8081. From your Python process on the host, use `http://localhost:8081` for Orla and `http://localhost:8000/v1` for the vLLM backend. See [Tutorial: Run a simple agent with Orla and vLLM](tutorial-vllm-lily.md) for prerequisites (Docker, NVIDIA GPU, etc.).
+This runs vLLM on port 8000 and Orla on port 8081. Your Python app runs on the host and talks to Orla at `http://localhost:8081`. Orla runs in Docker, so when you register a backend, the **endpoint must use the Docker service name** (Orla calls the backend from inside its container): use `http://vllm:8000/v1` for the vLLM backend. See [Tutorial: Run a simple agent with Orla and vLLM](tutorial-vllm-lily.md) for prerequisites (Docker, NVIDIA GPU, etc.).
 
 **Tier 2–3 (multi-stage, light + heavy models):** For workflows that use separate backends for classification vs. response, start the workflow-demo stack:
 
@@ -36,7 +36,7 @@ cd orla
 docker compose -f deploy/docker-compose.workflow-demo.vllm.yaml up -d
 ```
 
-This runs vLLM heavy on port 8000 and vLLM light on port 8001. Set `VLLM_LIGHT_URL=http://localhost:8001/v1` and `VLLM_HEAVY_URL=http://localhost:8000/v1` when configuring your backends (or use those URLs directly in `new_vllm_backend`).
+This runs vLLM heavy and vLLM light. Use Docker service names for backend endpoints: `http://vllm-light:8000/v1` and `http://vllm-heavy:8000/v1`.
 
 ## Tier 1: Simple — One model, one call
 
@@ -48,9 +48,9 @@ from langgraph.graph import StateGraph, END
 from pyorla import OrlaClient, Stage, new_vllm_backend
 from typing import TypedDict
 
-# Connect to Orla and register a backend (use localhost when running from host)
+# Connect to Orla (host) and register backend (Docker service name — Orla calls vLLM from its container)
 client = OrlaClient("http://localhost:8081")
-backend = new_vllm_backend("Qwen/Qwen3-4B-Instruct-2507", "http://localhost:8000/v1")
+backend = new_vllm_backend("Qwen/Qwen3-4B-Instruct-2507", "http://vllm:8000/v1")
 client.register_backend(backend)
 
 # Create a ChatOrla
@@ -94,10 +94,10 @@ from pyorla import (
 )
 from typing import TypedDict
 
-# Connect and register backends (localhost when running from host)
+# Connect to Orla (host) and register backends (Docker service names)
 client = OrlaClient("http://localhost:8081")
-light = new_vllm_backend("Qwen/Qwen3-4B-Instruct-2507", "http://localhost:8001/v1")
-heavy = new_vllm_backend("Qwen/Qwen3-8B", "http://localhost:8000/v1")
+light = new_vllm_backend("Qwen/Qwen3-4B-Instruct-2507", "http://vllm-light:8000/v1")
+heavy = new_vllm_backend("Qwen/Qwen3-8B", "http://vllm-heavy:8000/v1")
 client.register_backend(light)
 client.register_backend(heavy)
 
@@ -184,8 +184,8 @@ from typing import TypedDict, Annotated
 
 # --- Setup ---
 client = OrlaClient("http://localhost:8081")
-light = new_vllm_backend("Qwen/Qwen3-4B-Instruct-2507", "http://localhost:8001/v1")
-heavy = new_vllm_backend("Qwen/Qwen3-8B", "http://localhost:8000/v1")
+light = new_vllm_backend("Qwen/Qwen3-4B-Instruct-2507", "http://vllm-light:8000/v1")
+heavy = new_vllm_backend("Qwen/Qwen3-8B", "http://vllm-heavy:8000/v1")
 client.register_backend(light)
 client.register_backend(heavy)
 
@@ -330,8 +330,8 @@ from pyorla import OrlaClient, Stage, new_vllm_backend
 from typing import TypedDict
 
 client = OrlaClient("http://localhost:8081")
-light = new_vllm_backend("Qwen/Qwen3-4B-Instruct-2507", "http://localhost:8001/v1")
-heavy = new_vllm_backend("Qwen/Qwen3-8B", "http://localhost:8000/v1")
+light = new_vllm_backend("Qwen/Qwen3-4B-Instruct-2507", "http://vllm-light:8000/v1")
+heavy = new_vllm_backend("Qwen/Qwen3-8B", "http://vllm-heavy:8000/v1")
 client.register_backend(light)
 client.register_backend(heavy)
 
