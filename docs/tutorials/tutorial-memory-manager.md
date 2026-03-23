@@ -12,7 +12,7 @@ Orla's Memory Manager solves this by making workflow-aware decisions about when 
 
 - A running Orla server with at least one LLM backend. See [Using Orla with vLLM](tutorials/tutorial-vllm-lily.md) for setup.
 - Go 1.25 or later.
-- The Orla Go client (`github.com/dorcha-inc/orla/pkg/api`).
+- The Orla Go client (`github.com/harvard-cns/orla/pkg/api`).
 
 ## Run the example
 
@@ -206,7 +206,7 @@ import (
 	"fmt"
 	"log"
 
-	orla "github.com/dorcha-inc/orla/pkg/api"
+	orla "github.com/harvard-cns/orla/pkg/api"
 )
 
 func main() {

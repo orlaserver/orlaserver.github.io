@@ -4,733 +4,1706 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Orla — Agentic Serving Stack</title>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/docsify@4/lib/themes/vue.css">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1/themes/prism-tomorrow.min.css">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/docsify-plugin-toc@1.3.2/dist/light.css">
+  <title>Orla: Build Multi-Agent Systems That Scale</title>
+  <meta name="description"
+    content="Orla runs multi-stage agent workflows across SGLang, vLLM, and Ollama with scheduling, tool calling, and KV cache management.">
+  <meta name="theme-color" content="#f8f4ef">
+  <meta name="color-scheme" content="light">
+  <link rel="icon" href="/docs/orla_cat.png" type="image/png">
+  <link rel="apple-touch-icon" href="/docs/orla_cat.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Plus+Jakarta+Sans:wght@500;600;700&family=Source+Code+Pro:wght@500&display=swap"
+    rel="stylesheet">
+  <script>
+    (function () {
+      var h = window.location.hash;
+      if (h && h.length > 2 && h.indexOf('#/') === 0) {
+        window.location.replace('/docs/' + h);
+      }
+    })();
+  </script>
   <style>
+    /* Tokens aligned with dagger.io (warm bg, navy text, Inter + display heading) */
+    :root {
+      --color-bg: #f8f4ef;
+      --color-dark: #131226;
+      --color-border: #e7e6ef;
+      --font-heading: "Plus Jakarta Sans", system-ui, sans-serif;
+      --font-body: "Inter", system-ui, sans-serif;
+      --font-mono: "Source Code Pro", ui-monospace, monospace;
+      --radius-sm: 8px;
+      /* Match dagger.io container: max-width 1440px, horizontal gutter by breakpoint */
+      --container-max: 1440px;
+      --container-pad: 100px;
+    }
+
+    @media (max-width: 1439px) {
+      :root {
+        --container-pad: 60px;
+      }
+    }
+
+    @media (max-width: 1199px) {
+      :root {
+        --container-pad: 40px;
+      }
+    }
+
+    @media (max-width: 767px) {
+      :root {
+        --container-pad: 24px;
+      }
+    }
+
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+    }
+
     html {
       scroll-behavior: smooth;
     }
 
-    :root {
-      --theme-color: #2e7d32;
-      --theme-color-light: #4caf50;
-      --sidebar-nav-link-color--active: #2e7d32;
-      --sidebar-name-color: #2e7d32;
+    body {
+      margin: 0;
+      font-family: var(--font-body);
+      background: var(--color-bg);
+      color: var(--color-dark);
+      line-height: 1.45;
+      font-size: 16px;
+      -webkit-font-smoothing: antialiased;
     }
 
-    /* ── Cover page ────────────────────────────────────── */
-    section.cover {
-      background: linear-gradient(135deg, #0d1117 0%, #161b22 40%, #1a2e1a 100%) !important;
-      color: #e6edf3;
-    }
-
-    section.cover .cover-main>p:last-child a {
-      border-radius: 2rem;
-      padding: 0.6em 2em;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      font-size: 0.9em;
-      transition: all 0.2s ease;
-    }
-
-    section.cover .cover-main>p:last-child a {
-      background-color: #2e7d32 !important;
-      color: #fff !important;
-      border: 2px solid #2e7d32;
-    }
-
-    section.cover .cover-main>p:last-child a:hover {
-      background-color: #388e3c !important;
-      border-color: #388e3c;
-    }
-
-    section.cover .cover-main>p:last-child a:last-child {
-      background-color: transparent !important;
-      color: #e6edf3 !important;
-      border: 2px solid rgba(230, 237, 243, 0.3);
-    }
-
-    section.cover .cover-main>p:last-child a:last-child:hover {
-      background-color: transparent !important;
-      border-color: #e6edf3;
-    }
-
-    section.cover h1 {
-      font-weight: 800;
-      font-size: 3rem;
-      margin: 0.5em 0 0.2em;
-    }
-
-    section.cover blockquote p {
-      font-size: 1.15rem !important;
-      color: #8b949e;
-    }
-
-    section.cover ul {
-      list-style: none;
-      padding: 0;
-      max-width: 540px;
-      margin: 1.5em auto;
-      text-align: left;
-    }
-
-    section.cover ul li {
-      padding: 0.35em 0;
-      font-size: 0.95rem;
-      color: #c9d1d9;
-    }
-
-    section.cover ul li::before {
-      content: "→ ";
-      color: #4caf50;
-      font-weight: 600;
-    }
-
-    /* ── Sidebar refinements ──────────────────────────── */
-    .sidebar {
-      border-right: 1px solid #e8e8e8;
-    }
-
-    .sidebar-nav li a {
-      font-size: 0.92rem;
-      transition: color 0.15s ease;
-    }
-
-    .sidebar-nav li a:hover {
-      color: #2e7d32;
-    }
-
-    .sidebar-nav>ul>li>a {
-      font-weight: 600;
-      font-size: 0.95rem;
-    }
-
-    .sidebar-nav li.active>a {
-      color: #2e7d32;
-      border-right: 3px solid #2e7d32;
-    }
-
-    .app-name-link {
-      font-weight: 700 !important;
-      font-size: 1.3rem !important;
-    }
-
-    .sidebar-nav p {
-      font-size: 0.75rem;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      color: #999;
-      margin: 1.2em 0 0.3em;
-      font-weight: 700;
-    }
-
-    /* ── Content typography ────────────────────────────── */
-    .markdown-section {
-      line-height: 1.75;
-    }
-
-    .markdown-section h1 {
-      font-weight: 700;
-      border-bottom: 2px solid #2e7d32;
-      padding-bottom: 0.3em;
-    }
-
-    .markdown-section h2 {
-      font-weight: 600;
-      color: #1a1a1a;
-      margin-top: 2.2em;
-    }
-
-    .markdown-section h3 {
-      margin-top: 1.6em;
-    }
-
-    .markdown-section a {
-      color: #2e7d32;
-      font-weight: 500;
-    }
-
-    .markdown-section a:hover {
-      color: #1b5e20;
-    }
-
-    /* ── Code blocks (Stripe-style) ─────────────────────── */
-    .markdown-section pre {
-      background: #0a0e1a !important;
-      border-radius: 10px;
-      border: 1px solid rgba(255, 255, 255, 0.06);
-      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
-      padding: 1.2em 1.4em;
-      margin: 1.4em 0;
-      position: relative;
-      overflow: auto;
-    }
-
-    .markdown-section pre>code {
-      background: none !important;
-      padding: 0;
-      font-size: 0.875rem;
-      font-family: 'SF Mono', 'Fira Code', 'Fira Mono', Menlo, Consolas, monospace;
-      line-height: 1.6;
-      color: #e1e4e8;
-    }
-
-    .markdown-section code {
-      border-radius: 5px;
-      background: #f0f2f5;
-      padding: 0.15em 0.45em;
-      font-size: 0.87em;
-      font-family: 'SF Mono', 'Fira Code', 'Fira Mono', Menlo, Consolas, monospace;
-      color: #1a1a2e;
-    }
-
-    .markdown-section pre::after {
-      content: attr(data-lang);
-      position: absolute;
-      top: 0.55em;
-      right: 3em;
-      font-size: 0.65rem;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.06em;
-      color: rgba(255, 255, 255, 0.25);
-      pointer-events: none;
-    }
-
-    .docsify-copy-code-button {
-      position: absolute !important;
-      top: 8px !important;
-      right: 8px !important;
-      background: transparent !important;
-      color: transparent !important;
-      border: none !important;
-      border-radius: 6px !important;
-      width: 36px !important;
-      height: 36px !important;
-      padding: 0 !important;
-      cursor: pointer !important;
-      transition: background 0.15s ease !important;
-      overflow: hidden !important;
-      font-size: 0 !important;
-    }
-
-    .docsify-copy-code-button::after {
-      content: '';
-      position: absolute;
-      inset: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='rgba(255,255,255,0.5)' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='9' y='9' width='13' height='13' rx='2' ry='2'/%3E%3Cpath d='M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1'/%3E%3C/svg%3E");
-      background-repeat: no-repeat;
-      background-position: center;
-      background-size: 18px;
-    }
-
-    .docsify-copy-code-button:hover {
-      background: rgba(255, 255, 255, 0.1) !important;
-    }
-
-    .docsify-copy-code-button:hover::after {
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='rgba(255,255,255,0.85)' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='9' y='9' width='13' height='13' rx='2' ry='2'/%3E%3Cpath d='M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1'/%3E%3C/svg%3E");
-    }
-
-    .docsify-copy-code-button:active {
-      transform: scale(0.92);
-    }
-
-    .docsify-copy-code-button.copied::after {
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%234caf50' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='20 6 9 17 4 12'/%3E%3C/svg%3E") !important;
-    }
-
-    /* Prism token overrides for dark background */
-    .token.comment,
-    .token.prolog,
-    .token.doctype,
-    .token.cdata {
-      color: #6a737d;
-    }
-
-    .token.punctuation {
-      color: #89929b;
-    }
-
-    .token.property,
-    .token.tag,
-    .token.boolean,
-    .token.number,
-    .token.constant {
-      color: #79c0ff;
-    }
-
-    .token.string,
-    .token.char,
-    .token.attr-value {
-      color: #a5d6ff;
-    }
-
-    .token.selector,
-    .token.attr-name {
-      color: #7ee787;
-    }
-
-    .token.function,
-    .token.builtin {
-      color: #d2a8ff;
-    }
-
-    .token.keyword,
-    .token.operator {
-      color: #ff7b72;
-    }
-
-    .token.variable {
-      color: #ffa657;
-    }
-
-    .token.class-name {
-      color: #f0883e;
-    }
-
-    /* ── Blockquotes ──────────────────────────────────── */
-    .markdown-section blockquote {
-      border-left: 4px solid #2e7d32;
-      padding: 0.8em 1em;
-      background: #f6f8fa;
-      border-radius: 0 6px 6px 0;
-      margin: 1.2em 0;
-    }
-
-    .markdown-section blockquote p {
+    h1,
+    h2,
+    h3,
+    h4 {
+      font-family: var(--font-heading);
       margin: 0;
     }
 
-    /* ── Tables ───────────────────────────────────────── */
-    .markdown-section table {
-      border-collapse: collapse;
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    .container {
       width: 100%;
-      margin: 1.2em 0;
+      max-width: var(--container-max);
+      margin-inline: auto;
+      padding-inline: var(--container-pad);
     }
 
-    .markdown-section table th {
-      background: #f6f8fa;
-      font-weight: 600;
-      text-align: left;
-      padding: 0.6em 1em;
-      border-bottom: 2px solid #d0d7de;
-    }
-
-    .markdown-section table td {
-      padding: 0.5em 1em;
-      border-bottom: 1px solid #e8e8e8;
-    }
-
-    .markdown-section table tr:hover td {
-      background: #f9fafb;
-    }
-
-    /* ── Callout boxes (tip / warning) ────────────────── */
-    .markdown-section .tip,
-    .markdown-section .warning {
-      padding: 1em 1.2em;
-      border-radius: 6px;
-      margin: 1.2em 0;
-    }
-
-    .markdown-section .tip {
-      background: #e8f5e9;
-      border-left: 4px solid #2e7d32;
-    }
-
-    .markdown-section .warning {
-      background: #fff3e0;
-      border-left: 4px solid #e65100;
-    }
-
-    /* ── Content images ─────────────────────────────────── */
-    .markdown-section img {
-      border-radius: 6px;
-      max-width: 100%;
-      height: auto;
-    }
-
-    /* ── Lists ──────────────────────────────────────────── */
-    .markdown-section ul,
-    .markdown-section ol {
-      padding-left: 1.6em;
-    }
-
-    .markdown-section li {
-      margin-bottom: 0.3em;
-    }
-
-    .markdown-section li>p {
-      margin: 0.3em 0;
-    }
-
-    /* ── Heading anchors ─────────────────────────────────── */
-    .markdown-section h1 .anchor::before,
-    .markdown-section h2 .anchor::before,
-    .markdown-section h3 .anchor::before,
-    .markdown-section h4 .anchor::before {
-      opacity: 0;
-      transition: opacity 0.15s ease;
-    }
-
-    .markdown-section h1:hover .anchor::before,
-    .markdown-section h2:hover .anchor::before,
-    .markdown-section h3:hover .anchor::before,
-    .markdown-section h4:hover .anchor::before {
-      opacity: 0.6;
-    }
-
-    .markdown-section h1:hover .anchor:hover::before,
-    .markdown-section h2:hover .anchor:hover::before,
-    .markdown-section h3:hover .anchor:hover::before,
-    .markdown-section h4:hover .anchor:hover::before {
-      opacity: 1;
-    }
-
-    /* ── Scroll-to-top button ────────────────────────────── */
-    .scroll-top-btn {
+    /* ── Nav ── */
+    .navbar {
       position: fixed;
-      bottom: 2em;
-      right: 2em;
-      width: 40px;
-      height: 40px;
-      border-radius: 50%;
-      background: #2e7d32;
-      color: #fff;
-      border: none;
-      cursor: pointer;
-      font-size: 1.2rem;
-      line-height: 40px;
-      text-align: center;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-      opacity: 0;
-      visibility: hidden;
-      transition: all 0.25s ease;
-      z-index: 99;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 100;
+      background: var(--color-bg);
     }
 
-    .scroll-top-btn.visible {
-      opacity: 1;
-      visibility: visible;
-    }
-
-    .scroll-top-btn:hover {
-      background: #1b5e20;
-      transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-    }
-
-    /* ── Search styling ───────────────────────────────── */
-    .search input {
-      border-radius: 6px !important;
-      border: 1px solid #ddd !important;
-      padding: 8px 12px !important;
-      font-size: 0.9rem !important;
-    }
-
-    .search input:focus {
-      border-color: #2e7d32 !important;
-      box-shadow: 0 0 0 2px rgba(46, 125, 50, 0.15) !important;
-    }
-
-    /* ── Adventure cards (CYOA flow) ──────────────────── */
-    .adventure-cards {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: 1rem;
-      margin: 1.5em 0;
-    }
-
-    .adventure-card {
-      border: 2px solid #e1e4e8;
-      border-radius: 12px;
-      padding: 1.4em 1.2em;
-      text-align: center;
-      cursor: pointer;
-      transition: all 0.2s ease;
+    .navbar__bar {
+      position: relative;
       background: #fff;
-      user-select: none;
+      border-bottom: 1px solid var(--color-border);
     }
 
-    .adventure-card:hover {
-      border-color: #2e7d32;
-      box-shadow: 0 4px 12px rgba(46, 125, 50, 0.12);
-      transform: translateY(-2px);
+    .navbar__bar-inner {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      align-items: center;
+      column-gap: 1rem;
+      padding-top: 14px;
+      padding-bottom: 14px;
     }
 
-    .adventure-card:active {
-      transform: translateY(0);
-    }
-
-    .adventure-card.selected {
-      border-color: #2e7d32;
-      background: #e8f5e9;
-      box-shadow: 0 0 0 3px rgba(46, 125, 50, 0.2);
-    }
-
-    .adventure-card .card-icon {
-      font-size: 2rem;
-      margin-bottom: 0.5em;
-      display: block;
-    }
-
-    .adventure-card .card-title {
-      font-weight: 700;
-      font-size: 1.05rem;
-      color: #1a1a1a;
-      margin-bottom: 0.3em;
-    }
-
-    .adventure-card .card-desc {
-      font-size: 0.85rem;
-      color: #666;
-      line-height: 1.4;
-    }
-
-    .adventure-hidden {
-      display: none !important;
-    }
-
-    .adventure-visible {
-      display: block !important;
-    }
-
-    .adventure-reset {
-      display: inline-block;
-      margin-top: 0.8em;
-      font-size: 0.9rem;
-      color: #2e7d32;
+    .navbar__menu-toggle {
+      display: none;
+      grid-column: 2;
+      grid-row: 1;
+      justify-self: end;
+      align-items: center;
+      justify-content: center;
+      width: 44px;
+      height: 44px;
+      margin: 0;
+      padding: 0;
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-sm);
+      background: #fff;
+      color: var(--color-dark);
       cursor: pointer;
-      font-weight: 500;
+      flex-shrink: 0;
+      -webkit-tap-highlight-color: transparent;
     }
 
-    .adventure-reset:hover {
-      text-decoration: underline;
+    .navbar__menu-toggle:hover {
+      opacity: 0.85;
     }
 
-    @media (max-width: 600px) {
-      .adventure-cards {
-        grid-template-columns: 1fr;
+    .navbar__menu-toggle:focus-visible {
+      outline: 2px solid var(--color-dark);
+      outline-offset: 2px;
+    }
+
+    .navbar__menu-toggle-icon {
+      display: block;
+      width: 22px;
+      height: 22px;
+      overflow: visible;
+    }
+
+    .navbar__menu {
+      grid-column: 2;
+      grid-row: 1;
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .navbar__menu>.github-star-badge {
+      flex-shrink: 0;
+    }
+
+    /* Hover/focus callout under the star chip; must stack above .navbar (z-index 100). */
+    .star-hint {
+      position: fixed;
+      z-index: 110;
+      margin: 0;
+      padding: 14px 28px;
+      font-family: var(--font-heading);
+      font-size: clamp(16px, 1.45vw, 19px);
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      color: var(--color-dark);
+      white-space: nowrap;
+      line-height: 1.2;
+      pointer-events: none;
+      visibility: hidden;
+      opacity: 0;
+      border-radius: 999px;
+      border: 1px solid rgba(19, 18, 38, 0.14);
+      background: rgba(255, 255, 255, 0.96);
+      box-shadow: 0 6px 28px rgba(19, 18, 38, 0.12), 0 2px 8px rgba(19, 18, 38, 0.06), 0 1px 0 rgba(255, 255, 255, 0.85) inset;
+      backdrop-filter: saturate(160%) blur(12px);
+      -webkit-backdrop-filter: saturate(160%) blur(12px);
+      transform: translateX(-50%) translateY(6px) scale(0.98);
+      transition: opacity 0.22s ease, visibility 0.22s ease, transform 0.22s ease, box-shadow 0.22s ease;
+    }
+
+    .star-hint::before {
+      content: "";
+      position: absolute;
+      left: 50%;
+      top: -7px;
+      width: 14px;
+      height: 14px;
+      margin-left: -7px;
+      background: rgba(255, 255, 255, 0.96);
+      border-left: 1px solid rgba(19, 18, 38, 0.14);
+      border-top: 1px solid rgba(19, 18, 38, 0.14);
+      transform: rotate(45deg);
+      box-shadow: -2px -2px 4px rgba(19, 18, 38, 0.04);
+    }
+
+    .star-hint.star-hint--show {
+      visibility: visible;
+      opacity: 1;
+      transform: translateX(-50%) translateY(0) scale(1);
+      box-shadow: 0 8px 32px rgba(19, 18, 38, 0.14), 0 2px 10px rgba(19, 18, 38, 0.08), 0 0 0 1px rgba(255, 200, 100, 0.25), 0 1px 0 rgba(255, 255, 255, 0.9) inset;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .star-hint {
+        transition: opacity 0.15s ease, visibility 0.15s ease;
+        transform: translateX(-50%);
+      }
+
+      .star-hint.star-hint--show {
+        transform: translateX(-50%);
       }
     }
 
-    /* ── Footer ───────────────────────────────────────── */
-    .site-footer {
-      text-align: center;
-      padding: 2em 1em;
-      margin-top: 4em;
-      border-top: 1px solid #e8e8e8;
-      font-size: 0.85rem;
-      color: #666;
+    .navbar__brand {
+      grid-column: 1;
+      grid-row: 1;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-family: var(--font-heading);
+      color: var(--color-dark);
+      min-width: 0;
     }
 
-    .site-footer a {
-      color: #2e7d32;
-      text-decoration: none;
-      margin: 0 0.6em;
+    .navbar__brand span {
+      font-size: clamp(1.125rem, 1.15vw, 1.3125rem);
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      line-height: 1.05;
+    }
+
+    .navbar__brand img {
+      height: 40px;
+      width: auto;
+      display: block;
+      image-rendering: pixelated;
+      image-rendering: crisp-edges;
+    }
+
+    .navbar__links {
+      display: flex;
+      align-items: center;
+      gap: 1.35rem;
+      font-family: var(--font-heading);
+      font-size: 16px;
       font-weight: 500;
     }
 
-    .site-footer a:hover {
-      text-decoration: underline;
+    .navbar__links a:hover {
+      opacity: 0.65;
     }
 
-    /* ── Floating TOC ("On this page") ────────────────── */
-    .page_toc p.title {
-      font-size: 0.75rem;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      color: #999;
+    .github-star-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      line-height: 0;
+      flex-shrink: 0;
+      opacity: 1;
+      transition: transform 0.2s ease, filter 0.35s ease, box-shadow 0.2s ease;
+      border-radius: 12px;
+    }
+
+    .github-star-badge__frame {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 5px 10px;
+      border-radius: 10px;
+      border: 1px solid rgba(19, 18, 38, 0.1);
+      background: linear-gradient(180deg, #fff 0%, #f6f5fa 100%);
+      box-shadow: 0 1px 2px rgba(19, 18, 38, 0.05), 0 4px 14px rgba(19, 18, 38, 0.06);
+      transition: box-shadow 0.2s ease, transform 0.2s ease, border-color 0.2s ease;
+    }
+
+    .github-star-badge:hover {
+      transform: translateY(-1px);
+    }
+
+    .github-star-badge:active {
+      transform: translateY(0);
+    }
+
+    .github-star-badge:focus {
+      outline: none;
+    }
+
+    .github-star-badge:focus-visible {
+      outline: 2px solid var(--color-dark);
+      outline-offset: 3px;
+      border-radius: 14px;
+    }
+
+    .github-star-badge img {
+      display: block;
+      height: 30px;
+      width: auto;
+      max-width: none;
+      border-radius: 6px;
+    }
+
+    .github-star-badge:hover .github-star-badge__frame,
+    .github-star-badge:focus-visible .github-star-badge__frame {
+      border-color: rgba(19, 18, 38, 0.16);
+      box-shadow: 0 2px 8px rgba(19, 18, 38, 0.08), 0 0 0 2px rgba(255, 196, 90, 0.35), 0 8px 22px rgba(19, 18, 38, 0.09);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+
+      .github-star-badge:hover .github-star-badge__frame,
+      .github-star-badge:focus-visible .github-star-badge__frame {
+        box-shadow: 0 2px 6px rgba(19, 18, 38, 0.07), 0 0 0 2px rgba(255, 196, 90, 0.4);
+      }
+    }
+
+    .navbar__cta {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 8px 20px;
+      background: var(--color-dark);
+      color: #fff;
+      border-radius: var(--radius-sm);
+      font-family: var(--font-heading);
+      font-size: 16px;
+      font-weight: 500;
+      transition: opacity 0.15s ease;
+    }
+
+    .navbar__cta:hover {
+      opacity: 0.85;
+    }
+
+    @media (max-width: 767px) {
+      .navbar__bar-inner {
+        grid-template-columns: 1fr auto;
+      }
+
+      .navbar__menu-toggle {
+        position: relative;
+        display: inline-flex;
+        grid-column: 2;
+        grid-row: 1;
+      }
+
+      .navbar__menu-toggle-icon--open,
+      .navbar__menu-toggle-icon--close {
+        transition: opacity 0.2s ease, transform 0.2s ease;
+      }
+
+      .navbar__menu-toggle-icon--close {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        opacity: 0;
+        pointer-events: none;
+      }
+
+      .navbar__menu-toggle-icon--open {
+        opacity: 1;
+      }
+
+      .navbar__menu-toggle[aria-expanded="true"] .navbar__menu-toggle-icon--open {
+        opacity: 0;
+        pointer-events: none;
+      }
+
+      .navbar__menu-toggle[aria-expanded="true"] .navbar__menu-toggle-icon--close {
+        opacity: 1;
+        pointer-events: none;
+      }
+
+      .navbar__menu {
+        grid-column: 1 / -1;
+        grid-row: 2;
+        flex-direction: column;
+        align-items: stretch;
+        justify-content: flex-start;
+        gap: 0;
+        max-height: 0;
+        overflow: hidden;
+        opacity: 0;
+        visibility: hidden;
+        pointer-events: none;
+        transition: max-height 0.35s ease, opacity 0.25s ease, visibility 0.25s ease;
+        margin-top: 0;
+        padding-top: 0;
+        border-top: 1px solid transparent;
+      }
+
+      .navbar__menu.is-open {
+        max-height: min(70vh, 440px);
+        opacity: 1;
+        visibility: visible;
+        pointer-events: auto;
+        margin-top: 12px;
+        padding-top: 12px;
+        border-top-color: var(--color-border);
+      }
+
+      .navbar__links {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0;
+        font-size: 17px;
+      }
+
+      .navbar__links a {
+        padding: 14px 4px;
+        border-bottom: 1px solid var(--color-border);
+      }
+
+      .navbar__links a:last-of-type {
+        border-bottom: none;
+      }
+
+      .navbar__menu .github-star-badge {
+        align-self: flex-start;
+        padding: 14px 4px 10px;
+      }
+
+      .navbar__menu .navbar__cta {
+        margin-top: 6px;
+        padding: 14px 20px;
+        font-size: 16px;
+      }
+
+      .navbar__brand span {
+        font-size: 1rem;
+        letter-spacing: -0.025em;
+      }
+
+      body.navbar-menu-open {
+        overflow: hidden;
+      }
+    }
+
+    @media (max-width: 767px) and (prefers-reduced-motion: reduce) {
+      .navbar__menu {
+        transition: none;
+      }
+
+      .navbar__menu-toggle-icon--open,
+      .navbar__menu-toggle-icon--close {
+        transition: none;
+      }
+    }
+
+    /* ── Hero: full-bleed band (aligned with nav); copy stays in .container ── */
+    .hero {
+      width: 100%;
+      background: #fff;
+      border-bottom: 1px solid var(--color-border);
+      padding-bottom: clamp(72px, 14vh, 120px);
+    }
+
+    .hero__inner {
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+      gap: clamp(36px, 5vw, 56px);
+      padding-top: clamp(96px, 13vw, 128px);
+    }
+
+    .hero__intro {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .hero__diagram-band {
+      display: flex;
+      justify-content: center;
+    }
+
+    .hero__main {
+      display: flex;
+      flex-direction: column;
+      gap: 28px;
+      min-width: 0;
+    }
+
+    /* Diagram scales to full frame width; height follows 781×561. Short windows only: shrink. */
+    .hero__illustration {
+      margin: 0;
+      width: 100%;
+      max-width: min(920px, 100%);
+      margin-inline: auto;
+      border-radius: 14px;
+      border: 1px solid var(--color-border);
+      background: rgba(255, 255, 255, 0.65);
+      padding: clamp(10px, 1.75vw, 16px);
+      box-shadow: 0 12px 40px rgba(19, 18, 38, 0.06);
+    }
+
+    .hero__diagram {
+      display: block;
+      width: 100%;
+      height: auto;
+    }
+
+    /* Only very short viewports: proportional shrink so the hero still fits on screen */
+    @media (max-height: 560px) {
+      .hero__diagram {
+        width: auto;
+        max-width: 100%;
+        max-height: min(48vh, 420px);
+        margin-inline: auto;
+      }
+    }
+
+    @media (max-height: 480px) and (orientation: landscape) {
+      .hero__diagram {
+        max-height: 42vh;
+      }
+    }
+
+    /* One measure for title + body so the headline doesn’t outrun the copy */
+    .hero__content {
+      display: flex;
+      flex-direction: column;
+      gap: clamp(20px, 3vw, 28px);
+      width: 100%;
+      max-width: 42rem;
+      flex: 1 1 auto;
+      min-width: 0;
+    }
+
+    .hero h1 {
+      font-size: clamp(40px, 5.5vw, 64px);
+      font-weight: 600;
+      line-height: 1.1;
+      letter-spacing: -0.01em;
+      color: var(--color-dark);
+    }
+
+    /*
+      Emphasize “Scale” without a second color:
+      - Slightly larger than the rest of the line (reads as the punch word)
+      - Bolder than the h1’s 600
+      - Tight tracking so the word stays a single block
+      - Soft underline in the same ink (editorial, not a new hue)
+    */
+    .hero__title-accent {
+      font-size: 1.07em;
       font-weight: 700;
+      letter-spacing: -0.045em;
+      color: var(--color-dark);
+      text-decoration: underline;
+      text-decoration-color: rgba(19, 18, 38, 0.22);
+      text-decoration-thickness: 0.11em;
+      text-underline-offset: 0.14em;
     }
 
-    .page_toc div[class^="lv"] a span {
-      font-size: 0.84rem;
-      color: #586069;
+    .hero__text {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      width: 100%;
     }
 
-    .page_toc div.active {
-      border-left-color: #2e7d32;
+    /* Primary line: product promise */
+    .hero__lead {
+      margin: 0;
+      font-size: clamp(18px, 1.75vw, 21px);
+      font-weight: 500;
+      line-height: 1.55;
+      letter-spacing: -0.015em;
+      color: var(--color-dark);
+      text-wrap: pretty;
     }
 
-    .page_toc div.active a span {
-      color: #2e7d32;
+    .hero__actions {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 12px;
+      width: 100%;
+      max-width: 100%;
+      box-sizing: border-box;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
     }
 
-    .page_toc div[class^="lv"] a:hover span {
-      color: #2e7d32;
+    .hero__install-stack {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 10px;
     }
 
-    .page_toc div {
-      border-left: 2px solid #e8e8e8;
+    .hero__github-tertiary {
+      font-family: var(--font-heading);
+      font-size: 14px;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+      color: rgba(19, 18, 38, 0.62);
+      text-decoration: underline;
+      text-underline-offset: 0.18em;
+      transition: color 0.15s ease;
     }
 
-    aside.toc-nav {
-      top: 80px;
-      z-index: 10;
+    .hero__github-tertiary:hover {
+      color: var(--color-dark);
+    }
+
+    .hero__github-tertiary:focus {
+      outline: none;
+    }
+
+    .hero__github-tertiary:focus-visible {
+      outline: 2px solid var(--color-dark);
+      outline-offset: 3px;
+      border-radius: 2px;
+    }
+
+    /* ── Overview (product narrative; between hero and team) ── */
+    .about {
+      padding: clamp(56px, 10vh, 96px) 0;
+      background: var(--color-bg);
+      border-top: 1px solid var(--color-border);
+    }
+
+    .about__inner {
+      display: flex;
+      flex-direction: column;
+      gap: clamp(20px, 3vw, 28px);
+    }
+
+    .about__title {
+      margin: 0;
+      font-size: clamp(22px, 2.5vw, 30px);
+      font-weight: 600;
+      line-height: 1.2;
+      letter-spacing: -0.02em;
+      color: var(--color-dark);
+      text-wrap: balance;
+    }
+
+    .about__body {
+      margin: 0;
+    }
+
+    .about__body>p {
+      margin: 0 0 1.1em;
+      font-size: clamp(16px, 1.45vw, 18px);
+      line-height: 1.68;
+      letter-spacing: -0.01em;
+      color: rgba(19, 18, 38, 0.82);
+      text-wrap: pretty;
+    }
+
+    .about__components-intro {
+      margin: 0 0 1rem;
+      font-size: clamp(16px, 1.45vw, 18px);
+      line-height: 1.68;
+      letter-spacing: -0.01em;
+      color: rgba(19, 18, 38, 0.82);
+      text-wrap: pretty;
+    }
+
+    .about__components {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      margin: 0.25rem 0 0;
+      padding: 0;
+      list-style: none;
+      background: #fff;
+      border: 1px solid var(--color-border);
+      border-radius: 16px;
+      box-shadow: 0 8px 32px rgba(19, 18, 38, 0.06);
+      overflow: hidden;
+    }
+
+    .about__component {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      margin: 0;
+      padding: clamp(1.35rem, 2.4vw, 2rem) clamp(1.25rem, 2.5vw, 2rem);
+      border-left: 1px solid var(--color-border);
+    }
+
+    .about__component:first-child {
+      border-left: none;
+    }
+
+    .about__component-icon {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 46px;
+      height: 46px;
+      margin-bottom: 1rem;
+      border-radius: 12px;
+      background: linear-gradient(145deg, rgba(19, 18, 38, 0.06) 0%, rgba(19, 18, 38, 0.03) 100%);
+      color: var(--color-dark);
+    }
+
+    .about__component-icon svg {
+      width: 22px;
+      height: 22px;
+      opacity: 0.92;
+    }
+
+    .about__component-name {
+      margin: 0 0 0.45rem;
+      font-family: var(--font-heading);
+      font-size: 1.0625rem;
+      font-weight: 600;
+      letter-spacing: -0.025em;
+      line-height: 1.3;
+      color: var(--color-dark);
+      text-wrap: balance;
+    }
+
+    .about__component-desc {
+      margin: 0;
+      font-size: 0.9375rem;
+      line-height: 1.58;
+      color: rgba(19, 18, 38, 0.62);
+      text-wrap: pretty;
+    }
+
+    @media (max-width: 720px) {
+      .about__components {
+        grid-template-columns: 1fr;
+      }
+
+      .about__component {
+        border-left: none;
+        border-top: 1px solid var(--color-border);
+        padding-top: clamp(1.25rem, 4vw, 1.65rem);
+        padding-bottom: clamp(1.25rem, 4vw, 1.65rem);
+      }
+
+      .about__component:first-child {
+        border-top: none;
+      }
+    }
+
+    /* ── Team (mirrors docs overview; link to full acknowledgements) ── */
+    .team {
+      padding: clamp(56px, 9vh, 88px) 0 clamp(64px, 10vh, 96px);
+      background: #fff;
+      border-top: 1px solid var(--color-border);
+      scroll-margin-top: 88px;
+    }
+
+    .team__inner {
+      display: flex;
+      flex-direction: column;
+      gap: clamp(24px, 3.5vw, 36px);
+    }
+
+    .team__eyebrow {
+      margin: 0 0 0.35rem;
+      font-family: var(--font-heading);
+      font-size: clamp(12px, 1.1vw, 13px);
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: rgba(19, 18, 38, 0.48);
+    }
+
+    .team__title {
+      margin: 0 0 0.5rem;
+      font-size: clamp(26px, 3vw, 36px);
+      font-weight: 600;
+      line-height: 1.15;
+      letter-spacing: -0.02em;
+      color: var(--color-dark);
+      text-wrap: balance;
+    }
+
+    .team__lead {
+      margin: 0;
+      font-size: clamp(16px, 1.45vw, 18px);
+      line-height: 1.65;
+      letter-spacing: -0.01em;
+      color: rgba(19, 18, 38, 0.78);
+      text-wrap: pretty;
+    }
+
+    .team__lead a {
+      font-weight: 600;
+      color: var(--color-dark);
+      text-decoration: underline;
+      text-underline-offset: 0.18em;
+      text-decoration-color: rgba(19, 18, 38, 0.28);
+      transition: text-decoration-color 0.15s ease, color 0.15s ease;
+    }
+
+    .team__lead a:hover {
+      text-decoration-color: rgba(19, 18, 38, 0.55);
+    }
+
+    .team__lead a:focus {
+      outline: none;
+    }
+
+    .team__lead a:focus-visible {
+      outline: 2px solid var(--color-dark);
+      outline-offset: 3px;
+      border-radius: 2px;
+    }
+
+    /* Roster rows (directory-style), not card chips */
+    .team__grid {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      width: 100%;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+      border-top: 1px solid var(--color-border);
+    }
+
+    .team__member {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 0.35rem 1.5rem;
+      margin: 0;
+      padding: 1rem 0;
+      border-bottom: 1px solid var(--color-border);
+      background: none;
+      border-radius: 0;
+      transition: background-color 0.15s ease;
+    }
+
+    .team__member:hover {
+      background-color: rgba(19, 18, 38, 0.02);
+    }
+
+    .team__name {
+      flex: 0 1 auto;
+      min-width: min(100%, 12rem);
+      font-family: var(--font-heading);
+      font-size: 1.0625rem;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+      color: var(--color-dark);
+      text-decoration: none;
+      text-decoration-color: transparent;
+      text-underline-offset: 0.2em;
+      transition: color 0.15s ease, text-decoration-color 0.15s ease;
+    }
+
+    .team__name:hover {
+      text-decoration: underline;
+      text-decoration-color: rgba(19, 18, 38, 0.35);
+    }
+
+    .team__name:focus {
+      outline: none;
+    }
+
+    .team__name:focus-visible {
+      outline: 2px solid var(--color-dark);
+      outline-offset: 3px;
+      border-radius: 2px;
+    }
+
+    .team__role {
+      flex: 1 1 auto;
+      margin: 0;
+      font-size: 0.9375rem;
+      line-height: 1.5;
+      color: rgba(19, 18, 38, 0.58);
+      text-align: right;
+    }
+
+    @media (max-width: 640px) {
+      .team__member {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.2rem;
+        padding: 0.85rem 0;
+      }
+
+      .team__role {
+        text-align: left;
+        padding-left: 0;
+      }
+    }
+
+    .team__more {
+      margin: 0;
+      padding-top: 0.25rem;
+    }
+
+    .team__more-link {
+      font-family: var(--font-heading);
+      font-size: 0.9375rem;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+      color: var(--color-dark);
+      text-decoration: underline;
+      text-underline-offset: 0.2em;
+      text-decoration-color: rgba(19, 18, 38, 0.3);
+      transition: opacity 0.15s ease, text-decoration-color 0.15s ease;
+    }
+
+    .team__more-link:hover {
+      opacity: 0.8;
+      text-decoration-color: rgba(19, 18, 38, 0.55);
+    }
+
+    .team__more-link:focus {
+      outline: none;
+    }
+
+    .team__more-link:focus-visible {
+      outline: 2px solid var(--color-dark);
+      outline-offset: 3px;
+      border-radius: 2px;
+    }
+
+    .site-footer {
+      border-top: 1px solid var(--color-border);
+      padding: 1.5rem 0 2.25rem;
+      background: rgba(255, 255, 255, 0.55);
+    }
+
+    .site-footer__inner {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 0.75rem 1.5rem;
+      font-size: 14px;
+      line-height: 1.45;
+    }
+
+    .site-footer__copy {
+      margin: 0;
+      max-width: 40rem;
+      color: rgba(19, 18, 38, 0.62);
+    }
+
+    .site-footer__link {
+      font-family: var(--font-heading);
+      font-weight: 600;
+      color: var(--color-dark);
+      text-decoration: underline;
+      text-underline-offset: 0.15em;
+      flex-shrink: 0;
+    }
+
+    .site-footer__link:hover {
+      opacity: 0.8;
+    }
+
+    .hero__cta {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      padding: 8px 20px;
+      background: var(--color-dark);
+      color: #fff;
+      border-radius: var(--radius-sm);
+      font-family: var(--font-heading);
+      font-size: 16px;
+      font-weight: 500;
+      line-height: 1.4;
+      transition: opacity 0.15s ease;
+    }
+
+    .hero__cta:hover {
+      opacity: 0.85;
+    }
+
+    .hero__install {
+      display: inline-flex;
+      align-items: stretch;
+      max-width: 100%;
+      border-radius: 6px;
+      border: 1px solid rgba(19, 18, 38, 0.12);
+      background: #e6e6ee;
+      overflow: hidden;
+    }
+
+    .hero__code {
+      display: block;
+      padding: 6px 12px;
+      margin: 0;
+      font-family: var(--font-mono);
+      font-size: clamp(13px, 1.25vw, 16px);
+      font-weight: 500;
+      line-height: 1.4;
+      color: var(--color-dark);
+      white-space: pre;
+      overflow-x: auto;
+      flex: 1 1 auto;
+      min-width: 0;
+    }
+
+    .hero__copy-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      width: 40px;
+      margin: 0;
+      padding: 0;
+      border: none;
+      border-left: 1px solid rgba(19, 18, 38, 0.12);
+      background: rgba(255, 255, 255, 0.45);
+      color: var(--color-dark);
+      cursor: pointer;
+      transition: background 0.15s ease, color 0.15s ease;
+    }
+
+    .hero__copy-btn:hover {
+      background: rgba(255, 255, 255, 0.75);
+    }
+
+    .hero__copy-btn:focus {
+      outline: none;
+    }
+
+    .hero__copy-btn:focus-visible {
+      outline: 2px solid var(--color-dark);
+      outline-offset: 2px;
+    }
+
+    .hero__copy-btn svg {
+      width: 18px;
+      height: 18px;
+    }
+
+    .hero__copy-btn .hero__copy-icon--check {
+      display: none;
+    }
+
+    .hero__copy-btn.is-copied .hero__copy-icon--copy {
+      display: none;
+    }
+
+    .hero__copy-btn.is-copied .hero__copy-icon--check {
+      display: block;
+    }
+
+    /* ── Features (below hero / diagram; Dagger-style cards) ── */
+    .features {
+      padding: clamp(64px, 11vh, 100px) 0 clamp(72px, 12vh, 112px);
+      background: var(--color-bg);
+    }
+
+    .features__inner {
+      display: flex;
+      flex-direction: column;
+      gap: clamp(28px, 4vw, 40px);
+    }
+
+    .features__eyebrow {
+      margin: 0 0 0.5rem;
+      font-family: var(--font-heading);
+      font-size: clamp(12px, 1.1vw, 13px);
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: rgba(19, 18, 38, 0.48);
+    }
+
+    .features__title {
+      margin: 0 0 0.75rem;
+      font-size: clamp(28px, 3.2vw, 40px);
+      font-weight: 600;
+      line-height: 1.15;
+      letter-spacing: -0.02em;
+      color: var(--color-dark);
+      text-wrap: balance;
+    }
+
+    .features__lead {
+      margin: 0;
+      font-size: clamp(16px, 1.5vw, 18px);
+      line-height: 1.6;
+      letter-spacing: -0.01em;
+      color: rgba(19, 18, 38, 0.78);
+      text-wrap: pretty;
+    }
+
+    .features__sub {
+      margin: 0.65rem 0 0;
+      font-size: clamp(15px, 1.4vw, 17px);
+      line-height: 1.6;
+      letter-spacing: -0.01em;
+      color: rgba(19, 18, 38, 0.68);
+      text-wrap: pretty;
+    }
+
+    .features__grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(268px, 1fr));
+      gap: clamp(14px, 2vw, 20px);
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .features__card {
+      display: flex;
+      flex-direction: column;
+      gap: 0.65rem;
+      margin: 0;
+      padding: 1.25rem 1.35rem;
+      border-radius: 14px;
+      border: 1px solid var(--color-border);
+      background: #fff;
+      box-shadow: 0 10px 36px rgba(19, 18, 38, 0.05);
+    }
+
+    .features__card-icon {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      background: rgba(19, 18, 38, 0.05);
+      color: var(--color-dark);
+    }
+
+    .features__card-icon svg {
+      width: 20px;
+      height: 20px;
+      opacity: 0.92;
+    }
+
+    .features__card-title {
+      margin: 0;
+      font-size: 1.05rem;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+      color: var(--color-dark);
+      text-wrap: balance;
+    }
+
+    .features__card-text {
+      margin: 0;
+      font-size: 0.9375rem;
+      line-height: 1.55;
+      color: rgba(19, 18, 38, 0.72);
+      flex: 1 1 auto;
+      text-wrap: pretty;
+    }
+
+    @media (max-width: 1024px) {
+      .hero__inner {
+        padding-top: 108px;
+      }
+
+      .hero__intro {
+        align-items: center;
+        text-align: center;
+      }
+
+      .hero__main {
+        align-items: center;
+      }
+
+      .hero__content {
+        align-items: center;
+      }
+
+      .hero__actions {
+        justify-content: center;
+      }
+
+      .team__inner {
+        text-align: center;
+      }
+
+      .team__lead {
+        margin-inline: auto;
+      }
+
+      .team__grid {
+        text-align: left;
+      }
+
+      .team__more {
+        text-align: center;
+      }
+
+      .about__inner {
+        text-align: center;
+      }
+
+      .about__components {
+        text-align: left;
+      }
+
+      .features__inner {
+        text-align: center;
+      }
+
+      .features__intro {
+        margin-inline: auto;
+      }
+
+      .features__card {
+        text-align: left;
+      }
+
     }
   </style>
 </head>
 
 <body>
-  <div id="app"></div>
+  <header class="navbar">
+    <div class="navbar__bar">
+      <div class="container navbar__bar-inner">
+        <a class="navbar__brand" href="/" aria-label="Orla home">
+          <img src="docs/orla_cat.png" alt="" width="48" height="48" />
+          <span aria-hidden="true">Orla</span>
+        </a>
+        <button type="button" class="navbar__menu-toggle" id="navbar-menu-toggle" aria-expanded="false"
+          aria-controls="navbar-menu" aria-label="Open navigation menu">
+          <svg class="navbar__menu-toggle-icon navbar__menu-toggle-icon--open" xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+            stroke-linejoin="round" aria-hidden="true">
+            <line x1="4" x2="20" y1="6" y2="6" />
+            <line x1="4" x2="20" y1="12" y2="12" />
+            <line x1="4" x2="20" y1="18" y2="18" />
+          </svg>
+          <svg class="navbar__menu-toggle-icon navbar__menu-toggle-icon--close" xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+            stroke-linejoin="round" aria-hidden="true">
+            <line x1="5" x2="19" y1="5" y2="19" />
+            <line x1="19" x2="5" y1="5" y2="19" />
+          </svg>
+        </button>
+        <div id="navbar-menu" class="navbar__menu">
+          <nav class="navbar__links" aria-label="Primary">
+            <a href="/docs/#/overview">Docs</a>
+            <a href="/docs/#/community">Community</a>
+            <a href="#team">Team</a>
+          </nav>
+          <a id="github-star-badge" class="github-star-badge" href="https://github.com/harvard-cns/orla" target="_blank"
+            rel="noopener noreferrer" aria-label="Star on GitHub — harvard-cns/orla">
+
+            <span class="github-star-badge__frame">
+              <img src="https://img.shields.io/github/stars/harvard-cns/orla?style=social"
+                alt="GitHub stars for harvard-cns/orla" height="30" decoding="async" />
+            </span>
+          </a>
+          <a class="navbar__cta" href="/docs/#/getting-started">Quickstart</a>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <p id="star-hint-label" class="star-hint" aria-hidden="true">Star on GitHub</p>
+
+  <main>
+    <section class="hero">
+      <div class="hero__inner">
+        <div class="container hero__intro">
+          <div class="hero__main">
+            <div class="hero__content">
+              <h1>Build Multi-Agent Systems That <span class="hero__title-accent">Scale</span></h1>
+              <div class="hero__text">
+                <p class="hero__lead">Focus on application logic. Orla optimizes cost and latency.</p>
+              </div>
+            </div>
+            <div class="hero__actions">
+              <a class="hero__cta" href="/docs/#/getting-started">Get Started</a>
+              <div class="hero__install" role="group" aria-label="Homebrew install command">
+                <code class="hero__code"
+                  id="hero-install-cmd">brew tap harvard-cns/orla &amp;&amp; brew install --cask harvard-cns/orla/orla</code>
+                <button type="button" class="hero__copy-btn" id="hero-copy-install" aria-label="Copy install command">
+                  <svg class="hero__copy-icon--copy" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                    aria-hidden="true">
+                    <rect width="14" height="14" x="8" y="8" rx="2" ry="2" />
+                    <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2" />
+                  </svg>
+                  <svg class="hero__copy-icon--check" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"
+                    aria-hidden="true">
+                    <path d="M20 6 9 17l-5-5" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="container hero__diagram-band">
+          <aside class="hero__illustration">
+            <img class="hero__diagram" src="docs/orla_user_facing.drawio.svg" width="781" height="561"
+              alt="Diagram: Orla user-facing architecture and workflow" decoding="async" loading="lazy"
+              fetchpriority="low" />
+          </aside>
+        </div>
+      </div>
+    </section>
+
+    <section class="about" id="overview" aria-labelledby="about-heading">
+      <div class="container about__inner">
+        <h2 id="about-heading" class="about__title">Overview</h2>
+        <div class="about__body">
+          <p>Orla is a library for building and running LLM-based agentic systems. Modern agentic applications are
+            workflows that combine multiple LLM calls, tool invocations, and heterogeneous infrastructure. Today,
+            developers often stitch these pieces together manually using orchestration code, LLM serving engines, and
+            tool execution logic.</p>
+          <p>Orla simplifies this process by separating workflow-level decisions from request execution. Developers
+            define workflows as stages, while Orla handles how those stages are mapped to models and backends, scheduled
+            and executed, and coordinated through shared inference state.</p>
+          <p class="about__components-intro">The system exposes three core components:</p>
+          <ul class="about__components">
+            <li class="about__component">
+              <div class="about__component-icon" aria-hidden="true">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                  stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="16" y="16" width="6" height="6" rx="1" />
+                  <rect x="2" y="16" width="6" height="6" rx="1" />
+                  <rect x="9" y="2" width="6" height="6" rx="1" />
+                  <path d="M5 16v-3a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v3" />
+                  <path d="M12 12V8" />
+                </svg>
+              </div>
+              <p class="about__component-name">Stage Mapper</p>
+              <p class="about__component-desc">Routes each stage to the right model and backend across heterogeneous
+                infrastructure.</p>
+            </li>
+            <li class="about__component">
+              <div class="about__component-icon" aria-hidden="true">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                  stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <polygon points="12 2 2 7 12 12 22 7 12 2" />
+                  <polyline points="2 17 12 22 22 17" />
+                  <polyline points="2 12 12 17 22 12" />
+                </svg>
+              </div>
+              <p class="about__component-name">Workflow Orchestrator</p>
+              <p class="about__component-desc">Executes and schedules stages according to your workflow graph.</p>
+            </li>
+            <li class="about__component">
+              <div class="about__component-icon" aria-hidden="true">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                  stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <ellipse cx="12" cy="5" rx="9" ry="3" />
+                  <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3" />
+                  <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5" />
+                </svg>
+              </div>
+              <p class="about__component-name">Memory Manager</p>
+              <p class="about__component-desc">Coordinates KV cache and shared inference state across stages.</p>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="team" id="team" aria-labelledby="team-heading">
+      <div class="container team__inner">
+        <header>
+          <!-- <p class="team__eyebrow">Team</p> -->
+          <h2 id="team-heading" class="team__title">Team</h2>
+          <p class="team__lead">Orla was developed in
+            <a href="https://minlanyu.seas.harvard.edu/" target="_blank" rel="noopener noreferrer">Minlan Yu</a>’s lab
+            at
+            <a href="https://www.harvard.edu/" target="_blank" rel="noopener noreferrer">Harvard University</a>.
+          </p>
+        </header>
+        <ul class="team__grid">
+          <li class="team__member">
+            <a class="team__name" href="https://jadidbourbaki.github.io/jadidbourbaki/" target="_blank"
+              rel="noopener noreferrer">Hayder Tirmazi</a>
+            <p class="team__role">Developer and Maintainer</p>
+          </li>
+          <li class="team__member">
+            <a class="team__name" href="https://sites.google.com/view/ranash" target="_blank"
+              rel="noopener noreferrer">Rana Shahout</a>
+            <p class="team__role">Primary Researcher</p>
+          </li>
+          <li class="team__member">
+            <a class="team__name" href="https://www.eecs.harvard.edu/~michaelm/" target="_blank"
+              rel="noopener noreferrer">Michael Mitzenmacher</a>
+            <p class="team__role">Principal Investigator</p>
+          </li>
+          <li class="team__member">
+            <a class="team__name" href="https://minlanyu.seas.harvard.edu/" target="_blank"
+              rel="noopener noreferrer">Minlan Yu</a>
+            <p class="team__role">Principal Investigator</p>
+          </li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- Portable deployments / features (hidden for now)
+    <section class="features" aria-labelledby="features-heading">
+      <div class="container features__inner">
+        <div class="features__intro" id="features-intro">
+          <p class="features__eyebrow">Portable deployments</p>
+          <h2 id="features-heading" class="features__title">Build Your Agents Once, Ship Them Anywhere</h2>
+          <p class="features__lead">Write agentic workflows once. Test and run them consistently
+            across&nbsp;your&nbsp;stack.</p>
+          <p class="features__sub">Mix private infrastructure and cloud models in the same graph when you need both.</p>
+        </div>
+        <ul class="features__grid" aria-describedby="features-intro">
+          <li class="features__card">
+            <div class="features__card-icon" aria-hidden="true">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect width="20" height="14" x="2" y="3" rx="2" />
+                <line x1="8" x2="16" y1="21" y2="21" />
+                <line x1="12" x2="12" y1="17" y2="21" />
+              </svg>
+            </div>
+            <h3 class="features__card-title">Local machine</h3>
+            <p class="features__card-text">Develop and debug with the same runtime
+              you&nbsp;ship&nbsp;to&nbsp;production.</p>
+          </li>
+          <li class="features__card">
+            <div class="features__card-icon" aria-hidden="true">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="6" x2="6" y1="3" y2="15" />
+                <circle cx="18" cy="6" r="3" />
+                <circle cx="6" cy="18" r="3" />
+                <path d="M18 9a9 9 0 0 1-9 9" />
+              </svg>
+            </div>
+            <h3 class="features__card-title">CI</h3>
+            <p class="features__card-text">Gate merges with the same agent tests and workflows you run&nbsp;locally.</p>
+          </li>
+          <li class="features__card">
+            <div class="features__card-icon" aria-hidden="true">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect width="20" height="8" x="2" y="2" rx="2" ry="2" />
+                <rect width="20" height="8" x="2" y="14" rx="2" ry="2" />
+                <line x1="6" x2="6.01" y1="6" y2="6" />
+                <line x1="6" x2="6.01" y1="18" y2="18" />
+              </svg>
+            </div>
+            <h3 class="features__card-title">Private infrastructure</h3>
+            <p class="features__card-text">Keep models and data on your network; call hosted APIs from the same graph
+              where&nbsp;policy&nbsp;allows.</p>
+          </li>
+          <li class="features__card">
+            <div class="features__card-icon" aria-hidden="true">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z" />
+              </svg>
+            </div>
+            <h3 class="features__card-title">Cloud models</h3>
+            <p class="features__card-text">Use hosted APIs alone or beside private backends—one workflow, mixed stages,
+              tuned for cost, latency, and&nbsp;compliance.</p>
+          </li>
+        </ul>
+      </div>
+    </section>
+    -->
+  </main>
+
   <script>
-    window.$docsify = {
-      name: 'Orla',
-      repo: 'https://github.com/dorcha-inc/orla',
-      loadSidebar: true,
-      coverpage: true,
-      onlyCover: false,
-      homepage: 'overview.md',
-      subMaxLevel: 0,
-      toc: {
-        tocMaxLevel: 5,
-        target: 'h2, h3, h4, h5'
-      },
-      auto2top: true,
-      themeColor: '#2e7d32',
-      search: {
-        placeholder: 'Search docs...',
-        noData: 'No results.',
-        paths: 'auto',
-        depth: 6
-      },
-      copyCode: {
-        buttonText: 'Copy',
-        errorText: 'Error',
-        successText: 'Copied!'
-      },
-      plugins: [
-        function adventurePlugin(hook) {
-          hook.doneEach(function () {
-            var cards = document.querySelectorAll('.adventure-card[data-adventure]');
-            if (!cards.length) return;
+    (function () {
+      var btn = document.getElementById('hero-copy-install');
+      var code = document.getElementById('hero-install-cmd');
+      if (!btn || !code) return;
 
-            cards.forEach(function (card) {
-              card.addEventListener('click', function () {
-                var group = card.getAttribute('data-adventure-group');
-                var target = card.getAttribute('data-adventure');
+      function getCommand() {
+        return code.textContent.replace(/\s+/g, ' ').trim();
+      }
 
-                // Deselect siblings in same group
-                document.querySelectorAll('.adventure-card[data-adventure-group="' + group + '"]')
-                  .forEach(function (c) { c.classList.remove('selected'); });
-                card.classList.add('selected');
+      btn.addEventListener('click', function () {
+        var text = getCommand();
+        var reset = function () {
+          btn.classList.remove('is-copied');
+          btn.setAttribute('aria-label', 'Copy install command');
+        };
 
-                // Hide all sections in this group, show the target
-                document.querySelectorAll('[data-adventure-section-group="' + group + '"]')
-                  .forEach(function (s) { s.classList.add('adventure-hidden'); s.classList.remove('adventure-visible'); });
-
-                var section = document.querySelector('[data-adventure-section="' + target + '"]');
-                if (section) {
-                  section.classList.remove('adventure-hidden');
-                  section.classList.add('adventure-visible');
-                }
-
-                // If this is GPU selection, show the sub-cards
-                if (target === 'gpu') {
-                  var sub = document.querySelector('[data-adventure-section="gpu-sub"]');
-                  if (sub) { sub.classList.remove('adventure-hidden'); sub.classList.add('adventure-visible'); }
-                }
-              });
-            });
-
-            // Reset buttons
-            document.querySelectorAll('.adventure-reset').forEach(function (btn) {
-              btn.addEventListener('click', function () {
-                document.querySelectorAll('.adventure-card').forEach(function (c) { c.classList.remove('selected'); });
-                document.querySelectorAll('[data-adventure-section]').forEach(function (s) {
-                  s.classList.add('adventure-hidden');
-                  s.classList.remove('adventure-visible');
-                });
-                document.querySelectorAll('[data-adventure-section-group]').forEach(function (s) {
-                  s.classList.add('adventure-hidden');
-                  s.classList.remove('adventure-visible');
-                });
-              });
-            });
-          });
-        },
-        function footerPlugin(hook) {
-          hook.afterEach(function (html) {
-            var footer = '<div class="site-footer">' +
-              '<a href="https://github.com/dorcha-inc/orla">GitHub</a>' +
-              '<a href="https://discord.gg/bzKYCFewPT">Discord</a>' +
-              // '<a href="TODO">Paper</a>' +
-              '</div>';
-            return html + footer;
-          });
-        },
-        function copyFeedbackPlugin(hook) {
-          hook.doneEach(function () {
-            document.querySelectorAll('.docsify-copy-code-button').forEach(function (btn) {
-              if (btn._copyBound) return;
-              btn._copyBound = true;
-              btn.addEventListener('click', function () {
-                btn.classList.add('copied');
-                setTimeout(function () { btn.classList.remove('copied'); }, 1500);
-              });
-            });
-          });
-        },
-        function tocVisibilityPlugin(hook) {
-          hook.doneEach(function () {
-            var toc = document.querySelector('aside.toc-nav');
-            if (!toc) return;
-            var cover = document.querySelector('section.cover');
-            if (!cover) return;
-
-            function sync() {
-              toc.style.display = cover.classList.contains('show') ? 'none' : '';
-            }
-            sync();
-            new MutationObserver(sync).observe(cover, { attributes: true, attributeFilter: ['class'] });
-          });
-        },
-        function scrollTopPlugin(hook) {
-          hook.mounted(function () {
-            var btn = document.createElement('button');
-            btn.className = 'scroll-top-btn';
-            btn.innerHTML = '↑';
-            btn.setAttribute('aria-label', 'Scroll to top');
-            document.body.appendChild(btn);
-
-            var content = document.querySelector('.content');
-            var scrollEl = content || window;
-            var getScrollTop = content
-              ? function () { return content.scrollTop; }
-              : function () { return window.pageYOffset; };
-
-            (content || window).addEventListener('scroll', function () {
-              btn.classList.toggle('visible', getScrollTop() > 400);
-            });
-
-            btn.addEventListener('click', function () {
-              if (content) { content.scrollTo({ top: 0, behavior: 'smooth' }); }
-              else { window.scrollTo({ top: 0, behavior: 'smooth' }); }
-            });
-          });
+        function onDone() {
+          btn.classList.add('is-copied');
+          btn.setAttribute('aria-label', 'Copied to clipboard');
+          clearTimeout(btn._copyReset);
+          btn._copyReset = setTimeout(reset, 2000);
         }
-      ]
-    };
+
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(text).then(onDone).catch(function () {
+            fallbackCopy(text, onDone);
+          });
+        } else {
+          fallbackCopy(text, onDone);
+        }
+      });
+
+      function fallbackCopy(text, done) {
+        var ta = document.createElement('textarea');
+        ta.value = text;
+        ta.setAttribute('readonly', '');
+        ta.style.position = 'fixed';
+        ta.style.left = '-9999px';
+        document.body.appendChild(ta);
+        ta.select();
+        try {
+          document.execCommand('copy');
+          done();
+        } catch (e) { /* ignore */ }
+        document.body.removeChild(ta);
+      }
+    })();
   </script>
-  <script src="https://cdn.jsdelivr.net/npm/docsify@4"></script>
-  <script src="https://cdn.jsdelivr.net/npm/docsify@4/lib/plugins/search.min.js"></script>
-  <script
-    src="https://cdn.jsdelivr.net/npm/docsify-plugin-flexible-alerts/dist/docsify-plugin-flexible-alerts.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/prismjs@1/components/prism-bash.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/prismjs@1/components/prism-go.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/prismjs@1/components/prism-python.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/prismjs@1/components/prism-yaml.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/docsify-copy-code@2"></script>
-  <script src="https://cdn.jsdelivr.net/npm/docsify-tabs@1"></script>
-  <script src="https://cdn.jsdelivr.net/npm/docsify-plugin-toc@1.3.2/dist/docsify-plugin-toc.min.js"></script>
+
+  <script>
+    (function () {
+      var btn = document.getElementById('navbar-menu-toggle');
+      var menu = document.getElementById('navbar-menu');
+      if (!btn || !menu) return;
+
+      function setOpen(open) {
+        menu.classList.toggle('is-open', open);
+        btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+        btn.setAttribute('aria-label', open ? 'Close navigation menu' : 'Open navigation menu');
+        document.body.classList.toggle('navbar-menu-open', open);
+      }
+
+      btn.addEventListener('click', function () {
+        setOpen(!menu.classList.contains('is-open'));
+      });
+
+      menu.querySelectorAll('a').forEach(function (link) {
+        link.addEventListener('click', function () {
+          if (window.matchMedia('(max-width: 767px)').matches) {
+            setOpen(false);
+          }
+        });
+      });
+
+      document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape' && menu.classList.contains('is-open')) {
+          setOpen(false);
+        }
+      });
+
+      document.addEventListener('click', function (e) {
+        if (!menu.classList.contains('is-open')) return;
+        if (!window.matchMedia('(max-width: 767px)').matches) return;
+        var t = e.target;
+        if (menu.contains(t) || btn.contains(t)) return;
+        setOpen(false);
+      });
+
+      window.addEventListener('resize', function () {
+        if (!window.matchMedia('(max-width: 767px)').matches) {
+          setOpen(false);
+        }
+      });
+    })();
+  </script>
+
+  <script>
+    (function () {
+      var mqMobile = window.matchMedia('(max-width: 767px)');
+
+      function isMobileNav() {
+        return mqMobile.matches;
+      }
+
+      function shouldSkipStarHint() {
+        return isMobileNav();
+      }
+
+      var badge = document.getElementById('github-star-badge');
+      var label = document.getElementById('star-hint-label');
+      var header = document.querySelector('header.navbar');
+      if (!badge || !label) return;
+
+      var raf = null;
+      var hintActive = false;
+      var introActive = !isMobileNav();
+      var placeRetryCount = 0;
+
+      function shouldShowHint() {
+        return hintActive || introActive;
+      }
+
+      function setHintActive(on) {
+        hintActive = on;
+        if (!on) {
+          placeRetryCount = 0;
+          if (!introActive) label.classList.remove('star-hint--show');
+          return;
+        }
+        if (shouldSkipStarHint()) {
+          label.classList.remove('star-hint--show');
+          return;
+        }
+        placeLabel();
+        schedulePlace();
+      }
+
+      function placeLabel() {
+        if (shouldSkipStarHint()) {
+          label.classList.remove('star-hint--show');
+          return;
+        }
+        var r = badge.getBoundingClientRect();
+        if (r.width < 2 || r.height < 2) {
+          if (shouldShowHint() && placeRetryCount < 90) {
+            placeRetryCount++;
+            schedulePlace();
+          }
+          return;
+        }
+        placeRetryCount = 0;
+        var headerBottom = header ? header.getBoundingClientRect().bottom : 0;
+        var underBadge = r.bottom + 10;
+        var topPx = Math.max(underBadge, headerBottom + 8) + 14;
+        label.style.left = r.left + r.width / 2 + 'px';
+        label.style.top = topPx + 'px';
+        if (shouldShowHint()) {
+          label.classList.add('star-hint--show');
+        } else {
+          label.classList.remove('star-hint--show');
+        }
+      }
+
+      function schedulePlace() {
+        if (raf) cancelAnimationFrame(raf);
+        raf = requestAnimationFrame(function () {
+          raf = null;
+          placeLabel();
+        });
+      }
+
+      badge.addEventListener('mouseenter', function () {
+        setHintActive(true);
+      });
+      badge.addEventListener('mouseleave', function () {
+        setHintActive(false);
+      });
+      badge.addEventListener('focus', function () {
+        setHintActive(true);
+      });
+      badge.addEventListener('blur', function () {
+        setHintActive(false);
+      });
+
+      window.addEventListener('resize', schedulePlace, { passive: true });
+      window.addEventListener('scroll', schedulePlace, { passive: true });
+      if (document.fonts && document.fonts.ready) {
+        document.fonts.ready.then(schedulePlace);
+      }
+      var img = badge.querySelector('img');
+      if (img && !img.complete) {
+        img.addEventListener('load', schedulePlace, { passive: true });
+      }
+
+      schedulePlace();
+
+      var introTimer = null;
+      if (introActive) {
+        introTimer = window.setTimeout(function () {
+          introTimer = null;
+          introActive = false;
+          if (!hintActive) label.classList.remove('star-hint--show');
+        }, 5000);
+      }
+
+      mqMobile.addEventListener('change', function () {
+        if (isMobileNav()) {
+          if (introTimer) {
+            clearTimeout(introTimer);
+            introTimer = null;
+          }
+          introActive = false;
+          hintActive = false;
+          label.classList.remove('star-hint--show');
+        }
+        schedulePlace();
+      });
+    })();
+  </script>
+
 </body>
 
 </html>

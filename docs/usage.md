@@ -76,4 +76,4 @@ Register a backend before calling execute with that `backend` name.
 POST /api/v1/execute
 ``` 
 
-Use the [Orla Go client](https://github.com/dorcha-inc/orla/tree/main/pkg/api) or call the HTTP API directly. See the [API package](https://github.com/dorcha-inc/orla/tree/main/internal/serving/api) for request/response types.
+Use the [Orla Go client](https://github.com/harvard-cns/orla/tree/main/pkg/api) or call the HTTP API directly. See the [API package](https://github.com/harvard-cns/orla/tree/main/internal/serving/api) for request/response types.

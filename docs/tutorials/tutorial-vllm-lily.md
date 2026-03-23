@@ -1,6 +1,6 @@
 # Tutorial: Run a simple agent with Orla and vLLM
 
-This tutorial runs a single agent using [Orla](https://github.com/dorcha-inc/orla) and [vLLM](https://docs.vllm.ai/) via Docker Compose. The agent has one job: tell a short story about a cat called Lily.
+This tutorial runs a single agent using [Orla](https://github.com/harvard-cns/orla) and [vLLM](https://docs.vllm.ai/) via Docker Compose. The agent has one job: tell a short story about a cat called Lily.
 
 ## What you need
 
@@ -77,7 +77,7 @@ You should see the same GPU info as on the host.
 Clone the Orla repo (if you haven’t already):
 
 ```bash
-git clone https://github.com/dorcha-inc/orla.git
+git clone https://github.com/harvard-cns/orla.git
 cd orla
 ```
 
@@ -136,7 +136,7 @@ import (
 	"fmt"
 	"log"
 
-	orla "github.com/dorcha-inc/orla/pkg/api"
+	orla "github.com/harvard-cns/orla/pkg/api"
 )
 
 func main() {
@@ -190,7 +190,7 @@ import (
 	"fmt"
 	"log"
 
-	orla "github.com/dorcha-inc/orla/pkg/api"
+	orla "github.com/harvard-cns/orla/pkg/api"
 )
 
 func main() {
@@ -270,7 +270,7 @@ docker compose -f deploy/docker-compose.vllm.yaml down
 
 Use `down -v` if you also want to remove the vLLM model cache volume.
 
-You’ve registered a backend via the API, sent a prompt to the Orla server, and received a story about Lily from vLLM. For more on the execute and backend-registration APIs, configuration, and deployment, see the [Orla repo](https://github.com/dorcha-inc/orla) and the [deploy README](https://github.com/dorcha-inc/orla/blob/main/deploy/README.md).
+You’ve registered a backend via the API, sent a prompt to the Orla server, and received a story about Lily from vLLM. For more on the execute and backend-registration APIs, configuration, and deployment, see the [Orla repo](https://github.com/harvard-cns/orla) and the [deploy README](https://github.com/harvard-cns/orla/blob/main/deploy/README.md).
 
 ## Appendix: Running the request with curl
 

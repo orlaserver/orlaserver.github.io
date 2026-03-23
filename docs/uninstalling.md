@@ -9,7 +9,7 @@ brew uninstall --cask orla
 **Install script:**
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/dorcha-inc/orla/main/scripts/uninstall.sh | sh
+curl -fsSL https://raw.githubusercontent.com/harvard-cns/orla/main/scripts/uninstall.sh | sh
 ```
 
 The uninstall script removes only Orla. Ollama and downloaded models are left in place. To remove Ollama:

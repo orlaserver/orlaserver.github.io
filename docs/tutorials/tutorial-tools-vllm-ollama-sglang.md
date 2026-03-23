@@ -7,7 +7,7 @@ This tutorial shows how to use **tools** with Orla and any of the supported back
 - Docker and Docker Compose (Compose V2).
 - For **vLLM** or **SGLang**: an NVIDIA GPU and [NVIDIA Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/install-guide.html).
 - For **Ollama**: no GPU required (CPU is fine for small models).
-- The [Orla repo](https://github.com/dorcha-inc/orla) cloned.
+- The [Orla repo](https://github.com/harvard-cns/orla) cloned.
 - Go 1.25 or later.
 
 Pick one backend and start its stack (see [vLLM](tutorials/tutorial-vllm-lily.md), [Ollama](tutorials/tutorial-ollama-lily.md), or [SGLang](tutorials/tutorial-sglang-lily.md) for full setup). Then register that backend with Orla and run the Go program below.
@@ -34,10 +34,10 @@ curl http://localhost:8081/api/v1/health
 ```
 
 > [!NOTE]
-> Tool calling with vLLM only works when the server is started with `--enable-auto-tool-choice` and `--tool-call-parser`. The Orla deploy Compose file [`deploy/docker-compose.vllm.yaml`](https://github.com/dorcha-inc/orla/blob/main/deploy/docker-compose.vllm.yaml) already includes these flags for the default Qwen model using the `hermes` parser. If you use a different model or see errors about tool choice, check [vLLM’s Tool Calling docs](https://docs.vllm.ai/en/latest/features/tool_calling/) for the correct `--tool-call-parser` for your model and update the `command` in the Compose file if needed.
+> Tool calling with vLLM only works when the server is started with `--enable-auto-tool-choice` and `--tool-call-parser`. The Orla deploy Compose file [`deploy/docker-compose.vllm.yaml`](https://github.com/harvard-cns/orla/blob/main/deploy/docker-compose.vllm.yaml) already includes these flags for the default Qwen model using the `hermes` parser. If you use a different model or see errors about tool choice, check [vLLM’s Tool Calling docs](https://docs.vllm.ai/en/latest/features/tool_calling/) for the correct `--tool-call-parser` for your model and update the `command` in the Compose file if needed.
 
 > [!NOTE]
-> Tool calling with SGLang only works when the server is started with `--tool-call-parser`. The Orla deploy Compose file [`deploy/docker-compose.sglang.yaml`](https://github.com/dorcha-inc/orla/blob/main/deploy/docker-compose.sglang.yaml) already includes `--tool-call-parser qwen` for the default Qwen3 model. For other models (e.g. Qwen3-Coder use `qwen3_coder`, Llama use `llama3`), see [SGLang's Tool Parser docs](https://sgl-project.github.io/advanced_features/tool_parser.html) and update the `command` in the Compose file if needed.
+> Tool calling with SGLang only works when the server is started with `--tool-call-parser`. The Orla deploy Compose file [`deploy/docker-compose.sglang.yaml`](https://github.com/harvard-cns/orla/blob/main/deploy/docker-compose.sglang.yaml) already includes `--tool-call-parser qwen` for the default Qwen3 model. For other models (e.g. Qwen3-Coder use `qwen3_coder`, Llama use `llama3`), see [SGLang's Tool Parser docs](https://sgl-project.github.io/advanced_features/tool_parser.html) and update the `command` in the Compose file if needed.
 
 ## 2. Register the backend
 
@@ -116,7 +116,7 @@ import (
     "fmt"
     "log"
 
-    orla "github.com/dorcha-inc/orla/pkg/api"
+    orla "github.com/harvard-cns/orla/pkg/api"
 )
 
 func main() {
@@ -227,7 +227,7 @@ import (
     "fmt"
     "log"
 
-    orla "github.com/dorcha-inc/orla/pkg/api"
+    orla "github.com/harvard-cns/orla/pkg/api"
 )
 
 func main() {

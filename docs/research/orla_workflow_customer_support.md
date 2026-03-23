@@ -1,6 +1,6 @@
 # Multi-Stage Workflow with Orla
 
-This tutorial runs a multi-stage workflow using [Orla](https://github.com/dorcha-inc/orla) and two [SGLang](https://sgl-project.github.io/) backends. The workflow processes a customer support ticket through a four-stage pipeline: a classification stage (light model) extracts structured ticket metadata and decides whether the ticket needs human escalation; a policy check stage (heavy model) reads company policy via tool call and renders an accept/deny decision; a reply stage (heavy model) either sends a brief escalation acknowledgment or a full resolution email via tool call; and a routing stage (heavy model) conditionally either routes an escalated ticket to a human team or notifies the team that the ticket was resolved automatically. The policy check → reply chain and the route_ticket stage run in parallel after classification. This demonstrates Orla's full abstraction stack: Workflow, Stage DAG, Stage Mapping, Scheduling, and tool-calling agent loops.
+This tutorial runs a multi-stage workflow using [Orla](https://github.com/harvard-cns/orla) and two [SGLang](https://sgl-project.github.io/) backends. The workflow processes a customer support ticket through a four-stage pipeline: a classification stage (light model) extracts structured ticket metadata and decides whether the ticket needs human escalation; a policy check stage (heavy model) reads company policy via tool call and renders an accept/deny decision; a reply stage (heavy model) either sends a brief escalation acknowledgment or a full resolution email via tool call; and a routing stage (heavy model) conditionally either routes an escalated ticket to a human team or notifies the team that the ticket was resolved automatically. The policy check → reply chain and the route_ticket stage run in parallel after classification. This demonstrates Orla's full abstraction stack: Workflow, Stage DAG, Stage Mapping, Scheduling, and tool-calling agent loops.
 
 ## Architecture
 
@@ -90,7 +90,7 @@ Pick the path that matches your hardware. Each one walks you through the full wo
 
 - Docker and Docker Compose (Compose V2).
 - An NVIDIA GPU and [NVIDIA Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/install-guide.html).
-- The [Orla repo](https://github.com/dorcha-inc/orla) cloned.
+- The [Orla repo](https://github.com/harvard-cns/orla) cloned.
 - Go 1.25 or later.
 
 **1. Start the backends and Orla**
@@ -142,7 +142,7 @@ docker compose -f deploy/docker-compose.workflow-demo.yaml down
 
 - Docker and Docker Compose (Compose V2).
 - An NVIDIA GPU and [NVIDIA Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/install-guide.html).
-- The [Orla repo](https://github.com/dorcha-inc/orla) cloned.
+- The [Orla repo](https://github.com/harvard-cns/orla) cloned.
 - Go 1.25 or later.
 
 **1. Start the backends and Orla**
@@ -184,7 +184,7 @@ docker compose -f deploy/docker-compose.workflow-demo.vllm.yaml down
 
 - Docker and Docker Compose (Compose V2).
 - At least 16 GB of main memory.
-- The [Orla repo](https://github.com/dorcha-inc/orla) cloned.
+- The [Orla repo](https://github.com/harvard-cns/orla) cloned.
 - Go 1.25 or later.
 
 **1. Start the backends and Orla**
@@ -228,7 +228,7 @@ docker compose -f deploy/docker-compose.workflow-demo.ollama.yaml down
 
 You don't need Docker or a GPU for this path. Install Orla as a standalone agent via Homebrew and start experimenting right away.
 
-Head over to the **[Getting Started guide](https://orlaserver.github.io/#/getting-started)** for installation instructions.
+Head over to the **[Getting Started guide](https://orlaserver.github.io/docs/#/getting-started)** for installation instructions.
 
 </div>
 

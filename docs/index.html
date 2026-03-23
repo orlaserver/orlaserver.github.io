@@ -1,0 +1,739 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Orla — Agentic Serving Stack</title>
+  <link rel="icon" href="/docs/orla_cat.png" type="image/png">
+  <link rel="apple-touch-icon" href="/docs/orla_cat.png">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/docsify@4/lib/themes/vue.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1/themes/prism-tomorrow.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/docsify-plugin-toc@1.3.2/dist/light.css">
+  <style>
+    html {
+      scroll-behavior: smooth;
+    }
+
+    :root {
+      --theme-color: #2e7d32;
+      --theme-color-light: #4caf50;
+      --sidebar-nav-link-color--active: #2e7d32;
+      --sidebar-name-color: #2e7d32;
+    }
+
+    /* ── Cover page ────────────────────────────────────── */
+    section.cover {
+      background: linear-gradient(135deg, #0d1117 0%, #161b22 40%, #1a2e1a 100%) !important;
+      color: #e6edf3;
+    }
+
+    section.cover .cover-main>p:last-child a {
+      border-radius: 2rem;
+      padding: 0.6em 2em;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      font-size: 0.9em;
+      transition: all 0.2s ease;
+    }
+
+    section.cover .cover-main>p:last-child a {
+      background-color: #2e7d32 !important;
+      color: #fff !important;
+      border: 2px solid #2e7d32;
+    }
+
+    section.cover .cover-main>p:last-child a:hover {
+      background-color: #388e3c !important;
+      border-color: #388e3c;
+    }
+
+    section.cover .cover-main>p:last-child a:last-child {
+      background-color: transparent !important;
+      color: #e6edf3 !important;
+      border: 2px solid rgba(230, 237, 243, 0.3);
+    }
+
+    section.cover .cover-main>p:last-child a:last-child:hover {
+      background-color: transparent !important;
+      border-color: #e6edf3;
+    }
+
+    section.cover h1 {
+      font-weight: 800;
+      font-size: 3rem;
+      margin: 0.5em 0 0.2em;
+    }
+
+    section.cover blockquote p {
+      font-size: 1.15rem !important;
+      color: #8b949e;
+    }
+
+    section.cover ul {
+      list-style: none;
+      padding: 0;
+      max-width: 540px;
+      margin: 1.5em auto;
+      text-align: left;
+    }
+
+    section.cover ul li {
+      padding: 0.35em 0;
+      font-size: 0.95rem;
+      color: #c9d1d9;
+    }
+
+    section.cover ul li::before {
+      content: "→ ";
+      color: #4caf50;
+      font-weight: 600;
+    }
+
+    /* ── Sidebar refinements ──────────────────────────── */
+    .sidebar {
+      border-right: 1px solid #e8e8e8;
+    }
+
+    .sidebar-nav li a {
+      font-size: 0.92rem;
+      transition: color 0.15s ease;
+    }
+
+    .sidebar-nav li a:hover {
+      color: #2e7d32;
+    }
+
+    .sidebar-nav>ul>li>a {
+      font-weight: 600;
+      font-size: 0.95rem;
+    }
+
+    .sidebar-nav li.active>a {
+      color: #2e7d32;
+      border-right: 3px solid #2e7d32;
+    }
+
+    .app-name-link {
+      font-weight: 700 !important;
+      font-size: 1.3rem !important;
+    }
+
+    .sidebar-nav p {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #999;
+      margin: 1.2em 0 0.3em;
+      font-weight: 700;
+    }
+
+    /* ── Content typography ────────────────────────────── */
+    .markdown-section {
+      line-height: 1.75;
+    }
+
+    .markdown-section h1 {
+      font-weight: 700;
+      border-bottom: 2px solid #2e7d32;
+      padding-bottom: 0.3em;
+    }
+
+    .markdown-section h2 {
+      font-weight: 600;
+      color: #1a1a1a;
+      margin-top: 2.2em;
+    }
+
+    .markdown-section h3 {
+      margin-top: 1.6em;
+    }
+
+    .markdown-section a {
+      color: #2e7d32;
+      font-weight: 500;
+    }
+
+    .markdown-section a:hover {
+      color: #1b5e20;
+    }
+
+    /* ── Code blocks (Stripe-style) ─────────────────────── */
+    .markdown-section pre {
+      background: #0a0e1a !important;
+      border-radius: 10px;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
+      padding: 1.2em 1.4em;
+      margin: 1.4em 0;
+      position: relative;
+      overflow: auto;
+    }
+
+    .markdown-section pre>code {
+      background: none !important;
+      padding: 0;
+      font-size: 0.875rem;
+      font-family: 'SF Mono', 'Fira Code', 'Fira Mono', Menlo, Consolas, monospace;
+      line-height: 1.6;
+      color: #e1e4e8;
+    }
+
+    .markdown-section code {
+      border-radius: 5px;
+      background: #f0f2f5;
+      padding: 0.15em 0.45em;
+      font-size: 0.87em;
+      font-family: 'SF Mono', 'Fira Code', 'Fira Mono', Menlo, Consolas, monospace;
+      color: #1a1a2e;
+    }
+
+    .markdown-section pre::after {
+      content: attr(data-lang);
+      position: absolute;
+      top: 0.55em;
+      right: 3em;
+      font-size: 0.65rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: rgba(255, 255, 255, 0.25);
+      pointer-events: none;
+    }
+
+    .docsify-copy-code-button {
+      position: absolute !important;
+      top: 8px !important;
+      right: 8px !important;
+      background: transparent !important;
+      color: transparent !important;
+      border: none !important;
+      border-radius: 6px !important;
+      width: 36px !important;
+      height: 36px !important;
+      padding: 0 !important;
+      cursor: pointer !important;
+      transition: background 0.15s ease !important;
+      overflow: hidden !important;
+      font-size: 0 !important;
+    }
+
+    .docsify-copy-code-button::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='rgba(255,255,255,0.5)' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='9' y='9' width='13' height='13' rx='2' ry='2'/%3E%3Cpath d='M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: center;
+      background-size: 18px;
+    }
+
+    .docsify-copy-code-button:hover {
+      background: rgba(255, 255, 255, 0.1) !important;
+    }
+
+    .docsify-copy-code-button:hover::after {
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='rgba(255,255,255,0.85)' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='9' y='9' width='13' height='13' rx='2' ry='2'/%3E%3Cpath d='M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1'/%3E%3C/svg%3E");
+    }
+
+    .docsify-copy-code-button:active {
+      transform: scale(0.92);
+    }
+
+    .docsify-copy-code-button.copied::after {
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%234caf50' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='20 6 9 17 4 12'/%3E%3C/svg%3E") !important;
+    }
+
+    /* Prism token overrides for dark background */
+    .token.comment,
+    .token.prolog,
+    .token.doctype,
+    .token.cdata {
+      color: #6a737d;
+    }
+
+    .token.punctuation {
+      color: #89929b;
+    }
+
+    .token.property,
+    .token.tag,
+    .token.boolean,
+    .token.number,
+    .token.constant {
+      color: #79c0ff;
+    }
+
+    .token.string,
+    .token.char,
+    .token.attr-value {
+      color: #a5d6ff;
+    }
+
+    .token.selector,
+    .token.attr-name {
+      color: #7ee787;
+    }
+
+    .token.function,
+    .token.builtin {
+      color: #d2a8ff;
+    }
+
+    .token.keyword,
+    .token.operator {
+      color: #ff7b72;
+    }
+
+    .token.variable {
+      color: #ffa657;
+    }
+
+    .token.class-name {
+      color: #f0883e;
+    }
+
+    /* ── Blockquotes ──────────────────────────────────── */
+    .markdown-section blockquote {
+      border-left: 4px solid #2e7d32;
+      padding: 0.8em 1em;
+      background: #f6f8fa;
+      border-radius: 0 6px 6px 0;
+      margin: 1.2em 0;
+    }
+
+    .markdown-section blockquote p {
+      margin: 0;
+    }
+
+    /* ── Tables ───────────────────────────────────────── */
+    .markdown-section table {
+      border-collapse: collapse;
+      width: 100%;
+      margin: 1.2em 0;
+    }
+
+    .markdown-section table th {
+      background: #f6f8fa;
+      font-weight: 600;
+      text-align: left;
+      padding: 0.6em 1em;
+      border-bottom: 2px solid #d0d7de;
+    }
+
+    .markdown-section table td {
+      padding: 0.5em 1em;
+      border-bottom: 1px solid #e8e8e8;
+    }
+
+    .markdown-section table tr:hover td {
+      background: #f9fafb;
+    }
+
+    /* ── Callout boxes (tip / warning) ────────────────── */
+    .markdown-section .tip,
+    .markdown-section .warning {
+      padding: 1em 1.2em;
+      border-radius: 6px;
+      margin: 1.2em 0;
+    }
+
+    .markdown-section .tip {
+      background: #e8f5e9;
+      border-left: 4px solid #2e7d32;
+    }
+
+    .markdown-section .warning {
+      background: #fff3e0;
+      border-left: 4px solid #e65100;
+    }
+
+    /* ── Content images ─────────────────────────────────── */
+    .markdown-section img {
+      border-radius: 6px;
+      max-width: 100%;
+      height: auto;
+    }
+
+    /* ── Lists ──────────────────────────────────────────── */
+    .markdown-section ul,
+    .markdown-section ol {
+      padding-left: 1.6em;
+    }
+
+    .markdown-section li {
+      margin-bottom: 0.3em;
+    }
+
+    .markdown-section li>p {
+      margin: 0.3em 0;
+    }
+
+    /* ── Heading anchors ─────────────────────────────────── */
+    .markdown-section h1 .anchor::before,
+    .markdown-section h2 .anchor::before,
+    .markdown-section h3 .anchor::before,
+    .markdown-section h4 .anchor::before {
+      opacity: 0;
+      transition: opacity 0.15s ease;
+    }
+
+    .markdown-section h1:hover .anchor::before,
+    .markdown-section h2:hover .anchor::before,
+    .markdown-section h3:hover .anchor::before,
+    .markdown-section h4:hover .anchor::before {
+      opacity: 0.6;
+    }
+
+    .markdown-section h1:hover .anchor:hover::before,
+    .markdown-section h2:hover .anchor:hover::before,
+    .markdown-section h3:hover .anchor:hover::before,
+    .markdown-section h4:hover .anchor:hover::before {
+      opacity: 1;
+    }
+
+    /* ── Scroll-to-top button ────────────────────────────── */
+    .scroll-top-btn {
+      position: fixed;
+      bottom: 2em;
+      right: 2em;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: #2e7d32;
+      color: #fff;
+      border: none;
+      cursor: pointer;
+      font-size: 1.2rem;
+      line-height: 40px;
+      text-align: center;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.25s ease;
+      z-index: 99;
+    }
+
+    .scroll-top-btn.visible {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .scroll-top-btn:hover {
+      background: #1b5e20;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    }
+
+    /* ── Search styling ───────────────────────────────── */
+    .search input {
+      border-radius: 6px !important;
+      border: 1px solid #ddd !important;
+      padding: 8px 12px !important;
+      font-size: 0.9rem !important;
+    }
+
+    .search input:focus {
+      border-color: #2e7d32 !important;
+      box-shadow: 0 0 0 2px rgba(46, 125, 50, 0.15) !important;
+    }
+
+    /* ── Adventure cards (CYOA flow) ──────────────────── */
+    .adventure-cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 1rem;
+      margin: 1.5em 0;
+    }
+
+    .adventure-card {
+      border: 2px solid #e1e4e8;
+      border-radius: 12px;
+      padding: 1.4em 1.2em;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      background: #fff;
+      user-select: none;
+    }
+
+    .adventure-card:hover {
+      border-color: #2e7d32;
+      box-shadow: 0 4px 12px rgba(46, 125, 50, 0.12);
+      transform: translateY(-2px);
+    }
+
+    .adventure-card:active {
+      transform: translateY(0);
+    }
+
+    .adventure-card.selected {
+      border-color: #2e7d32;
+      background: #e8f5e9;
+      box-shadow: 0 0 0 3px rgba(46, 125, 50, 0.2);
+    }
+
+    .adventure-card .card-icon {
+      font-size: 2rem;
+      margin-bottom: 0.5em;
+      display: block;
+    }
+
+    .adventure-card .card-title {
+      font-weight: 700;
+      font-size: 1.05rem;
+      color: #1a1a1a;
+      margin-bottom: 0.3em;
+    }
+
+    .adventure-card .card-desc {
+      font-size: 0.85rem;
+      color: #666;
+      line-height: 1.4;
+    }
+
+    .adventure-hidden {
+      display: none !important;
+    }
+
+    .adventure-visible {
+      display: block !important;
+    }
+
+    .adventure-reset {
+      display: inline-block;
+      margin-top: 0.8em;
+      font-size: 0.9rem;
+      color: #2e7d32;
+      cursor: pointer;
+      font-weight: 500;
+    }
+
+    .adventure-reset:hover {
+      text-decoration: underline;
+    }
+
+    @media (max-width: 600px) {
+      .adventure-cards {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* ── Footer ───────────────────────────────────────── */
+    .site-footer {
+      text-align: center;
+      padding: 2em 1em;
+      margin-top: 4em;
+      border-top: 1px solid #e8e8e8;
+      font-size: 0.85rem;
+      color: #666;
+    }
+
+    .site-footer a {
+      color: #2e7d32;
+      text-decoration: none;
+      margin: 0 0.6em;
+      font-weight: 500;
+    }
+
+    .site-footer a:hover {
+      text-decoration: underline;
+    }
+
+    /* ── Floating TOC ("On this page") ────────────────── */
+    .page_toc p.title {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #999;
+      font-weight: 700;
+    }
+
+    .page_toc div[class^="lv"] a span {
+      font-size: 0.84rem;
+      color: #586069;
+    }
+
+    .page_toc div.active {
+      border-left-color: #2e7d32;
+    }
+
+    .page_toc div.active a span {
+      color: #2e7d32;
+    }
+
+    .page_toc div[class^="lv"] a:hover span {
+      color: #2e7d32;
+    }
+
+    .page_toc div {
+      border-left: 2px solid #e8e8e8;
+    }
+
+    aside.toc-nav {
+      top: 80px;
+      z-index: 10;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="app"></div>
+  <script>
+    window.$docsify = {
+      name: 'Orla',
+      basePath: '/docs/',
+      repo: 'https://github.com/harvard-cns/orla',
+      loadSidebar: true,
+      coverpage: true,
+      onlyCover: false,
+      homepage: 'overview.md',
+      subMaxLevel: 0,
+      toc: {
+        tocMaxLevel: 5,
+        target: 'h2, h3, h4, h5'
+      },
+      auto2top: true,
+      themeColor: '#2e7d32',
+      search: {
+        placeholder: 'Search docs...',
+        noData: 'No results.',
+        paths: 'auto',
+        depth: 6
+      },
+      copyCode: {
+        buttonText: 'Copy',
+        errorText: 'Error',
+        successText: 'Copied!'
+      },
+      plugins: [
+        function adventurePlugin(hook) {
+          hook.doneEach(function () {
+            var cards = document.querySelectorAll('.adventure-card[data-adventure]');
+            if (!cards.length) return;
+
+            cards.forEach(function (card) {
+              card.addEventListener('click', function () {
+                var group = card.getAttribute('data-adventure-group');
+                var target = card.getAttribute('data-adventure');
+
+                // Deselect siblings in same group
+                document.querySelectorAll('.adventure-card[data-adventure-group="' + group + '"]')
+                  .forEach(function (c) { c.classList.remove('selected'); });
+                card.classList.add('selected');
+
+                // Hide all sections in this group, show the target
+                document.querySelectorAll('[data-adventure-section-group="' + group + '"]')
+                  .forEach(function (s) { s.classList.add('adventure-hidden'); s.classList.remove('adventure-visible'); });
+
+                var section = document.querySelector('[data-adventure-section="' + target + '"]');
+                if (section) {
+                  section.classList.remove('adventure-hidden');
+                  section.classList.add('adventure-visible');
+                }
+
+                // If this is GPU selection, show the sub-cards
+                if (target === 'gpu') {
+                  var sub = document.querySelector('[data-adventure-section="gpu-sub"]');
+                  if (sub) { sub.classList.remove('adventure-hidden'); sub.classList.add('adventure-visible'); }
+                }
+              });
+            });
+
+            // Reset buttons
+            document.querySelectorAll('.adventure-reset').forEach(function (btn) {
+              btn.addEventListener('click', function () {
+                document.querySelectorAll('.adventure-card').forEach(function (c) { c.classList.remove('selected'); });
+                document.querySelectorAll('[data-adventure-section]').forEach(function (s) {
+                  s.classList.add('adventure-hidden');
+                  s.classList.remove('adventure-visible');
+                });
+                document.querySelectorAll('[data-adventure-section-group]').forEach(function (s) {
+                  s.classList.add('adventure-hidden');
+                  s.classList.remove('adventure-visible');
+                });
+              });
+            });
+          });
+        },
+        function footerPlugin(hook) {
+          hook.afterEach(function (html) {
+            var footer = '<div class="site-footer">' +
+              '<a href="https://github.com/harvard-cns/orla">Star on GitHub</a>' +
+              '<a href="https://discord.gg/bzKYCFewPT">Discord</a>' +
+              // '<a href="TODO">Paper</a>' +
+              '</div>';
+            return html + footer;
+          });
+        },
+        function copyFeedbackPlugin(hook) {
+          hook.doneEach(function () {
+            document.querySelectorAll('.docsify-copy-code-button').forEach(function (btn) {
+              if (btn._copyBound) return;
+              btn._copyBound = true;
+              btn.addEventListener('click', function () {
+                btn.classList.add('copied');
+                setTimeout(function () { btn.classList.remove('copied'); }, 1500);
+              });
+            });
+          });
+        },
+        function tocVisibilityPlugin(hook) {
+          hook.doneEach(function () {
+            var toc = document.querySelector('aside.toc-nav');
+            if (!toc) return;
+            var cover = document.querySelector('section.cover');
+            if (!cover) return;
+
+            function sync() {
+              toc.style.display = cover.classList.contains('show') ? 'none' : '';
+            }
+            sync();
+            new MutationObserver(sync).observe(cover, { attributes: true, attributeFilter: ['class'] });
+          });
+        },
+        function scrollTopPlugin(hook) {
+          hook.mounted(function () {
+            var btn = document.createElement('button');
+            btn.className = 'scroll-top-btn';
+            btn.innerHTML = '↑';
+            btn.setAttribute('aria-label', 'Scroll to top');
+            document.body.appendChild(btn);
+
+            var content = document.querySelector('.content');
+            var scrollEl = content || window;
+            var getScrollTop = content
+              ? function () { return content.scrollTop; }
+              : function () { return window.pageYOffset; };
+
+            (content || window).addEventListener('scroll', function () {
+              btn.classList.toggle('visible', getScrollTop() > 400);
+            });
+
+            btn.addEventListener('click', function () {
+              if (content) { content.scrollTo({ top: 0, behavior: 'smooth' }); }
+              else { window.scrollTo({ top: 0, behavior: 'smooth' }); }
+            });
+          });
+        }
+      ]
+    };
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/docsify@4"></script>
+  <script src="https://cdn.jsdelivr.net/npm/docsify@4/lib/plugins/search.min.js"></script>
+  <script
+    src="https://cdn.jsdelivr.net/npm/docsify-plugin-flexible-alerts/dist/docsify-plugin-flexible-alerts.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1/components/prism-bash.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1/components/prism-go.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1/components/prism-python.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1/components/prism-yaml.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/docsify-copy-code@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/docsify-tabs@1"></script>
+  <script src="https://cdn.jsdelivr.net/npm/docsify-plugin-toc@1.3.2/dist/docsify-plugin-toc.min.js"></script>
+</body>
+
+</html>

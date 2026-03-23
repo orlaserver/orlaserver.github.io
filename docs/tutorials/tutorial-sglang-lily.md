@@ -1,6 +1,6 @@
 # Tutorial: Run a simple agent with Orla and SGLang
 
-This tutorial runs a single agent using [Orla](https://github.com/dorcha-inc/orla) and [SGLang](https://sgl-project.github.io/) via Docker Compose. The agent has one job: tell a short story about a cat called Lily.
+This tutorial runs a single agent using [Orla](https://github.com/harvard-cns/orla) and [SGLang](https://sgl-project.github.io/) via Docker Compose. The agent has one job: tell a short story about a cat called Lily.
 
 ## What you need
 
@@ -55,7 +55,7 @@ docker run --rm --gpus all nvidia/cuda:12.0.0-base-ubuntu20.04 nvidia-smi
 Clone the Orla repo (if you haven’t already):
 
 ```bash
-git clone https://github.com/dorcha-inc/orla.git
+git clone https://github.com/harvard-cns/orla.git
 cd orla
 ```
 
@@ -112,7 +112,7 @@ import (
 	"fmt"
 	"log"
 
-	orla "github.com/dorcha-inc/orla/pkg/api"
+	orla "github.com/harvard-cns/orla/pkg/api"
 )
 
 func main() {
@@ -179,7 +179,7 @@ import (
 	"fmt"
 	"log"
 
-	orla "github.com/dorcha-inc/orla/pkg/api"
+	orla "github.com/harvard-cns/orla/pkg/api"
 )
 
 func main() {

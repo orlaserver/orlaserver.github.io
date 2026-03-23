@@ -8,4 +8,4 @@
 
 [Docs](overview.md)
 [Demo](research/orla_workflow_customer_support.md)
-[GitHub](https://github.com/dorcha-inc/orla)
+[Star on GitHub](https://github.com/harvard-cns/orla)

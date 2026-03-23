@@ -1,6 +1,6 @@
 # Tutorial: Single-Shot SWE-bench Experiments
 
-This tutorial runs [Orla](https://github.com/dorcha-inc/orla) single-shot SWE-bench Lite experiments in Docker. Each of the 300 [SWE-bench Lite](https://www.swebench.com/lite.html) instances gets **one inference call** containing the problem statement and oracle-provided source files. All instances are submitted **concurrently**, stressing Orla's server-side scheduling. Three experiment modes are available:
+This tutorial runs [Orla](https://github.com/harvard-cns/orla) single-shot SWE-bench Lite experiments in Docker. Each of the 300 [SWE-bench Lite](https://www.swebench.com/lite.html) instances gets **one inference call** containing the problem statement and oracle-provided source files. All instances are submitted **concurrently**, stressing Orla's server-side scheduling. Three experiment modes are available:
 
 - **baseline** — all instances go to a single heavy model (Qwen3-8B), FCFS scheduling, submitted concurrently.
 - **stage_mapping** — `OneBitStageMapper` routes each instance to a light model (Qwen3-4B) or the heavy model, FCFS scheduling per backend, concurrent submission.

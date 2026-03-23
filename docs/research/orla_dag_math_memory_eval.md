@@ -1,6 +1,6 @@
 # Tutorial: DAG-Math Memory Management Evaluation
 
-This tutorial runs [Orla](https://github.com/dorcha-inc/orla) memory management experiments using the [DAG-MATH-Formatted-CoT](https://huggingface.co/datasets/liminho123/DAG-MATH-Formatted-CoT) dataset. Each of the 2,894 mathematical reasoning problems is modeled as an Orla **workflow DAG**, where each reasoning step becomes a separate stage with dependencies matching the original proof structure. Two experiment modes compare KV cache flushing strategies:
+This tutorial runs [Orla](https://github.com/harvard-cns/orla) memory management experiments using the [DAG-MATH-Formatted-CoT](https://huggingface.co/datasets/liminho123/DAG-MATH-Formatted-CoT) dataset. Each of the 2,894 mathematical reasoning problems is modeled as an Orla **workflow DAG**, where each reasoning step becomes a separate stage with dependencies matching the original proof structure. Two experiment modes compare KV cache flushing strategies:
 
 - **flush_per_request** (baseline) -- every stage gets `CachePolicy: "flush"`, so the KV cache is evicted after each LLM call. This simulates a system with no cross-request memory management.
 - **flush_per_workflow** -- Orla's default policy preserves KV cache across stages within a workflow and only flushes when the entire workflow completes. This is Orla's Memory Manager in action.

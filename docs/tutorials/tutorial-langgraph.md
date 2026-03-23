@@ -22,7 +22,7 @@ You need Orla and at least one LLM backend running. The Orla repo includes Docke
 **Tier 1 (single model):** Start the basic vLLM stack from the Orla repo root:
 
 ```bash
-git clone https://github.com/dorcha-inc/orla.git
+git clone https://github.com/harvard-cns/orla.git
 cd orla
 docker compose -f deploy/docker-compose.vllm.yaml up -d
 ```

@@ -1,6 +1,6 @@
 # Tutorial: Run a simple agent with Orla and Ollama
 
-This tutorial runs a single agent using [Orla](https://github.com/dorcha-inc/orla) and [Ollama](https://ollama.com/) via Docker Compose. The agent has one job: tell a short story about a cat called Lily.
+This tutorial runs a single agent using [Orla](https://github.com/harvard-cns/orla) and [Ollama](https://ollama.com/) via Docker Compose. The agent has one job: tell a short story about a cat called Lily.
 
 ## What you need
 
@@ -39,7 +39,7 @@ docker compose version
 Clone the Orla repo (if you haven’t already):
 
 ```bash
-git clone https://github.com/dorcha-inc/orla.git
+git clone https://github.com/harvard-cns/orla.git
 cd orla
 ```
 
@@ -92,7 +92,7 @@ import (
 	"fmt"
 	"log"
 
-	orla "github.com/dorcha-inc/orla/pkg/api"
+	orla "github.com/harvard-cns/orla/pkg/api"
 )
 
 func main() {
@@ -148,7 +148,7 @@ import (
 	"fmt"
 	"log"
 
-	orla "github.com/dorcha-inc/orla/pkg/api"
+	orla "github.com/harvard-cns/orla/pkg/api"
 )
 
 func main() {
