@@ -49,7 +49,7 @@ from pyorla import OrlaClient, Stage, new_vllm_backend
 from typing import TypedDict
 
 # Connect to Orla (host) and register backend (Docker service name — Orla calls vLLM from its container)
-client = OrlaClient("http://localhost:8081")
+client = OrlaClient("http://localhost:8081")  # or: OrlaClient.from_env() using ORLA_URL
 backend = new_vllm_backend("Qwen/Qwen3-4B-Instruct-2507", "http://vllm:8000/v1")
 client.register_backend(backend)
 
@@ -95,7 +95,7 @@ from pyorla import (
 from typing import TypedDict
 
 # Connect to Orla (host) and register backends (Docker service names)
-client = OrlaClient("http://localhost:8081")
+client = OrlaClient("http://localhost:8081")  # or: OrlaClient.from_env()
 light = new_vllm_backend("Qwen/Qwen3-4B-Instruct-2507", "http://vllm-light:8000/v1")
 heavy = new_vllm_backend("Qwen/Qwen3-8B", "http://vllm-heavy:8000/v1")
 client.register_backend(light)
@@ -159,7 +159,9 @@ Each `ChatOrla` carries its Stage's scheduling policy, backend assignment, and i
 
 ## Tier 3: Full workflow — Agent loops, tools, and parallel stages
 
-This mirrors the Go `workflow_demo`: a customer support triage pipeline with four stages, tool calls, structured output, and parallel execution. Run with the workflow-demo stack.
+This follows the same pipeline as the **customer support workflow demo** in the Orla repo: four stages, tool calls, structured output, and parallel execution. Run with the workflow-demo stack.
+
+Tools below use pyorla’s `@orla_tool` decorator (typed Python functions with docstrings); you can still build `Tool` instances by hand if you prefer.
 
 ```
 classify ──┬──▶ policy_check ──▶ reply
@@ -178,8 +180,8 @@ from pyorla import (
     new_vllm_backend, StructuredOutputRequest,
     SchedulingHints, EXECUTION_MODE_AGENT_LOOP,
     SCHEDULING_POLICY_FCFS, SCHEDULING_POLICY_PRIORITY,
+    orla_tool,
 )
-from pyorla.tools import Tool, tool_runner_from_schema
 from typing import TypedDict, Annotated
 
 # --- Setup ---
@@ -189,31 +191,31 @@ heavy = new_vllm_backend("Qwen/Qwen3-8B", "http://vllm-heavy:8000/v1")
 client.register_backend(light)
 client.register_backend(heavy)
 
-# Mock tools
-def read_policy(input_args):
-    category = input_args.get("category", "general")
+# Mock tools (@orla_tool → Tool with schema + runner)
+@orla_tool
+def read_policy_yaml(category: str) -> dict[str, str]:
+    """Look up company policy for a category."""
     return {"policy_document": f"Policy for {category}: refund within 30 days, etc."}
 
-def send_email(input_args):
-    return {"status": "sent", "message_id": f"msg-{input_args.get('to', '')}-001"}
+@orla_tool
+def send_email(to: str, subject: str, body: str) -> dict[str, str]:
+    """Send email to recipient."""
+    return {"status": "sent", "message_id": f"msg-{to}-001"}
 
-def read_teams(_):
-    return {"teams": [{"name": "billing_ops", "email": "billing@co.com"}, {"name": "tech_support", "email": "tech@co.com"}]}
+@orla_tool
+def read_team_descriptions() -> dict[str, list[dict[str, str]]]:
+    """List internal support teams."""
+    return {
+        "teams": [
+            {"name": "billing_ops", "email": "billing@co.com"},
+            {"name": "tech_support", "email": "tech@co.com"},
+        ]
+    }
 
-def send_ticket(input_args):
-    return {"ticket_id": f"TKT-{input_args.get('team', '')}-42", "status": "created"}
-
-policy_tool = Tool("read_policy_yaml", "Look up company policy for a category",
-    {"type": "object", "properties": {"category": {"type": "string"}}, "required": ["category"]},
-    run=tool_runner_from_schema(read_policy))
-email_tool = Tool("send_email", "Send email to recipient",
-    {"type": "object", "properties": {"to": {}, "subject": {}, "body": {}}, "required": ["to", "subject", "body"]},
-    run=tool_runner_from_schema(send_email))
-teams_tool = Tool("read_team_descriptions", "List internal teams", {"type": "object", "properties": {}},
-    run=tool_runner_from_schema(read_teams))
-ticket_tool = Tool("send_ticket", "Create internal ticket",
-    {"type": "object", "properties": {"team": {}, "priority": {}, "summary": {}}, "required": ["team", "priority", "summary"]},
-    run=tool_runner_from_schema(send_ticket))
+@orla_tool
+def send_ticket(team: str, priority: str, summary: str) -> dict[str, str]:
+    """Create internal ticket."""
+    return {"ticket_id": f"TKT-{team}-42", "status": "created"}
 
 # Stages
 classify_stage = Stage("classify", light)
@@ -221,9 +223,14 @@ classify_stage.client = client
 classify_stage.set_max_tokens(512)
 classify_stage.set_temperature(0)
 classify_stage.set_scheduling_policy(SCHEDULING_POLICY_FCFS)
-classify_stage.set_response_format(StructuredOutputRequest("classify", {
-    "type": "object", "properties": {"category": {}, "needs_escalation": {}}, "required": ["category", "needs_escalation"]
-}))
+classify_stage.set_response_format(StructuredOutputRequest(
+    name="classify",
+    schema={
+        "type": "object",
+        "properties": {"category": {}, "needs_escalation": {}},
+        "required": ["category", "needs_escalation"],
+    },
+))
 classify_llm = classify_stage.as_chat_model()
 
 policy_stage = Stage("policy_check", heavy)
@@ -232,22 +239,22 @@ policy_stage.set_execution_mode(EXECUTION_MODE_AGENT_LOOP)
 policy_stage.set_max_turns(5)
 policy_stage.set_max_tokens(1024)
 policy_stage.set_scheduling_policy(SCHEDULING_POLICY_PRIORITY)
-policy_stage.add_tool(policy_tool)
+policy_stage.add_tool(read_policy_yaml)
 
 reply_stage = Stage("reply", heavy)
 reply_stage.client = client
 reply_stage.set_execution_mode(EXECUTION_MODE_AGENT_LOOP)
 reply_stage.set_max_turns(5)
 reply_stage.set_max_tokens(1024)
-reply_stage.add_tool(email_tool)
+reply_stage.add_tool(send_email)
 
 route_stage = Stage("route_ticket", heavy)
 route_stage.client = client
 route_stage.set_execution_mode(EXECUTION_MODE_AGENT_LOOP)
 route_stage.set_max_turns(10)
-route_stage.add_tool(teams_tool)
-route_stage.add_tool(email_tool)
-route_stage.add_tool(ticket_tool)
+route_stage.add_tool(read_team_descriptions)
+route_stage.add_tool(send_email)
+route_stage.add_tool(send_ticket)
 
 mapping = ExplicitStageMapping()
 output = mapping.map(StageMappingInput(stages=[classify_stage, policy_stage, reply_stage, route_stage], backends=[light, heavy]))
@@ -255,7 +262,6 @@ apply_stage_mapping_output([classify_stage, policy_stage, reply_stage, route_sta
 
 # --- Agent-loop helper ---
 def run_agent_loop(stage, prompt):
-    from pyorla.types import Message
     messages = [Message(role="user", content=prompt)]
     last_content = ""
     for _ in range(stage.max_turns or 10):

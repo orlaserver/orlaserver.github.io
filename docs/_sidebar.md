@@ -1,7 +1,7 @@
-* [Home](/)
 * [Overview](overview.md)
 * [Getting Started](getting-started.md)
 * [Usage](usage.md)
+* [Python SDK (pyorla)](pyorla.md)
 * [Configuration](configuration.md)
 * [Developer's Guide](developers-guide.md)
 * [Community](community.md)

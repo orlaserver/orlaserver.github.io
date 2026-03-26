@@ -68,4 +68,5 @@ We discard the first run as a warmup and report the mean and standard deviation
 for the 3 remaining non-warmup runs. -->
 
 ## Source code
-Orla's [github repository](https://github.com/harvard-cns/orla).
+
+Orla's [GitHub repository](https://github.com/harvard-cns/orla) includes the daemon, CLI, and the **pyorla** Python package under `pyorla/`. Documentation for the SDK lives here: **[Python SDK (pyorla)](pyorla.md)**.

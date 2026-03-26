@@ -76,4 +76,4 @@ Register a backend before calling execute with that `backend` name.
 POST /api/v1/execute
 ``` 
 
-Use the [Orla Go client](https://github.com/harvard-cns/orla/tree/main/pkg/api) or call the HTTP API directly. See the [API package](https://github.com/harvard-cns/orla/tree/main/internal/serving/api) for request/response types.
+Use the **[Python SDK (pyorla)](pyorla.md)** (`OrlaClient`, `OrlaClient.from_env()`, optional `orla_runtime()` for a local subprocess daemon), the [Go client](https://github.com/harvard-cns/orla/tree/main/pkg/api), or the HTTP API directly. The [serving API package](https://github.com/harvard-cns/orla/tree/main/internal/serving/api) in the repo implements the handlers; pyorla types align with the JSON payloads.

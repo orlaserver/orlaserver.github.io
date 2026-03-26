@@ -59,3 +59,16 @@ orla agent "summarize this code" < main.go
 ```
 
 To uninstall, see [Uninstalling Orla](uninstalling.md).
+
+## Python SDK (pyorla)
+
+For Python apps and [LangGraph](tutorials/tutorial-langgraph.md), use **pyorla** from the Orla repository (`pyorla/`). With a clone of [github.com/harvard-cns/orla](https://github.com/harvard-cns/orla):
+
+```bash
+cd pyorla
+uv sync
+```
+
+Or add it as a path dependency from your project: `uv add ../pyorla` (adjust the path).
+
+Full SDK documentation — remote and local clients, tools, LangChain, notebooks — is on **[Python SDK (pyorla)](pyorla.md)**.

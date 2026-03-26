@@ -33,6 +33,16 @@ Integration tests:
 make test-integration
 ```
 
+## Python SDK (pyorla)
+
+From the `pyorla` directory in the Orla repo:
+
+```bash
+uv sync
+uv run ty check
+uv run pytest
+```
+
 ## Contributing
 
 See [CONTRIBUTING.md](https://github.com/harvard-cns/orla/blob/main/CONTRIBUTING.md) in the Orla repository. Contributors are listed in [CONTRIBUTORS.md](https://github.com/harvard-cns/orla/blob/main/CONTRIBUTORS.md).
