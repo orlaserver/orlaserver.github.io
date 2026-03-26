@@ -1,8 +1,24 @@
 # Python SDK (pyorla)
 
-**pyorla** is Orla’s Python SDK for the HTTP API: clients, stages, workflows, tools, and LangChain integration. It targets Python 3.11+ and ships as the `pyorla` package in the Orla repository under the `pyorla/` directory.
+pyorla is Orla’s Python SDK for the HTTP API: clients, stages, workflows, tools, and LangChain integration. It targets Python 3.11+ and is published on PyPI as the [`pyorla`](https://pypi.org/project/pyorla/) package. Source lives in the Orla repository under [`pyorla/`](https://github.com/harvard-cns/orla/tree/main/pyorla).
 
 ## Install
+
+From PyPI (recommended):
+
+```bash
+pip install pyorla
+```
+
+Or with uv:
+
+```bash
+uv add pyorla
+```
+
+You still need the Orla **daemon** (`orla serve`) reachable from your app—install the binary via [Getting Started](getting-started.md) (Homebrew, install script, Docker, etc.) or point `OrlaClient` at a remote URL.
+
+### From the Orla repo (contributors)
 
 From a clone of the Orla repo, in the `pyorla` directory:
 
@@ -11,11 +27,13 @@ cd pyorla
 uv sync
 ```
 
-From another project, add it as a path dependency (adjust the path):
+You can also add the local tree as a path dependency while hacking on the SDK:
 
 ```bash
 uv add ../pyorla
 ```
+
+(Adjust the path to your clone.)
 
 ## Connect to a running daemon
 
@@ -28,13 +46,13 @@ client = OrlaClient("http://localhost:8081")
 client.health()
 ```
 
-You can also use **`OrlaClient.from_env()`**, which reads **`ORLA_URL`** (default `http://localhost:8081` if unset).
+You can also use `OrlaClient.from_env()`, which reads `ORLA_URL` (default `http://localhost:8081` if unset).
 
 Register backends and run inference via `Stage`, `Workflow`, or `ChatOrla` as in the tutorials below.
 
 ## Local server from Python
 
-For development or notebooks, **`orla_runtime()`** is a context manager that starts `orla serve` on loopback, waits until `/api/v1/health` succeeds, and tears the process down when the block exits. You need the **`orla` CLI on `PATH`**, or set **`ORLA_BIN`** to the binary path.
+For development or notebooks, `orla_runtime()` is a context manager that starts `orla serve` on loopback, waits until `/api/v1/health` succeeds, and tears the process down when the block exits. You need the `orla` CLI on `PATH`, or set `ORLA_BIN` to the binary path.
 
 ```python
 from pyorla import orla_runtime
@@ -50,8 +68,8 @@ Under the hood this runs `orla serve --listen-address 127.0.0.1:<ephemeral-port>
 
 Hosted notebooks (e.g. Colab) cannot reach `localhost` on your laptop. Use one of:
 
-- An Orla daemon on a **reachable URL** (VM, Kubernetes, etc.) and pass that URL to `OrlaClient`, or  
-- A **tunnel** (ngrok, Cloudflare Tunnel, etc.) from the machine where `orla serve` runs to a URL you use in the notebook.
+- An Orla daemon on a reachable URL (VM, Kubernetes, etc.) and pass that URL to `OrlaClient`, or  
+- A tunnel (ngrok, Cloudflare Tunnel, etc.) from the machine where `orla serve` runs to a URL you use in the notebook.
 
 ## API surface (high level)
 
@@ -67,7 +85,7 @@ For REST shape of `/api/v1/execute` and related routes, see [Usage](usage.md); p
 
 ## Tutorials and examples
 
-- [Using Orla with LangGraph](tutorials/tutorial-langgraph.md) — pyorla with `StateGraph`, multi-backend stages, and tools.
+- [Using Orla with LangGraph](tutorials/tutorial-langgraph.md): pyorla with `StateGraph`, multi-backend stages, and tools.
 - Example projects and workflow demos live in the Orla repo under `pyorla/examples/` (e.g. `workflow_demo`).
 
 ## Hacking on pyorla

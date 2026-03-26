@@ -63,7 +63,7 @@ Pick the path that matches your hardware. Each one walks you through the full wo
 <!-- GPU sub-selection -->
 <div data-adventure-section="gpu-sub" data-adventure-section-group="hw" class="adventure-hidden">
 
-**Which LLM backend do you prefer?**
+Which LLM backend do you prefer?
 
 <div class="adventure-cards" data-adventure-group="gpu-backend">
   <div class="adventure-card" data-adventure="sglang" data-adventure-group="gpu-backend">
@@ -86,16 +86,16 @@ Pick the path that matches your hardware. Each one walks you through the full wo
 
 <span class="adventure-reset">← Start over</span>
 
-**Prerequisites:**
+Prerequisites:
 
 - Docker and Docker Compose (Compose V2).
 - An NVIDIA GPU and [NVIDIA Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/install-guide.html).
 - The [Orla repo](https://github.com/harvard-cns/orla) cloned.
 - Go 1.25 or later.
 
-**1. Start the backends and Orla**
+1. Start the backends and Orla
 
-The workflow uses two SGLang backends: a **light** model (Qwen3-4B) for classification and a **heavy** model (Qwen3-8B) for the agent-loop stages. From the Orla repo root:
+The workflow uses two SGLang backends: a light model (Qwen3-4B) for classification and a heavy model (Qwen3-8B) for the agent-loop stages. From the Orla repo root:
 
 ```bash
 docker compose -f deploy/docker-compose.workflow-demo.yaml up -d
@@ -115,15 +115,15 @@ curl http://localhost:8081/api/v1/health
 
 If you only have one GPU, you can run both backends on the same model by setting the environment variables in the run step.
 
-**2. Run the demo**
+2. Run the demo
 
 ```bash
 go run ./examples/workflow_demo/cmd/workflow_demo
 ```
 
-SGLang is the default backend — no `BACKEND` env var needed.
+SGLang is the default backend; no `BACKEND` env var needed.
 
-**3. Stop the stack**
+3. Stop the stack
 
 ```bash
 docker compose -f deploy/docker-compose.workflow-demo.yaml down
@@ -138,14 +138,14 @@ docker compose -f deploy/docker-compose.workflow-demo.yaml down
 
 <span class="adventure-reset">← Start over</span>
 
-**Prerequisites:**
+Prerequisites:
 
 - Docker and Docker Compose (Compose V2).
 - An NVIDIA GPU and [NVIDIA Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/install-guide.html).
 - The [Orla repo](https://github.com/harvard-cns/orla) cloned.
 - Go 1.25 or later.
 
-**1. Start the backends and Orla**
+1. Start the backends and Orla
 
 Two vLLM containers: heavy on port 8000, light on port 8001. From the Orla repo root:
 
@@ -159,13 +159,13 @@ Wait for models to load, then verify Orla is healthy:
 curl http://localhost:8081/api/v1/health
 ```
 
-**2. Run the demo**
+2. Run the demo
 
 ```bash
 BACKEND=vllm go run ./examples/workflow_demo/cmd/workflow_demo
 ```
 
-**3. Stop the stack**
+3. Stop the stack
 
 ```bash
 docker compose -f deploy/docker-compose.workflow-demo.vllm.yaml down
@@ -180,14 +180,14 @@ docker compose -f deploy/docker-compose.workflow-demo.vllm.yaml down
 
 <span class="adventure-reset">← Start over</span>
 
-**Prerequisites:**
+Prerequisites:
 
 - Docker and Docker Compose (Compose V2).
 - At least 16 GB of main memory.
 - The [Orla repo](https://github.com/harvard-cns/orla) cloned.
 - Go 1.25 or later.
 
-**1. Start the backends and Orla**
+1. Start the backends and Orla
 
 From the Orla repo root:
 
@@ -203,15 +203,15 @@ Verify Orla is healthy:
 curl http://localhost:8081/api/v1/health
 ```
 
-Both models are served by a single Ollama process; the light model (qwen3:0.6b) handles classification and the heavy model (qwen3:1.7b) handles the agent-loop stages. Output quality will be lower than the GPU models, but the full workflow — structured output, tool calls, DAG execution — works the same way.
+Both models are served by a single Ollama process; the light model (qwen3:0.6b) handles classification and the heavy model (qwen3:1.7b) handles the agent-loop stages. Output quality will be lower than the GPU models, but the full workflow (structured output, tool calls, DAG execution) works the same way.
 
-**2. Run the demo**
+2. Run the demo
 
 ```bash
 BACKEND=ollama go run ./examples/workflow_demo/cmd/workflow_demo
 ```
 
-**3. Stop the stack**
+3. Stop the stack
 
 ```bash
 docker compose -f deploy/docker-compose.workflow-demo.ollama.yaml down
@@ -228,7 +228,7 @@ docker compose -f deploy/docker-compose.workflow-demo.ollama.yaml down
 
 You don't need Docker or a GPU for this path. Install Orla as a standalone agent via Homebrew and start experimenting right away.
 
-Head over to the **[Getting Started guide](https://orlaserver.github.io/docs/#/getting-started)** for installation instructions.
+Head over to the [Getting Started guide](https://orlaserver.github.io/docs/#/getting-started) for installation instructions.
 
 </div>
 
@@ -247,7 +247,7 @@ The demo selects backends based on environment variables. The default is SGLang;
 lightBackend := orla.NewSGLangBackend("Qwen/Qwen3-4B-Instruct-2507", "http://sglang-light:30000/v1")
 heavyBackend := orla.NewSGLangBackend("Qwen/Qwen3-8B", "http://sglang:30000/v1")
 
-// Ollama (laptop — set OLLAMA_URL)
+// Ollama (laptop; set OLLAMA_URL)
 lightBackend := orla.NewOllamaBackend("qwen3:0.6b", "http://localhost:11434")
 heavyBackend := orla.NewOllamaBackend("qwen3:1.7b", "http://localhost:11434")
 
@@ -305,8 +305,8 @@ The agent-loop executor handles the Gen → Tool(read_policy_yaml) → Gen → S
 
 The reply stage depends on `policy_check` and branches on the `needs_escalation` flag from the classify output:
 
-- **Needs escalation:** sends a brief acknowledgment email telling the customer their request is being escalated to a specialist team. It does not resolve the issue or make promises about the outcome.
-- **No escalation:** composes a full resolution email based on the policy decision (confirming the action or explaining a denial) and sends it via `send_email`.
+- Needs escalation: sends a brief acknowledgment email telling the customer their request is being escalated to a specialist team. It does not resolve the issue or make promises about the outcome.
+- No escalation: composes a full resolution email based on the policy decision (confirming the action or explaining a denial) and sends it via `send_email`.
 
 ```go
 emailTool, _ := sendEmailTool()
@@ -342,8 +342,8 @@ wf.AddDependency(replyStage.ID, policyStage.ID)
 
 The routing stage runs in parallel with Stages 2 and 3 because it only depends on `classify`. It has three tools: `send_email`, `read_team_descriptions`, and `send_ticket`. Its behavior branches on the `needs_escalation` flag from the classify output:
 
-- **Needs escalation:** reads team descriptions, creates a routed internal ticket for the appropriate human team, and emails the team about the escalation.
-- **No escalation:** reads team descriptions and sends an informational email to the responsible team letting them know the ticket is being handled automatically by the resolver (Stages 2 and 3).
+- Needs escalation: reads team descriptions, creates a routed internal ticket for the appropriate human team, and emails the team about the escalation.
+- No escalation: reads team descriptions and sends an informational email to the responsible team letting them know the ticket is being handled automatically by the resolver (Stages 2 and 3).
 
 ```go
 routeStage := orla.NewStage("route_ticket", heavyBackend)

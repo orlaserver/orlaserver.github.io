@@ -1,18 +1,18 @@
 # Usage
 
-Orla has two modes: **`orla agent`** for one-shot runs and **`orla serve`** for the agent engine (HTTP API).
+Orla has two modes: `orla agent` for one-shot runs and `orla serve` for the agent engine (HTTP API).
 
 ## orla agent
 
 One-shot execution. Give a prompt (and optional stdin); Orla uses the configured model and returns the result.
 
-**Basic:**
+Basic:
 
 ```bash
 orla agent "List all files in the current directory"
 ```
 
-**With stdin (e.g. pipe):**
+With stdin (for example a pipe):
 
 ```bash
 orla agent "summarize this code" < main.go
@@ -26,13 +26,13 @@ cat data.json | orla agent "extract all email addresses" | sort -u
 git status | orla agent "Draft a short, imperative-mood commit message for these changes"
 ```
 
-**Override model:**
+Override model:
 
 ```bash
 orla agent "Hello" --model ollama:ministral-3:3b
 ```
 
-**Redirect output:**
+Redirect output:
 
 ```bash
 orla agent "find all TODO comments in *.c files in pwd" > todos.txt
@@ -76,4 +76,4 @@ Register a backend before calling execute with that `backend` name.
 POST /api/v1/execute
 ``` 
 
-Use the **[Python SDK (pyorla)](pyorla.md)** (`OrlaClient`, `OrlaClient.from_env()`, optional `orla_runtime()` for a local subprocess daemon), the [Go client](https://github.com/harvard-cns/orla/tree/main/pkg/api), or the HTTP API directly. The [serving API package](https://github.com/harvard-cns/orla/tree/main/internal/serving/api) in the repo implements the handlers; pyorla types align with the JSON payloads.
+Use the [Python SDK (pyorla)](pyorla.md) (`OrlaClient`, `OrlaClient.from_env()`, optional `orla_runtime()` for a local subprocess daemon), the [Go client](https://github.com/harvard-cns/orla/tree/main/pkg/api), or the HTTP API directly. The [serving API package](https://github.com/harvard-cns/orla/tree/main/internal/serving/api) in the repo implements the handlers; pyorla types align with the JSON payloads.

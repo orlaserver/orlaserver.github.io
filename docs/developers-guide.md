@@ -4,13 +4,13 @@
 
 Requires Go 1.25+.
 
-**Install from source:**
+Install from source:
 
 ```bash
 go install github.com/harvard-cns/orla/cmd/orla@latest
 ```
 
-**Build from repo:**
+Build from repo:
 
 ```bash
 git clone https://github.com/harvard-cns/orla

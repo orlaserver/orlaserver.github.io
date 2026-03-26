@@ -73,8 +73,8 @@ docker compose -f deploy/docker-compose.sglang.yaml up -d
 
 This starts:
 
-- **SGLang** on port 30000 (OpenAI- and Ollama-compatible APIs). Default model: `Qwen/Qwen3-8B`. The Orla server (in its container) reaches it at `http://sglang:30000`.
-- **Orla** on port 8081. The Orla server starts with no LLM backends; the Go program in step 3 registers the SGLang backend and runs the request.
+- SGLang on port 30000 (OpenAI- and Ollama-compatible APIs). Default model: `Qwen/Qwen3-8B`. The Orla server (in its container) reaches it at `http://sglang:30000`.
+- Orla on port 8081. The Orla server starts with no LLM backends; the Go program in step 3 registers the SGLang backend and runs the request.
 
 ### Optional
 
@@ -98,11 +98,11 @@ You should get a successful response (e.g. HTTP 200).
 
 ## 3. Run the “Lily” story request
 
-The Orla API exposes **`POST /api/v1/execute`**: you send a `backend` name (a backend you registered), a `prompt` (or `messages`), and optional `max_tokens` and `stream`. The response contains the model output in `response.content`.
+The Orla API exposes `POST /api/v1/execute`: you send a `backend` name (a backend you registered), a `prompt` (or `messages`), and optional `max_tokens` and `stream`. The response contains the model output in `response.content`.
 
 ### Using the Go client
 
-Orla talks to SGLang using the **OpenAI-compatible** API (`/v1/chat/completions`) so you get TTFT/TPOT metrics in streaming responses. Use `orla.NewSGLangBackend` to create a backend with the correct endpoint and model ID. Create a file `main.go` in the Orla repo root:
+Orla talks to SGLang using the OpenAI-compatible API (`/v1/chat/completions`) so you get TTFT/TPOT metrics in streaming responses. Use `orla.NewSGLangBackend` to create a backend with the correct endpoint and model ID. Create a file `main.go` in the Orla repo root:
 
 ```go
 package main
@@ -151,7 +151,7 @@ You should see the model’s story about Lily printed to the terminal.
 <think>
 Okay, the user wants a short, cheerful story about a cat named Lily. Let me start by thinking about the key elements. The story should be two or three paragraphs, so I need to keep it concise but engaging.
 
-First, I should introduce Lily. Maybe give her some characteristics that make her cheerful. Perhaps she's playful and curious. Setting is important—maybe a cozy home with a garden. That way, there's a nice environment for her to explore.
+First, I should introduce Lily. Maybe give her some characteristics that make her cheerful. Perhaps she's playful and curious. Setting is important, maybe a cozy home with a garden. That way, there's a nice environment for her to explore.
 
 Next, I need a simple plot. Maybe she does something cute, like chasing a butterfly or interacting with other animals. Including a positive outcome would keep the story cheerful. Maybe she helps a friend or finds something delightful. 
 
@@ -169,7 +169,7 @@ Lily was a sprightly tabby with emerald eyes that gleamed like polished gems. Ev
 
 ### Streamed output
 
-To see the story as it is generated, use the stage’s **ExecuteStream** and **ConsumeStream**:
+To see the story as it is generated, use the stage’s ExecuteStream and ConsumeStream:
 
 ```go
 package main

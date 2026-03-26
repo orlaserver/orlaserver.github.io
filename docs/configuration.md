@@ -34,7 +34,7 @@ The service reads the config file for listen address and logging. Backends are r
 | `log_format` | Log format: `"pretty"` or `"json"` | `"json"` |
 | `log_level` | Log level: `"debug"`, `"info"`, `"warn"`, `"error"`, `"fatal"` | `"info"` |
 
-**CLI overrides:** `-l` / `--listen-address` overrides `listen_address`; `--pretty` overrides `log_format` (forces pretty-printed logs).
+CLI overrides: `-l` / `--listen-address` overrides `listen_address`; `--pretty` overrides `log_format` (forces pretty-printed logs).
 
 ### Example orla.yaml
 

@@ -6,7 +6,7 @@
 * [Developer's Guide](developers-guide.md)
 * [Community](community.md)
 * [Uninstalling](uninstalling.md)
-* Usage Tutorials
+* [Orla Internals](internals.md)
   * [Using Orla with vLLM](tutorials/tutorial-vllm-lily.md)
   * [Using Orla with Ollama](tutorials/tutorial-ollama-lily.md)
   * [Using Orla with SGLang](tutorials/tutorial-sglang-lily.md)
@@ -14,7 +14,6 @@
   * [Concurrent Stages](tutorials/tutorial-concurrent-stages.md)
   * [Memory Manager](tutorials/tutorial-memory-manager.md)
   * [Using Orla with LangGraph](tutorials/tutorial-langgraph.md)
-* Research Tutorials
   * [Single-Shot SWE-bench Experiments](research/orla_swebench_lite.md)
   * [DAG-Math Memory Management Evaluation](research/orla_dag_math_memory_eval.md)
   * [Multi-Stage Workflow (Customer Support)](research/orla_workflow_customer_support.md)

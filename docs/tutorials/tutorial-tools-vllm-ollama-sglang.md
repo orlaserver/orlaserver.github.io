@@ -1,12 +1,12 @@
 # Tutorial: Using Tools with Orla
 
-This tutorial shows how to use **tools** with Orla and any of the supported backends: [vLLM](https://docs.vllm.ai/), [Ollama](https://ollama.com/), or [SGLang](https://sgl-project.github.io/). The model receives tool definitions, can request tool calls in its response, and you run the tools locally and send the results back in the next request.
+This tutorial shows how to use tools with Orla and any of the supported backends: [vLLM](https://docs.vllm.ai/), [Ollama](https://ollama.com/), or [SGLang](https://sgl-project.github.io/). The model receives tool definitions, can request tool calls in its response, and you run the tools locally and send the results back in the next request.
 
 ## What you need
 
 - Docker and Docker Compose (Compose V2).
-- For **vLLM** or **SGLang**: an NVIDIA GPU and [NVIDIA Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/install-guide.html).
-- For **Ollama**: no GPU required (CPU is fine for small models).
+- For vLLM or SGLang: an NVIDIA GPU and [NVIDIA Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/install-guide.html).
+- For Ollama: no GPU required (CPU is fine for small models).
 - The [Orla repo](https://github.com/harvard-cns/orla) cloned.
 - Go 1.25 or later.
 
@@ -41,23 +41,23 @@ curl http://localhost:8081/api/v1/health
 
 ## 2. Register the backend
 
-Register the backend that matches the stack you started. Use the **service name** as the host when Orla runs in the same Compose (so Orla in its container can reach the backend).
+Register the backend that matches the stack you started. Use the service name as the host when Orla runs in the same Compose (so Orla in its container can reach the backend).
 
-**vLLM:**
+vLLM:
 
 ```go
 backend := orla.NewVLLMBackend("Qwen/Qwen3-4B-Instruct-2507", "http://vllm:8000/v1")
 if err := client.RegisterBackend(ctx, backend); err != nil { log.Fatal(err) }
 ```
 
-**Ollama:**
+Ollama:
 
 ```go
 backend := orla.NewOllamaBackend("llama3.2:3b", "http://ollama:11434")
 if err := client.RegisterBackend(ctx, backend); err != nil { log.Fatal(err) }
 ```
 
-**SGLang** (OpenAI API on port 30000; use `/v1` for TTFT/TPOT):
+SGLang (OpenAI API on port 30000; use `/v1` for TTFT/TPOT):
 
 ```go
 backend := orla.NewSGLangBackend("Qwen/Qwen3-8B", "http://sglang:30000/v1")
@@ -66,7 +66,7 @@ if err := client.RegisterBackend(ctx, backend); err != nil { log.Fatal(err) }
 
 ## 3. Define a tool
 
-Tools have a **name**, **description**, **input** and **output** schemas (for the model), and a **Run** function that you execute locally when the model requests the tool.
+Tools have a name, description, input and output schemas (for the model), and a Run function that you execute locally when the model requests the tool.
 
 Example: a simple “get weather” tool that returns a fixed string. The model will see the tool spec and can “call” it; your code runs it and sends the result back as a message.
 
@@ -209,15 +209,15 @@ Okay, the user asked for the weather in Paris, and I called the get_weather func
 The weather in Paris is sunny with a temperature of 22°C.
 ```
 
-- **ExecuteWithMessages** sends the current `messages` and the current stage’s tools to the backend. The model may return text and/or **tool_calls**.
-- **`stage.RunToolCallsInResponse`** parses `resp.ToolCalls`, runs each tool by name (using your `Run`), and returns the corresponding **tool-result messages** (role `"tool"`, content, tool_call_id, tool_name).
-- You append the assistant message (the model’s content) and those tool messages, then call **ExecuteWithMessages** again. The loop ends when the model responds with no tool calls.
+- ExecuteWithMessages sends the current `messages` and the current stage’s tools to the backend. The model may return text and/or tool_calls.
+- `stage.RunToolCallsInResponse` parses `resp.ToolCalls`, runs each tool by name (using your `Run`), and returns the corresponding tool-result messages (role `"tool"`, content, tool_call_id, tool_name).
+- You append the assistant message (the model’s content) and those tool messages, then call ExecuteWithMessages again. The loop ends when the model responds with no tool calls.
 
-This flow is the same for **vLLM**, **Ollama**, and **SGLang**; only the backend registration (name, endpoint, type, model_id) changes.
+This flow is the same for vLLM, Ollama, and SGLang; only the backend registration (name, endpoint, type, model_id) changes.
 
 ## 5. Streaming with tools
 
-You can stream the model’s reply (and thinking, if the backend supports it) while still doing the same tool loop. Use **ExecuteStreamWithMessages** and **ConsumeStream**: the stream delivers `content`, `thinking`, and `tool_call` events, then a **done** event with the full response (including **ToolCalls**). Run tools on that response and continue the loop as before.
+You can stream the model’s reply (and thinking, if the backend supports it) while still doing the same tool loop. Use ExecuteStreamWithMessages and ConsumeStream: the stream delivers `content`, `thinking`, and `tool_call` events, then a done event with the full response (including ToolCalls). Run tools on that response and continue the loop as before.
 
 ```go
 package main
@@ -333,22 +333,22 @@ Okay, the user asked for the weather in Tokyo in one sentence. I called the get_
 It's sunny in Tokyo with a temperature of 22°C.
 ```
 
-- **ExecuteStreamWithMessages** takes the same `messages` (and the current stage’s tools) as the non-streaming call but returns a channel of events.
-- **`stage.ConsumeStream`** reads the channel, optionally runs your handler for each event (e.g. print content/thinking), and returns the full **InferenceResponse** when the stream sends **done**. That response includes **ToolCalls**.
-- The rest of the loop is unchanged: append the assistant message and tool-result messages, then call **ExecuteStreamWithMessages** again until the model returns no tool calls.
+- ExecuteStreamWithMessages takes the same `messages` (and the current stage’s tools) as the non-streaming call but returns a channel of events.
+- `stage.ConsumeStream` reads the channel, optionally runs your handler for each event (e.g. print content/thinking), and returns the full InferenceResponse when the stream sends done. That response includes ToolCalls.
+- The rest of the loop is unchanged: append the assistant message and tool-result messages, then call ExecuteStreamWithMessages again until the model returns no tool calls.
 
 ## 6. Backend-specific notes
 
-- **vLLM**: Uses the OpenAI-compatible API. Tool calls include a unique `id`; you must send it back as `tool_call_id` in the tool result message so the model can match results to calls.
-- **Ollama**: Uses `tool_name` and content for tool results. Ollama does not yet support per-call IDs, so when the same tool is called multiple times in one turn, matching is by order.
-- **SGLang**: Use the OpenAI-compatible API (`NewSGLangBackend` with endpoint `http://sglang:30000/v1`). Behavior matches vLLM for tool results and you get TTFT/TPOT in streaming.
+- vLLM: Uses the OpenAI-compatible API. Tool calls include a unique `id`; you must send it back as `tool_call_id` in the tool result message so the model can match results to calls.
+- Ollama: Uses `tool_name` and content for tool results. Ollama does not yet support per-call IDs, so when the same tool is called multiple times in one turn, matching is by order.
+- SGLang: Use the OpenAI-compatible API (`NewSGLangBackend` with endpoint `http://sglang:30000/v1`). Behavior matches vLLM for tool results and you get TTFT/TPOT in streaming.
 
 ## 7. Scheduling and stage routing (optional)
 
-Orla supports **two-level scheduling** on the server. Each LLM request carries a globally unique **stage ID** (auto-generated when you create a `Stage`). On the server, each backend maintains per-stage queues:
+Orla supports two-level scheduling on the server. Each LLM request carries a globally unique stage ID (auto-generated when you create a `Stage`). On the server, each backend maintains per-stage queues:
 
-1. **Stage scheduling** selects which stage queue to service next on a backend (`SetSchedulingPolicy`).
-2. **Request scheduling** orders requests within a single stage queue (`SetRequestSchedulingPolicy`).
+1. Stage scheduling selects which stage queue to service next on a backend (`SetSchedulingPolicy`).
+2. Request scheduling orders requests within a single stage queue (`SetRequestSchedulingPolicy`).
 
 ```go
 stage := orla.NewStage("heavy", heavyBackend)

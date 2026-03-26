@@ -1,6 +1,6 @@
 # Tutorial: Using Orla with LangGraph (Python)
 
-This tutorial shows how to use **pyorla**, Orla's Python SDK, to run LLM-powered agentic workflows with [LangGraph](https://langchain-ai.github.io/langgraph/). Orla handles inference scheduling, multi-backend orchestration, and KV cache management while LangGraph provides graph-based workflow orchestration.
+This tutorial shows how to use pyorla, Orla's Python SDK, to run LLM-powered agentic workflows with [LangGraph](https://langchain-ai.github.io/langgraph/). Orla handles inference scheduling, multi-backend orchestration, and KV cache management while LangGraph provides graph-based workflow orchestration.
 
 ## Install
 
@@ -19,7 +19,7 @@ If your project is outside the repo, use the path to the pyorla directory (e.g. 
 
 You need Orla and at least one LLM backend running. The Orla repo includes Docker Compose files you can reuse.
 
-**Tier 1 (single model):** Start the basic vLLM stack from the Orla repo root:
+Tier 1 (single model): start the basic vLLM stack from the Orla repo root:
 
 ```bash
 git clone https://github.com/harvard-cns/orla.git
@@ -27,9 +27,9 @@ cd orla
 docker compose -f deploy/docker-compose.vllm.yaml up -d
 ```
 
-This runs vLLM on port 8000 and Orla on port 8081. Your Python app runs on the host and talks to Orla at `http://localhost:8081`. Orla runs in Docker, so when you register a backend, the **endpoint must use the Docker service name** (Orla calls the backend from inside its container): use `http://vllm:8000/v1` for the vLLM backend. See [Tutorial: Run a simple agent with Orla and vLLM](tutorial-vllm-lily.md) for prerequisites (Docker, NVIDIA GPU, etc.).
+This runs vLLM on port 8000 and Orla on port 8081. Your Python app runs on the host and talks to Orla at `http://localhost:8081`. Orla runs in Docker, so when you register a backend, the endpoint must use the Docker service name (Orla calls the backend from inside its container): use `http://vllm:8000/v1` for the vLLM backend. See [Tutorial: Run a simple agent with Orla and vLLM](tutorial-vllm-lily.md) for prerequisites (Docker, NVIDIA GPU, etc.).
 
-**Tier 2–3 (multi-stage, light + heavy models):** For workflows that use separate backends for classification vs. response, start the workflow-demo stack:
+Tier 2–3 (multi-stage, light + heavy models): for workflows that use separate backends for classification vs. response, start the workflow-demo stack:
 
 ```bash
 cd orla
@@ -38,7 +38,7 @@ docker compose -f deploy/docker-compose.workflow-demo.vllm.yaml up -d
 
 This runs vLLM heavy and vLLM light. Use Docker service names for backend endpoints: `http://vllm-light:8000/v1` and `http://vllm-heavy:8000/v1`.
 
-## Tier 1: Simple — One model, one call
+## Tier 1: Simple (one model, one call)
 
 The simplest way to use Orla with LangGraph. A single `ChatOrla` wraps a registered backend and works like any other LangChain chat model. Run with the basic vLLM stack (`docker-compose.vllm.yaml`).
 
@@ -48,7 +48,7 @@ from langgraph.graph import StateGraph, END
 from pyorla import OrlaClient, Stage, new_vllm_backend
 from typing import TypedDict
 
-# Connect to Orla (host) and register backend (Docker service name — Orla calls vLLM from its container)
+# Connect to Orla (host) and register backend (Docker service name; Orla calls vLLM from its container)
 client = OrlaClient("http://localhost:8081")  # or: OrlaClient.from_env() using ORLA_URL
 backend = new_vllm_backend("Qwen/Qwen3-4B-Instruct-2507", "http://vllm:8000/v1")
 client.register_backend(backend)
@@ -78,7 +78,7 @@ result = app.invoke({"question": "What is Orla?"})
 print(result["answer"])
 ```
 
-## Tier 2: Multi-stage — Different models for different tasks
+## Tier 2: Multi-stage (different models for different tasks)
 
 Use Orla's scheduling and stage mapping to route different parts of your workflow to different backends with different parameters. Run with the workflow-demo stack (`docker-compose.workflow-demo.vllm.yaml`).
 
@@ -155,11 +155,11 @@ result = app.invoke({"question": "What is Orla and how does it schedule inferenc
 print(result["answer"])
 ```
 
-Each `ChatOrla` carries its Stage's scheduling policy, backend assignment, and inference parameters — Orla's server-side scheduler handles the rest.
+Each `ChatOrla` carries its Stage's scheduling policy, backend assignment, and inference parameters; Orla's server-side scheduler handles the rest.
 
-## Tier 3: Full workflow — Agent loops, tools, and parallel stages
+## Tier 3: Full workflow (agent loops, tools, and parallel stages)
 
-This follows the same pipeline as the **customer support workflow demo** in the Orla repo: four stages, tool calls, structured output, and parallel execution. Run with the workflow-demo stack.
+This follows the same pipeline as the customer support workflow demo in the Orla repo: four stages, tool calls, structured output, and parallel execution. Run with the workflow-demo stack.
 
 Tools below use pyorla’s `@orla_tool` decorator (typed Python functions with docstrings); you can still build `Tool` instances by hand if you prefer.
 
@@ -383,21 +383,21 @@ client.workflow_complete(wf_id, [light.name, heavy.name])
 
 LangGraph gives you workflow orchestration including state, control flow, conditional edges, checkpointing. Orla adds production-grade agentic serving underneath:
 
-- **Multi-backend routing**: Route different stages to different models (e.g., fast classifier on a small model, detailed reasoning on a larger one) without changing your graph. Orla handles backend registration and stage mapping.
+- Multi-backend routing: route different stages to different models (e.g., fast classifier on a small model, detailed reasoning on a larger one) without changing your graph. Orla handles backend registration and stage mapping.
 
-- **Server-side scheduling**: When many requests hit the same backend, Orla schedules them with configurable policies (FCFS, priority). You can set per-request priority from your LangGraph state (e.g., escalate billing tickets).
+- Server-side scheduling: when many requests hit the same backend, Orla schedules them with configurable policies (FCFS, priority). You can set per-request priority from your LangGraph state (e.g., escalate billing tickets).
 
-- **KV cache management**: Orla tracks workflow context across stages and manages KV cache lifecycle. Preserve cache when the next stage adds few tokens; flush at workflow boundaries or when switching models. Reduces redundant computation and latency.
+- KV cache management: Orla tracks workflow context across stages and manages KV cache lifecycle. Preserve cache when the next stage adds few tokens; flush at workflow boundaries or when switching models. Reduces redundant computation and latency.
 
-- **Self-hosted at scale**: Orla is built for self-hosted vLLM, SGLang, and Ollama. If you run your own models, Orla gives you scheduling, memory management, and multi-model orchestration that hosted APIs don't provide.
+- Self-hosted at scale: Orla is built for self-hosted vLLM, SGLang, and Ollama. If you run your own models, Orla gives you scheduling, memory management, and multi-model orchestration that hosted APIs don't provide.
 
-- **Lower cloud API costs**: Use stage mapping to route simple tasks (classification, extraction) to cheaper cloud models, and reserve expensive ones for complex reasoning. Orla also lets you mix backends, including self-hosted and cloud, in the same workflow.
+- Lower cloud API costs: use stage mapping to route simple tasks (classification, extraction) to cheaper cloud models, and reserve expensive ones for complex reasoning. Orla also lets you mix backends, including self-hosted and cloud, in the same workflow.
 
-If you're already on LangGraph and hitting limits with direct API calls — queueing, cache waste, juggling multiple backends, or runaway API costs — Orla slots in as the agentic serving layer.
+If you're already on LangGraph and hitting limits with direct API calls (queueing, cache waste, juggling multiple backends, or runaway API costs), Orla slots in as the agentic serving layer.
 
 ## Full example
 
 See `pyorla/examples/workflow_demo/` in the Orla repository for the complete customer support triage workflow implemented in both:
 
-- `run_workflow.py` — native pyorla Workflow API
-- `run_langgraph.py` — LangGraph StateGraph with pyorla stages
+- `run_workflow.py`: native pyorla Workflow API
+- `run_langgraph.py`: LangGraph StateGraph with pyorla stages

@@ -1,12 +1,12 @@
 # Uninstalling Orla
 
-**Homebrew:**
+Homebrew:
 
 ```bash
 brew uninstall --cask orla
 ```
 
-**Install script:**
+Install script:
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/harvard-cns/orla/main/scripts/uninstall.sh | sh
@@ -14,5 +14,5 @@ curl -fsSL https://raw.githubusercontent.com/harvard-cns/orla/main/scripts/unins
 
 The uninstall script removes only Orla. Ollama and downloaded models are left in place. To remove Ollama:
 
-- **Homebrew:** `brew uninstall ollama`
-- **Other:** See [ollama.ai](https://ollama.ai) or your system’s package manager.
+- Homebrew: `brew uninstall ollama`
+- Other: See [ollama.ai](https://ollama.ai) or your system’s package manager.

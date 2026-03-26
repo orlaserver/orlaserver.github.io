@@ -122,7 +122,7 @@ You should get a successful response (e.g. HTTP 200 with `{"status":"healthy"}`)
 
 ## 3. Run the “Lily” story request
 
-The Orla API exposes **`POST /api/v1/execute`**: you send a `backend` name (a backend you registered), a `prompt` (or `messages`), and optional `max_tokens` and `stream`. The response contains the model output in `response.content`.
+The Orla API exposes `POST /api/v1/execute`: you send a `backend` name (a backend you registered), a `prompt` (or `messages`), and optional `max_tokens` and `stream`. The response contains the model output in `response.content`.
 
 ### Using the Go client
 
@@ -175,12 +175,12 @@ You should see the model’s story about Lily printed to the terminal. Example o
 ```
 Lily the cat lived in a sun-dappled cottage at the edge of a meadow, where daisies waved in the breeze and butterflies danced like tiny rainbows. Every morning, she would stretch like a furry sunbeam, then leap onto the windowsill to watch the world wake up. Her favorite pastime? Tiptoeing through the garden to chase a fluttering butterfly, only to gently nudge it back into the daisy patch with a soft purr. The neighbors often chuckled and said, “Lily has the most joyful spirit in all the village!”
 
-One bright afternoon, a tiny blue bird with a broken wing landed near her window, trembling and unable to fly. Lily didn’t just watch—she sat beside it, her tail wrapped gently around the bird’s side, and began humming a soft, melodic tune. The bird, startled but calm, slowly leaned into her warmth. With a little help from a kind neighbor, they found a patch of healing herbs, and by sunset, the bird could flutter again. As it soared into the sky, it left a trail of golden light—and Lily, beaming with pride, curled up in the grass, dreaming of more sunny adventures. After all, happiness, she thought, is just a purr away. 🌞🐾
+One bright afternoon, a tiny blue bird with a broken wing landed near her window, trembling and unable to fly. Lily didn’t just watch; she sat beside it, her tail wrapped gently around the bird’s side, and began humming a soft, melodic tune. The bird, startled but calm, slowly leaned into her warmth. With a little help from a kind neighbor, they found a patch of healing herbs, and by sunset, the bird could flutter again. As it soared into the sky, it left a trail of golden light, and Lily, beaming with pride, curled up in the grass, dreaming of more sunny adventures. After all, happiness, she thought, is just a purr away. 🌞🐾
 ```
 
 ### Streamed output
 
-To see the story as it is generated, use the stage’s **`ExecuteStream`** and **`ConsumeStream`**. `ExecuteStream` returns a channel of events; `ConsumeStream` reads that channel, optionally calls a handler for each event (e.g. to print tokens), and returns the full response when the stream finishes:
+To see the story as it is generated, use the stage’s `ExecuteStream` and `ConsumeStream`. `ExecuteStream` returns a channel of events; `ConsumeStream` reads that channel, optionally calls a handler for each event (e.g. to print tokens), and returns the full response when the stream finishes:
 
 ```go
 package main
@@ -242,7 +242,7 @@ The output should look like:
 Okay, the user wants a short, cheerful story about a cat named Lily. Let me start by thinking about the key elements. The story needs to be upbeat and positive, so I should focus on happy events. Maybe Lily is adventurous or has a friendly personality. Two or three paragraphs is enough, so I need to keep it concise.
 
 First paragraph: Introduce Lily and her characteristics. Maybe she's curious and loves exploring. Maybe she lives in a cozy place, like
- a cottage with a garden. That sets a warm scene. Then, perhaps she discovers something new, like a hidden path or a garden. Adding some sensory details would make it vivid—like the scent of flowers or the sound of birds.
+ a cottage with a garden. That sets a warm scene. Then, perhaps she discovers something new, like a hidden path or a garden. Adding some sensory details would make it vivid, like the scent of flowers or the sound of birds.
 
 Second paragraph: The adventure. Maybe she meets another animal, like a butterfly or a squirrel. They have a friendly interaction. The butterfly could be a magical element, like a guardian of the garden. This adds a touch of whimsy. Lily's actions show her kindness and curiosity. Maybe she helps the butterfly, leading to a positive outcome.
 
@@ -278,7 +278,7 @@ You can skip the Go client and use only `curl`. First register the vLLM backend,
 
 ### Register the backend (curl)
 
-Orla does not read backends from config. Register the vLLM backend with **`POST /api/v1/backends`**. When Orla and vLLM run in Docker Compose, use endpoint **`http://vllm:8000/v1`** (the Compose service name) so the Orla server container can reach the vLLM container:
+Orla does not read backends from config. Register the vLLM backend with `POST /api/v1/backends`. When Orla and vLLM run in Docker Compose, use endpoint `http://vllm:8000/v1` (the Compose service name) so the Orla server container can reach the vLLM container:
 
 ```bash
 curl -X POST http://localhost:8081/api/v1/backends \

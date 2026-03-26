@@ -4,9 +4,9 @@ LLM backends like vLLM and SGLang maintain a KV cache that stores intermediate a
 
 Orla's Memory Manager solves this by making workflow-aware decisions about when to preserve or flush KV cache at stage and workflow boundaries. It implements three policies by default:
 
-- **Preserve on Small Increment**: keep the cache when the new stage adds only a small number of tokens to the existing context.
-- **Flush at Boundary**: release cache when a workflow completes or the backend/model changes between stages.
-- **Flush Under Pressure**: automatically evict idle workflow caches when GPU memory is tight (handled server-side).
+- Preserve on Small Increment: keep the cache when the new stage adds only a small number of tokens to the existing context.
+- Flush at Boundary: release cache when a workflow completes or the backend/model changes between stages.
+- Flush Under Pressure: automatically evict idle workflow caches when GPU memory is tight (handled server-side).
 
 ## What you need
 
@@ -16,7 +16,7 @@ Orla's Memory Manager solves this by making workflow-aware decisions about when 
 
 ## Run the example
 
-The example uses **SGLang** by default so you can verify the hard cache flush end-to-end. From the Orla repo root, start the workflow-demo stack (Orla + SGLang):
+The example uses SGLang by default so you can verify the hard cache flush end-to-end. From the Orla repo root, start the workflow-demo stack (Orla + SGLang):
 
 ```bash
 docker compose -f deploy/docker-compose.workflow-demo.yaml up -d
@@ -183,14 +183,14 @@ wf.SetMemoryPolicy(&alwaysPreserveForBackend{targetBackend: "heavy-vllm"})
 
 The server-side Memory Manager (`internal/serving/memory`) handles the actual cache lifecycle:
 
-1. **Workflow tracking**: the client generates a unique workflow ID when `Execute()` is called. The server automatically registers the workflow the first time it sees a request with that ID.
-2. **Stage lifecycle signals**: the scheduler emits `StageStart` and `StageComplete` signals to the Memory Manager for every request that carries a workflow ID. These signals feed the policy chain so it can make preserve/flush decisions.
-3. **In-flight awareness**: the scheduler records each in-flight request. Flush decisions are deferred if other requests for the same workflow are still running on the backend.
-4. **Workflow completion**: when `Workflow.Execute()` finishes on the client, it sends a `POST /api/v1/workflow/complete` notification to the server with the workflow ID and backends used. The server emits `TransitionWorkflowComplete` signals, which trigger the flush-at-boundary policy, then deregisters the workflow from tracking.
-5. **Cache flush execution**: when the Memory Manager decides to flush, the behavior depends on the backend type:
-   - **SGLang**: Orla automatically registers an SGLang cache controller when you add an SGLang backend. The controller calls SGLang's `POST /flush_cache` endpoint for a hard flush, which clears the RadixAttention cache. This is a global operation (SGLang does not support per-session eviction), so it is only executed when no other workflows are in-flight on the same backend. With the default `SetMaxConcurrency(1)`, this is safe because only one request runs at a time. With higher concurrency, the hard flush is deferred until the backend is idle, falling back to soft-flush behavior in the meantime.
-   - **vLLM / Ollama**: These backends do not expose cache eviction APIs. The Memory Manager performs a soft flush: it marks the session as stale and stops actively preserving its cache, relying on the backend's natural LRU eviction to reclaim memory.
-6. **Pressure monitor**: a background goroutine starts when the server starts and periodically queries SGLang backends for KV cache utilization via `GET /get_server_info`. When pressure exceeds the configured threshold (default 85%), it identifies idle workflow caches and marks them for eviction, oldest first. For backends without a memory stats API, the pressure monitor is a no-op.
+1. Workflow tracking: the client generates a unique workflow ID when `Execute()` is called. The server automatically registers the workflow the first time it sees a request with that ID.
+2. Stage lifecycle signals: the scheduler emits `StageStart` and `StageComplete` signals to the Memory Manager for every request that carries a workflow ID. These signals feed the policy chain so it can make preserve/flush decisions.
+3. In-flight awareness: the scheduler records each in-flight request. Flush decisions are deferred if other requests for the same workflow are still running on the backend.
+4. Workflow completion: when `Workflow.Execute()` finishes on the client, it sends a `POST /api/v1/workflow/complete` notification to the server with the workflow ID and backends used. The server emits `TransitionWorkflowComplete` signals, which trigger the flush-at-boundary policy, then deregisters the workflow from tracking.
+5. Cache flush execution: when the Memory Manager decides to flush, the behavior depends on the backend type:
+   - SGLang: Orla automatically registers an SGLang cache controller when you add an SGLang backend. The controller calls SGLang's `POST /flush_cache` endpoint for a hard flush, which clears the RadixAttention cache. This is a global operation (SGLang does not support per-session eviction), so it is only executed when no other workflows are in-flight on the same backend. With the default `SetMaxConcurrency(1)`, this is safe because only one request runs at a time. With higher concurrency, the hard flush is deferred until the backend is idle, falling back to soft-flush behavior in the meantime.
+   - vLLM / Ollama: These backends do not expose cache eviction APIs. The Memory Manager performs a soft flush: it marks the session as stale and stops actively preserving its cache, relying on the backend's natural LRU eviction to reclaim memory.
+6. Pressure monitor: a background goroutine starts when the server starts and periodically queries SGLang backends for KV cache utilization via `GET /get_server_info`. When pressure exceeds the configured threshold (default 85%), it identifies idle workflow caches and marks them for eviction, oldest first. For backends without a memory stats API, the pressure monitor is a no-op.
 
 Stage-level `CachePolicy` overrides (set via `SetCachePolicy`) are sent with each request and take precedence over the server-side policy chain. The server-side `DefaultManager` evaluates the policy chain and enforces decisions while accounting for global state like in-flight requests and memory pressure.
 

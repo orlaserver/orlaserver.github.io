@@ -57,8 +57,8 @@ docker compose -f deploy/docker-compose.ollama.yaml up -d
 
 This starts:
 
-- **Ollama** on port 11434 (API at `http://localhost:11434`). The Orla server (in its container) reaches it at `http://ollama:11434`.
-- **Orla** on port 8081. The Orla server starts with no LLM backends; the Go program in step 3 registers the Ollama backend and runs the request.
+- Ollama on port 11434 (API at `http://localhost:11434`). The Orla server (in its container) reaches it at `http://ollama:11434`.
+- Orla on port 8081. The Orla server starts with no LLM backends; the Go program in step 3 registers the Ollama backend and runs the request.
 
 Pull a model inside the Ollama container (e.g. Llama 3.2 3B):
 
@@ -78,7 +78,7 @@ You should get a successful response (e.g. HTTP 200).
 
 ## 3. Run the “Lily” story request
 
-The Orla API exposes **`POST /api/v1/execute`**: you send a `backend` name (a backend you registered), a `prompt` (or `messages`), and optional `max_tokens` and `stream`. The response contains the model output in `response.content`.
+The Orla API exposes `POST /api/v1/execute`: you send a `backend` name (a backend you registered), a `prompt` (or `messages`), and optional `max_tokens` and `stream`. The response contains the model output in `response.content`.
 
 ### Using the Go client
 
@@ -138,7 +138,7 @@ Before long, Lily's music had woken up the whole house, and her humans came runn
 
 ### Streamed output
 
-To see the story as it is generated, use the stage’s **ExecuteStream** and **ConsumeStream**:
+To see the story as it is generated, use the stage’s ExecuteStream and ConsumeStream:
 
 ```go
 package main

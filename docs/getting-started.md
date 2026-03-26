@@ -18,13 +18,13 @@ curl -fsSL https://raw.githubusercontent.com/harvard-cns/orla/main/scripts/insta
 
 If you already have a remote Ollama server or prefer to manage Ollama separately, skip the local Ollama installation:
 
-**Homebrew:**
+Homebrew:
 
 ```bash
 HOMEBREW_ORLA_SKIP_OLLAMA=1 brew install --cask harvard-cns/orla/orla
 ```
 
-**Install script:**
+Install script:
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/harvard-cns/orla/main/scripts/install.sh | sh -s -- --skip-ollama
@@ -62,13 +62,12 @@ To uninstall, see [Uninstalling Orla](uninstalling.md).
 
 ## Python SDK (pyorla)
 
-For Python apps and [LangGraph](tutorials/tutorial-langgraph.md), use **pyorla** from the Orla repository (`pyorla/`). With a clone of [github.com/harvard-cns/orla](https://github.com/harvard-cns/orla):
+For Python apps and [LangGraph](tutorials/tutorial-langgraph.md), install the SDK from PyPI:
 
 ```bash
-cd pyorla
-uv sync
+pip install pyorla
 ```
 
-Or add it as a path dependency from your project: `uv add ../pyorla` (adjust the path).
+Or with uv: `uv add pyorla`.
 
-Full SDK documentation — remote and local clients, tools, LangChain, notebooks — is on **[Python SDK (pyorla)](pyorla.md)**.
+That gives you the client and LangChain/LangGraph helpers; you still need a running `orla serve` (install the Orla binary as above, use Docker, or connect to a remote daemon). Full SDK documentation is in [Python SDK (pyorla)](pyorla.md).
