@@ -228,7 +228,7 @@ docker compose -f deploy/docker-compose.workflow-demo.ollama.yaml down
 
 You don't need Docker or a GPU for this path. Install Orla as a standalone agent via Homebrew and start experimenting right away.
 
-Head over to the [Getting Started guide](https://orlaserver.github.io/docs/#/getting-started) for installation instructions.
+Head over to the [Quickstart](https://orlaserver.github.io/docs/#/quickstart) for installation and pyorla setup.
 
 </div>
 

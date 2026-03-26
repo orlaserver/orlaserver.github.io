@@ -69,4 +69,4 @@ for the 3 remaining non-warmup runs. -->
 
 ## Source code
 
-Orla's [GitHub repository](https://github.com/harvard-cns/orla) includes the daemon, CLI, and the pyorla Python package under `pyorla/`. Documentation for the SDK lives here: [Python SDK (pyorla)](pyorla.md).
+Orla's [GitHub repository](https://github.com/harvard-cns/orla) includes the daemon, CLI, and the pyorla Python package under `pyorla/`. For LangGraph and pyorla, start with the site [Quickstart](quickstart.md); source and examples live under [`pyorla/`](https://github.com/harvard-cns/orla/tree/main/pyorla) in the repo.

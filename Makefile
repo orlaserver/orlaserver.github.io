@@ -27,7 +27,7 @@ legacy: ## Static check: old links https://…/#/… redirect to /docs/#/… (no
 	@test -f index.html || (echo "FAIL: run from website repo root"; exit 1)
 	@grep -q "location.replace('/docs/' + h)" index.html || (echo "FAIL: legacy redirect (location.replace) missing"; exit 1)
 	@grep -q "h.indexOf('#/') === 0" index.html || (echo "FAIL: legacy hash guard missing"; exit 1)
-	@echo "legacy OK (script present; browser E2E: $(BASE)/#/getting-started → /docs/#/getting-started)"
+	@echo "legacy OK (script present; browser E2E: $(BASE)/#/quickstart → /docs/#/quickstart)"
 
 smoke: ## Curl landing + docs paths (run make serve first; runs legacy checks first)
 	@$(MAKE) -s legacy
