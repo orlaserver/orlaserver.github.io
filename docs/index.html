@@ -37,10 +37,10 @@
       --container-max: 1440px;
       --container-pad: 100px;
       --content-max-width: min(52rem, 100%);
-      --theme-color: #2e7d32;
-      --theme-color-light: #4caf50;
-      --sidebar-nav-link-color--active: #2e7d32;
-      --sidebar-name-color: #2e7d32;
+      --theme-color: #131226;
+      --theme-color-light: #2a2950;
+      --sidebar-nav-link-color--active: #131226;
+      --sidebar-name-color: #131226;
     }
 
     @media (max-width: 1439px) {
@@ -233,8 +233,21 @@
     header.navbar nav.navbar__links {
       position: static;
       margin: 0;
+      padding: 0;
       width: auto;
       max-width: none;
+      gap: 1.35rem;
+    }
+
+    header.navbar nav.navbar__links a {
+      margin: 0;
+      padding: 0;
+      border: none;
+      line-height: normal;
+    }
+
+    header.navbar * {
+      box-sizing: border-box;
     }
 
     .navbar__end {
@@ -566,7 +579,7 @@
 
     /* ── Cover page ────────────────────────────────────── */
     section.cover {
-      background: linear-gradient(135deg, #0d1117 0%, #161b22 40%, #1a2e1a 100%) !important;
+      background: linear-gradient(135deg, #0d0d1a 0%, #131226 40%, #1a1940 100%) !important;
       color: #e6edf3;
     }
 
@@ -581,14 +594,14 @@
     }
 
     section.cover .cover-main>p:last-child a {
-      background-color: #2e7d32 !important;
+      background-color: #131226 !important;
       color: #fff !important;
-      border: 2px solid #2e7d32;
+      border: 2px solid #131226;
     }
 
     section.cover .cover-main>p:last-child a:hover {
-      background-color: #388e3c !important;
-      border-color: #388e3c;
+      background-color: #2a2950 !important;
+      border-color: #2a2950;
     }
 
     section.cover .cover-main>p:last-child a:last-child {
@@ -629,7 +642,7 @@
 
     section.cover ul li::before {
       content: "→ ";
-      color: #4caf50;
+      color: #2a2950;
       font-weight: 600;
     }
 
@@ -690,7 +703,7 @@
     }
 
     .sidebar-nav li a:hover {
-      color: #2e7d32;
+      color: #131226;
     }
 
     .sidebar-nav>ul>li>a {
@@ -699,8 +712,8 @@
     }
 
     .sidebar-nav li.active>a {
-      color: #2e7d32;
-      border-right: 3px solid #2e7d32;
+      color: #131226;
+      border-right: 3px solid #131226;
     }
 
     .app-name-link {
@@ -759,7 +772,7 @@
 
     .markdown-section h1 {
       font-weight: 700;
-      border-bottom: 2px solid #2e7d32;
+      border-bottom: 2px solid #131226;
       padding-bottom: 0.3em;
       margin-top: 0.25em;
     }
@@ -781,12 +794,12 @@
     }
 
     .markdown-section a {
-      color: #2e7d32;
+      color: #131226;
       font-weight: 500;
     }
 
     .markdown-section a:hover {
-      color: #1b5e20;
+      color: #0a0b15;
     }
 
     /* ── Code blocks (Stripe-style) ─────────────────────── */
@@ -929,7 +942,7 @@
 
     /* ── Blockquotes ──────────────────────────────────── */
     .markdown-section blockquote {
-      border-left: 4px solid #2e7d32;
+      border-left: 4px solid #131226;
       padding: 0.8em 1em;
       background: rgba(19, 18, 38, 0.04);
       border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
@@ -973,8 +986,8 @@
     }
 
     .markdown-section .tip {
-      background: rgba(46, 125, 50, 0.08);
-      border-left: 4px solid #2e7d32;
+      background: rgba(19, 18, 38, 0.08);
+      border-left: 4px solid #131226;
     }
 
     .markdown-section .warning {
@@ -1034,7 +1047,7 @@
       width: 40px;
       height: 40px;
       border-radius: 50%;
-      background: #2e7d32;
+      background: #131226;
       color: #fff;
       border: none;
       cursor: pointer;
@@ -1054,7 +1067,7 @@
     }
 
     .scroll-top-btn:hover {
-      background: #1b5e20;
+      background: #0a0b15;
       transform: translateY(-2px);
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
     }
@@ -1080,8 +1093,8 @@
     }
 
     .search input:focus {
-      border-color: #2e7d32 !important;
-      box-shadow: 0 0 0 2px rgba(46, 125, 50, 0.18) !important;
+      border-color: #131226 !important;
+      box-shadow: 0 0 0 2px rgba(19, 18, 38, 0.18) !important;
       outline: none !important;
     }
 
@@ -1114,8 +1127,8 @@
     }
 
     .adventure-card:hover {
-      border-color: #2e7d32;
-      box-shadow: 0 4px 12px rgba(46, 125, 50, 0.12);
+      border-color: #131226;
+      box-shadow: 0 4px 12px rgba(19, 18, 38, 0.12);
       transform: translateY(-2px);
     }
 
@@ -1124,9 +1137,9 @@
     }
 
     .adventure-card.selected {
-      border-color: #2e7d32;
-      background: #e8f5e9;
-      box-shadow: 0 0 0 3px rgba(46, 125, 50, 0.2);
+      border-color: #131226;
+      background: #eeeef4;
+      box-shadow: 0 0 0 3px rgba(19, 18, 38, 0.2);
     }
 
     .adventure-card .card-icon {
@@ -1161,7 +1174,7 @@
       display: inline-block;
       margin-top: 0.8em;
       font-size: 0.9rem;
-      color: #2e7d32;
+      color: #131226;
       cursor: pointer;
       font-weight: 500;
     }
@@ -1190,7 +1203,7 @@
     }
 
     .site-footer a {
-      color: #2e7d32;
+      color: #131226;
       text-decoration: none;
       margin: 0 0.6em;
       font-weight: 500;
@@ -1215,15 +1228,15 @@
     }
 
     .page_toc div.active {
-      border-left-color: #2e7d32;
+      border-left-color: #131226;
     }
 
     .page_toc div.active a span {
-      color: #2e7d32;
+      color: #131226;
     }
 
     .page_toc div[class^="lv"] a:hover span {
-      color: #2e7d32;
+      color: #131226;
     }
 
     .page_toc div {
@@ -1265,8 +1278,8 @@
         <div id="navbar-menu" class="navbar__menu">
           <div class="navbar__cluster">
             <nav class="navbar__links" aria-label="Primary">
-              <a href="/docs/#/overview">Docs</a>
-              <a href="/docs/#/community">Community</a>
+              <a href="/">Home</a>
+              <a href="https://arxiv.org/abs/2603.13605" target="_blank" rel="noopener noreferrer">Paper</a>
               <a href="/#team">Team</a>
             </nav>
             <div class="navbar__end">
@@ -1277,7 +1290,6 @@
                     alt="GitHub stars for harvard-cns/orla" height="30" decoding="async" />
                 </span>
               </a>
-              <a class="navbar__cta" href="/docs/#/quickstart">Quickstart</a>
             </div>
           </div>
         </div>
@@ -1296,14 +1308,14 @@
       loadSidebar: true,
       coverpage: false,
       onlyCover: false,
-      homepage: 'overview.md',
+      homepage: 'quickstart.md',
       subMaxLevel: 2,
       toc: {
         tocMaxLevel: 5,
         target: 'h2, h3, h4, h5'
       },
       auto2top: true,
-      themeColor: '#2e7d32',
+      themeColor: '#131226',
       search: {
         placeholder: 'Search docs...',
         noData: 'No results.',

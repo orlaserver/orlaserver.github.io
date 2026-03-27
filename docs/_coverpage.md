@@ -6,6 +6,6 @@
 - Workflow Orchestrator: Execute DAG-based multi-stage workflows with scheduling and tool-calling loops
 - Memory Manager: Manage KV cache across stages to reduce redundant prefill
 
-[Docs](overview.md)
+[Docs](quickstart.md)
 [Demo](research/orla_workflow_customer_support.md)
 [Star on GitHub](https://github.com/harvard-cns/orla)

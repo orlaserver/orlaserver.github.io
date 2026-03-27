@@ -1,16 +1,10 @@
 # Quickstart
 
-This guide builds a small calculator agent with [LangGraph](https://langchain-ai.github.io/langgraph/) using the Graph API: tools, message state, and the usual loop between an LLM node and a tool node. If you have already worked through the official [LangGraph quickstart](https://docs.langchain.com/oss/python/langgraph/quickstart), the structure will feel familiar. In many LangGraph tutorials each LLM node is configured to talk straight to a cloud provider or to one local inference URL. In this document, those model calls are sent through [Orla](https://github.com/harvard-cns/orla) first, and the sections below show what you wire on the Orla side for different hosting choices.
-
-If you add Orla next to LangGraph, you do not need to throw away your graph or move your tools out of the Python process you already run. The LangGraph layout stays where it is, and your tool implementations keep running locally. What changes is how LLM work is executed. Instead of each node talking straight to a provider or to one hard-coded local base URL, model calls go through Orla first. You register the inference endpoints you already rely on, whether that is vLLM or Ollama on your machines or a OpenAI-compatible HTTP API for cloud models. For each LLM step in the graph, you attach a `Stage` so that step is bound to the model and backend you want for that part of the workflow.
+Build a calculator agent with [LangGraph](https://langchain-ai.github.io/langgraph/) and route model calls through Orla. Your graph and tools stay in Python. What changes is that each LLM step goes through Orla, which lets you assign different models and backends per step.
 
 ![Orla + LangGraph quickstart diagram](assets/orla_langgraph_quickstart.svg)
 
-That gives you room to match model size to the task. Light steps can stay on a small, fast model. Steps that need more capacity can call a larger one. Over a full agent run, that split usually costs less and finishes sooner than sending every hop through a single expensive model.
-
-All of that model traffic flows through the Orla daemon (`orla serve`). From the application side, scheduling, retries on failed model requests, and metrics for the model leg are handled in one place instead of being reimplemented inside every node. When you enable the features that support it, Orla can also carry inference state forward from one step to the next (for example KV cache), which reduces how often later tokens start from a completely cold context. Tools are outside that path entirely. Tool calls never go through Orla.
-
-You connect the graph to the daemon with pyorla: `OrlaClient` for the HTTP connection, `LLMBackend` for each registered server or API, and `Stage.as_chat_model()` for the LangChain chat surface your nodes use. The sections below repeat the same calculator example three ways: against Amazon Bedrock in the cloud, against a model you host yourself, and with a hybrid graph where a small local model does an initial step and Bedrock runs the tool loop. For a fuller description of how Orla is structured, see [Overview](overview.md).
+The sections below show three setups: mixed models (the recommended starting point), cloud-only, and self-hosted. The mixed example is first because it shows what makes Orla useful: a cheap local model for triage, a larger model for the tool loop, lower cost and faster completion.
 
 ## Prerequisites
 
@@ -124,114 +118,11 @@ def should_continue(state: MessagesState) -> Literal["tool_node", END]:
 
 In the Local and Mixed sections you wire the graph the same way at the end: an edge from `START` into `llm_call`, conditional edges from `llm_call` out to either `tool_node` or `END`, and an edge from `tool_node` back into `llm_call` so the loop can continue. The Mixed example inserts an extra node called `local_triage` at the beginning of the chain, so the first hop is `START` to `local_triage`, then `local_triage` to `llm_call`. Triage output is stored in `triage_label`, not appended as an assistant message, so the Bedrock leg still sees a user-last turn on the first calculator call. It still reuses the same `llm_call`, `tool_node`, and `should_continue` definitions you built above.
 
-## Orla with Cloud Models
-
-This guide uses [Amazon Bedrock](https://aws.amazon.com/bedrock/) through its OpenAI-compatible HTTP API: region hosts look like `https://bedrock-mantle.<region>.api.aws/v1`, and AWS documents that surface as [Bedrock Mantle](https://docs.aws.amazon.com/bedrock/latest/userguide/bedrock-mantle.html). In pyorla you represent that endpoint with `LLMBackend`, set `type="openai"`, and use a model id string of the form `openai:<model-id>` so Orla knows which Bedrock model to call.
-
-![Orla + LangGraph quickstart bedrock](assets/orla_langgraph_quickstart_bedrock.svg)
-
-Create a [Bedrock API key](https://docs.aws.amazon.com/bedrock/latest/userguide/api-keys.html) and export it as `OPENAI_API_KEY` in the shell where you launch Python. The snippet below uses `orla_runtime()`, which starts a child `orla` process for you. That child must inherit `OPENAI_API_KEY` from the environment when it starts, because the daemon uses it when it calls Bedrock on your behalf.
-
-Complete the [LangGraph tools](#langgraph-tools) and [LangGraph nodes](#langgraph-nodes) sections first, then run the Python block that follows. The block starts the daemon with `orla_runtime()`, registers Bedrock at `https://bedrock-mantle.us-east-2.api.aws/v1` with a small default instruct model, builds the same `StateGraph` shape as in the Local section, invokes the graph, and prints each message. Adjust `endpoint` and `model_id` in the `LLMBackend` constructor if your account uses another region or another model. The Local and Mixed sections use the same `orla_runtime()` pattern.
-
-```python
-from langchain_core.messages import HumanMessage
-from langgraph.graph import END, START, StateGraph
-from pyorla import LLMBackend, Stage, orla_runtime
-
-# add code from "LangGraph Tools"
-# add code from "LangGraph Nodes"
-
-with orla_runtime(quiet=True) as client:
-    bedrock = LLMBackend(
-        name="bedrock-mantle",
-        endpoint="https://bedrock-mantle.us-east-2.api.aws/v1",
-        type="openai",
-        model_id="openai:mistral.ministral-3-3b-instruct",
-        api_key_env_var="OPENAI_API_KEY",
-    )
-    client.register_backend(bedrock)
-
-    stage = Stage("calculator", bedrock)
-    stage.client = client
-    stage.set_max_tokens(512)
-    stage.set_temperature(0)
-    model_with_tools = stage.as_chat_model().bind_tools(tools)
-
-    agent_builder = StateGraph(MessagesState)
-    agent_builder.add_node("llm_call", llm_call)
-    agent_builder.add_node("tool_node", tool_node)
-    agent_builder.add_edge(START, "llm_call")
-    agent_builder.add_conditional_edges(
-        "llm_call",
-        should_continue,
-        ["tool_node", END],
-    )
-    agent_builder.add_edge("tool_node", "llm_call")
-    agent = agent_builder.compile()
-
-    out = agent.invoke({"messages": [HumanMessage(content="Add 3 and 4.")]})
-    for m in out["messages"]:
-        m.pretty_print()
-```
-
-Runnable end-to-end scripts for each backend live in the Orla repo under `pyorla/examples/`: [`calculator_agent_cloud/run.py`](https://github.com/harvard-cns/orla/blob/main/pyorla/examples/calculator_agent_cloud/run.py), [`calculator_agent_vllm/run.py`](https://github.com/harvard-cns/orla/blob/main/pyorla/examples/calculator_agent_vllm/run.py) (Docker + vLLM + GPU), and [`calculator_agent_mixed/run.py`](https://github.com/harvard-cns/orla/blob/main/pyorla/examples/calculator_agent_mixed/run.py). All three start Orla with `orla_runtime()`; the vLLM and mixed scripts also wait on Docker or Ollama before that. Each includes dataclass state, logging or readiness waits, and error handling beyond the snippets in this page.
-
-## Orla with Self-Hosted Models
-
-In the self-hosted setup, Orla and your Python process run on the same physical or virtual machine. The weights live in a separate program, typically vLLM or another OpenAI-compatible server, which listens on a local HTTP port (8000 is a common default for vLLM). When you register that server as a backend, use a URL that Orla on the host can actually open. In practice that often means `http://127.0.0.1:...` rather than a Docker-only hostname that resolves inside a container network but not from the host where `orla serve` runs.
-
-![Orla + LangGraph quickstart vLLM](assets/orla_langgraph_quickstart_vllm.svg)
-
-If you operate vLLM yourself, turn on tool calling in the server flags so the model can emit tool calls in a format Orla and LangChain expect. A typical starting point is `--enable-auto-tool-choice` together with a `--tool-call-parser` that matches your model family. Orla’s [Compose file](https://github.com/harvard-cns/orla/blob/main/deploy/docker-compose.vllm.yaml) documents one combination that works with Qwen.
-
-```python
-from langchain_core.messages import HumanMessage
-from langgraph.graph import END, START, StateGraph
-from pyorla import Stage, new_vllm_backend, orla_runtime
-
-# add code from "LangGraph Tools"
-# add code from "LangGraph Nodes"
-
-with orla_runtime(quiet=True) as client:
-    local = new_vllm_backend(
-        "Qwen/Qwen3-4B-Instruct-2507",
-        "http://127.0.0.1:8000/v1",
-    )
-    client.register_backend(local)
-
-    stage = Stage("calculator", local)
-    stage.client = client
-    stage.set_max_tokens(512)
-    stage.set_temperature(0)
-    model_with_tools = stage.as_chat_model().bind_tools(tools)
-
-    agent_builder = StateGraph(MessagesState)
-    agent_builder.add_node("llm_call", llm_call)
-    agent_builder.add_node("tool_node", tool_node)
-    agent_builder.add_edge(START, "llm_call")
-    agent_builder.add_conditional_edges(
-        "llm_call",
-        should_continue,
-        ["tool_node", END],
-    )
-    agent_builder.add_edge("tool_node", "llm_call")
-    agent = agent_builder.compile()
-
-    out = agent.invoke({"messages": [HumanMessage(content="Add 3 and 4.")]})
-    for m in out["messages"]:
-        m.pretty_print()
-```
-
-If you prefer Ollama, you can substitute `new_ollama_backend("your-model", "http://127.0.0.1:11434")` for `new_vllm_backend` in the Local section, as long as the model you pick supports tool calling well enough for your graph.
-
 ## Orla with Mixed Model Workloads
 
-The mixed example registers two different `LLMBackend` values and builds two `Stage` instances, one for each backend. The graph is the calculator graph from earlier, plus one extra node at the front. That node calls a small local model through Orla to classify the user message, without tools attached. The rest of the graph is the usual loop where the Bedrock-backed stage runs the calculator agent with tools. Both LLM calls still go through Orla; each stage is tied to its own backend.
+This is the setup that shows what Orla is for. Register two backends: a small local model for triage and a larger cloud model for the tool loop. Spend a little compute classifying the request, then hand the real work to the model that can handle it. Both calls go through Orla; each stage is tied to its own backend.
 
 ![Orla + LangGraph quickstart mixed model](assets/orla_langgraph_quickstart_mixed_model.svg)
-
-The pattern is intentionally simple: spend a little compute on a fast local triage step, then hand the arithmetic workflow to a larger cloud model for the tool-using loop. You can extend the same idea with more nodes and more stages as your own workflows grow in complexity.
 
 ```python
 from langchain_core.messages import HumanMessage, SystemMessage
@@ -302,3 +193,104 @@ with orla_runtime(quiet=True) as client:
     for m in out["messages"]:
         m.pretty_print()
 ```
+
+Runnable end-to-end scripts for each backend live in the Orla repo under `pyorla/examples/`: [`calculator_agent_mixed/run.py`](https://github.com/harvard-cns/orla/blob/main/pyorla/examples/calculator_agent_mixed/run.py), [`calculator_agent_cloud/run.py`](https://github.com/harvard-cns/orla/blob/main/pyorla/examples/calculator_agent_cloud/run.py), and [`calculator_agent_vllm/run.py`](https://github.com/harvard-cns/orla/blob/main/pyorla/examples/calculator_agent_vllm/run.py).
+
+## Orla with Cloud Models
+
+This guide uses [Amazon Bedrock](https://aws.amazon.com/bedrock/) through its OpenAI-compatible HTTP API: region hosts look like `https://bedrock-mantle.<region>.api.aws/v1`, and AWS documents that surface as [Bedrock Mantle](https://docs.aws.amazon.com/bedrock/latest/userguide/bedrock-mantle.html). In pyorla you represent that endpoint with `LLMBackend`, set `type="openai"`, and use a model id string of the form `openai:<model-id>` so Orla knows which Bedrock model to call.
+
+![Orla + LangGraph quickstart bedrock](assets/orla_langgraph_quickstart_bedrock.svg)
+
+Create a [Bedrock API key](https://docs.aws.amazon.com/bedrock/latest/userguide/api-keys.html) and export it as `OPENAI_API_KEY` in the shell where you launch Python. The snippet below uses `orla_runtime()`, which starts a child `orla` process for you. That child must inherit `OPENAI_API_KEY` from the environment when it starts, because the daemon uses it when it calls Bedrock on your behalf.
+
+Complete the [LangGraph tools](#langgraph-tools) and [LangGraph nodes](#langgraph-nodes) sections first, then run the Python block that follows. The block starts the daemon with `orla_runtime()`, registers Bedrock at `https://bedrock-mantle.us-east-2.api.aws/v1` with a small default instruct model, builds the same `StateGraph` shape as in the Local section, invokes the graph, and prints each message. Adjust `endpoint` and `model_id` in the `LLMBackend` constructor if your account uses another region or another model. The Local and Mixed sections use the same `orla_runtime()` pattern.
+
+```python
+from langchain_core.messages import HumanMessage
+from langgraph.graph import END, START, StateGraph
+from pyorla import LLMBackend, Stage, orla_runtime
+
+# add code from "LangGraph Tools"
+# add code from "LangGraph Nodes"
+
+with orla_runtime(quiet=True) as client:
+    bedrock = LLMBackend(
+        name="bedrock-mantle",
+        endpoint="https://bedrock-mantle.us-east-2.api.aws/v1",
+        type="openai",
+        model_id="openai:mistral.ministral-3-3b-instruct",
+        api_key_env_var="OPENAI_API_KEY",
+    )
+    client.register_backend(bedrock)
+
+    stage = Stage("calculator", bedrock)
+    stage.client = client
+    stage.set_max_tokens(512)
+    stage.set_temperature(0)
+    model_with_tools = stage.as_chat_model().bind_tools(tools)
+
+    agent_builder = StateGraph(MessagesState)
+    agent_builder.add_node("llm_call", llm_call)
+    agent_builder.add_node("tool_node", tool_node)
+    agent_builder.add_edge(START, "llm_call")
+    agent_builder.add_conditional_edges(
+        "llm_call",
+        should_continue,
+        ["tool_node", END],
+    )
+    agent_builder.add_edge("tool_node", "llm_call")
+    agent = agent_builder.compile()
+
+    out = agent.invoke({"messages": [HumanMessage(content="Add 3 and 4.")]})
+    for m in out["messages"]:
+        m.pretty_print()
+```
+
+## Orla with Self-Hosted Models
+
+In the self-hosted setup, Orla and your Python process run on the same physical or virtual machine. The weights live in a separate program, typically vLLM or another OpenAI-compatible server, which listens on a local HTTP port (8000 is a common default for vLLM). When you register that server as a backend, use a URL that Orla on the host can actually open. In practice that often means `http://127.0.0.1:...` rather than a Docker-only hostname that resolves inside a container network but not from the host where `orla serve` runs.
+
+![Orla + LangGraph quickstart vLLM](assets/orla_langgraph_quickstart_vllm.svg)
+
+If you operate vLLM yourself, turn on tool calling in the server flags so the model can emit tool calls in a format Orla and LangChain expect. A typical starting point is `--enable-auto-tool-choice` together with a `--tool-call-parser` that matches your model family. Orla’s [Compose file](https://github.com/harvard-cns/orla/blob/main/deploy/docker-compose.vllm.yaml) documents one combination that works with Qwen.
+
+```python
+from langchain_core.messages import HumanMessage
+from langgraph.graph import END, START, StateGraph
+from pyorla import Stage, new_vllm_backend, orla_runtime
+
+# add code from "LangGraph Tools"
+# add code from "LangGraph Nodes"
+
+with orla_runtime(quiet=True) as client:
+    local = new_vllm_backend(
+        "Qwen/Qwen3-4B-Instruct-2507",
+        "http://127.0.0.1:8000/v1",
+    )
+    client.register_backend(local)
+
+    stage = Stage("calculator", local)
+    stage.client = client
+    stage.set_max_tokens(512)
+    stage.set_temperature(0)
+    model_with_tools = stage.as_chat_model().bind_tools(tools)
+
+    agent_builder = StateGraph(MessagesState)
+    agent_builder.add_node("llm_call", llm_call)
+    agent_builder.add_node("tool_node", tool_node)
+    agent_builder.add_edge(START, "llm_call")
+    agent_builder.add_conditional_edges(
+        "llm_call",
+        should_continue,
+        ["tool_node", END],
+    )
+    agent_builder.add_edge("tool_node", "llm_call")
+    agent = agent_builder.compile()
+
+    out = agent.invoke({"messages": [HumanMessage(content="Add 3 and 4.")]})
+    for m in out["messages"]:
+        m.pretty_print()
+```
+
+If you prefer Ollama, you can substitute `new_ollama_backend("your-model", "http://127.0.0.1:11434")` for `new_vllm_backend` in the Local section, as long as the model you pick supports tool calling well enough for your graph.
