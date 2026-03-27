@@ -4,13 +4,27 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Orla: Build Multi-Agent Systems That Scale</title>
+  <title>Orla: Cost-Optimized Multi-Agent LLM Workflows for Python</title>
   <meta name="description"
-    content="Orla runs multi-stage agent workflows across SGLang, vLLM, and Ollama with scheduling, tool calling, and KV cache management.">
+    content="Orla optimizes cost and latency for multi-stage LLM agent workflows across SGLang, vLLM, and Ollama. Up to 48% faster and 35% cheaper with smart model routing.">
   <meta name="theme-color" content="#f8f4ef">
   <meta name="color-scheme" content="light">
   <link rel="icon" href="/docs/orla_cat.png" type="image/png">
   <link rel="apple-touch-icon" href="/docs/orla_cat.png">
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Orla: Cost-Optimized Multi-Agent LLM Workflows">
+  <meta property="og:description" content="Up to 48% faster and 35% cheaper agent workflows. Smart model routing, KV cache management, and cost optimization across SGLang, vLLM, and Ollama.">
+  <meta property="og:image" content="https://orlaserver.github.io/docs/orla_banner_no_caption.png">
+  <meta property="og:url" content="https://orlaserver.github.io">
+  <meta property="og:site_name" content="Orla">
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Orla: Cost-Optimized Multi-Agent LLM Workflows">
+  <meta name="twitter:description" content="Up to 48% faster and 35% cheaper agent workflows. Smart model routing, KV cache management, and cost optimization.">
+  <meta name="twitter:image" content="https://orlaserver.github.io/docs/orla_banner_no_caption.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link
@@ -1222,6 +1236,679 @@
       text-wrap: pretty;
     }
 
+    /* ── Hero architecture diagram ── */
+    .hero__arch {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto minmax(0, 1.4fr) auto minmax(0, 1fr);
+      align-items: center;
+      gap: 0;
+      width: 100%;
+      max-width: 960px;
+      margin-inline: auto;
+      padding: clamp(20px, 3vw, 32px);
+      border-radius: 16px;
+      border: 1px solid var(--color-border);
+      background: #fff;
+      box-shadow: 0 12px 40px rgba(19, 18, 38, 0.06);
+    }
+
+    .hero__arch-col {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .hero__arch-pill {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 16px;
+      border-radius: 10px;
+      border: 1px solid var(--color-border);
+      background: var(--color-bg);
+      font-family: var(--font-heading);
+      font-size: clamp(12px, 1.1vw, 14px);
+      font-weight: 600;
+      letter-spacing: -0.01em;
+      color: var(--color-dark);
+    }
+
+    .hero__arch-pill svg {
+      width: 18px;
+      height: 18px;
+      opacity: 0.55;
+      flex-shrink: 0;
+    }
+
+    .hero__arch-pill img {
+      height: 24px;
+      width: auto;
+      object-fit: contain;
+      flex-shrink: 0;
+    }
+
+    /* Engine pills (logo-only, no text): size by width so all pills match */
+    .hero__arch-pill--engine {
+      justify-content: center;
+    }
+
+    .hero__arch-pill--engine img {
+      height: auto;
+      width: 80px;
+    }
+
+    .hero__arch-center {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+      padding: 28px 28px;
+      border-radius: 14px;
+      background: var(--color-dark);
+      box-shadow: 0 8px 24px rgba(19, 18, 38, 0.15);
+      text-align: left;
+    }
+
+    .hero__arch-center-title {
+      margin: 0;
+      font-family: var(--font-heading);
+      font-size: clamp(14px, 1.3vw, 17px);
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      color: #fff;
+      text-align: center;
+      width: 100%;
+    }
+
+    .hero__arch-center-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .hero__arch-center-list li {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: clamp(12px, 1.1vw, 14px);
+      color: rgba(255, 255, 255, 0.7);
+      line-height: 1.45;
+      white-space: nowrap;
+    }
+
+    .hero__arch-center-list li img {
+      width: 28px;
+      height: 28px;
+      object-fit: contain;
+      flex-shrink: 0;
+    }
+
+    .hero__arch-arrow {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0 clamp(6px, 1vw, 14px);
+      color: rgba(19, 18, 38, 0.2);
+      flex-shrink: 0;
+    }
+
+    .hero__arch-arrow svg {
+      width: clamp(24px, 3vw, 36px);
+      height: auto;
+    }
+
+    .hero__arch-col-label {
+      margin: 0;
+      font-family: var(--font-heading);
+      font-size: clamp(10px, 0.95vw, 12px);
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: rgba(19, 18, 38, 0.35);
+      text-align: center;
+      padding-bottom: 4px;
+    }
+
+    @media (max-width: 720px) {
+      .hero__arch {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto auto auto auto auto;
+        gap: 0;
+        padding: clamp(16px, 3vw, 24px);
+      }
+
+      .hero__arch-col {
+        flex-direction: row;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 8px;
+      }
+
+      .hero__arch-arrow {
+        padding: 8px 0;
+        transform: rotate(90deg);
+      }
+
+      .hero__arch-col-label {
+        width: 100%;
+      }
+    }
+
+    /* ── Harvard affiliation badge (hero) ── */
+    .hero__affiliation {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 18px 8px 12px;
+      border-radius: 999px;
+      border: 1px solid var(--color-border);
+      background: rgba(255, 255, 255, 0.85);
+      box-shadow: 0 2px 8px rgba(19, 18, 38, 0.04);
+      font-family: var(--font-heading);
+      font-size: clamp(13px, 1.2vw, 15px);
+      font-weight: 600;
+      letter-spacing: -0.01em;
+      color: rgba(19, 18, 38, 0.72);
+      text-decoration: none;
+      transition: border-color 0.15s ease, box-shadow 0.15s ease, color 0.15s ease;
+    }
+
+    .hero__affiliation:hover {
+      border-color: rgba(19, 18, 38, 0.2);
+      box-shadow: 0 4px 14px rgba(19, 18, 38, 0.08);
+      color: var(--color-dark);
+    }
+
+    .hero__affiliation img {
+      height: 22px;
+      width: auto;
+      flex-shrink: 0;
+    }
+
+    /* ── Integrations / compatible-with logo strip ── */
+    .integrations {
+      padding: clamp(32px, 5vh, 48px) 0;
+      background: #fff;
+      border-top: 1px solid var(--color-border);
+    }
+
+    .integrations__inner {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: clamp(16px, 2.5vw, 24px);
+    }
+
+    .integrations__label {
+      margin: 0;
+      font-family: var(--font-heading);
+      font-size: clamp(12px, 1.1vw, 13px);
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: rgba(19, 18, 38, 0.38);
+    }
+
+    .integrations__logos {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: clamp(24px, 4vw, 48px);
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .integrations__logos li {
+      display: flex;
+      align-items: center;
+      opacity: 0.55;
+      transition: opacity 0.15s ease;
+    }
+
+    .integrations__logos li:hover {
+      opacity: 0.85;
+    }
+
+    .integrations__logos li img {
+      width: clamp(80px, 10vw, 120px);
+      height: auto;
+      max-height: 48px;
+      object-fit: contain;
+    }
+
+    .integrations__logos li img.logo--lg {
+      width: clamp(120px, 14vw, 170px);
+      max-height: 64px;
+    }
+
+    /* ── Code example section ── */
+    .code-example {
+      padding: clamp(56px, 10vh, 96px) 0;
+      background: var(--color-bg);
+      border-top: 1px solid var(--color-border);
+    }
+
+    .code-example__inner {
+      display: flex;
+      flex-direction: column;
+      gap: clamp(20px, 3vw, 28px);
+    }
+
+    .code-example__header {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .code-example__eyebrow {
+      margin: 0;
+      font-family: var(--font-heading);
+      font-size: clamp(12px, 1.1vw, 13px);
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: rgba(19, 18, 38, 0.48);
+    }
+
+    .code-example__title {
+      margin: 0;
+      font-size: clamp(22px, 2.5vw, 30px);
+      font-weight: 600;
+      line-height: 1.2;
+      letter-spacing: -0.02em;
+      color: var(--color-dark);
+      text-wrap: balance;
+    }
+
+    .code-example__block {
+      position: relative;
+      border-radius: 14px;
+      border: 1px solid var(--color-border);
+      background: #1e1e2e;
+      box-shadow: 0 12px 40px rgba(19, 18, 38, 0.1);
+      overflow: hidden;
+    }
+
+    .code-example__bar {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 12px 16px;
+      background: rgba(255, 255, 255, 0.04);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .code-example__dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.12);
+    }
+
+    .code-example__pre {
+      margin: 0;
+      padding: clamp(16px, 2vw, 24px);
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .code-example__pre code {
+      font-family: var(--font-mono);
+      font-size: clamp(13px, 1.15vw, 15px);
+      line-height: 1.7;
+      color: #cdd6f4;
+      white-space: pre;
+    }
+
+    .code-example__pre .cm-kw { color: #cba6f7; }
+    .code-example__pre .cm-fn { color: #89b4fa; }
+    .code-example__pre .cm-str { color: #a6e3a1; }
+    .code-example__pre .cm-num { color: #fab387; }
+    .code-example__pre .cm-cmt { color: #6c7086; font-style: italic; }
+    .code-example__pre .cm-op { color: #89dceb; }
+
+    /* ── Why Orla section ── */
+    .why-orla {
+      padding: clamp(56px, 10vh, 96px) 0;
+      background: #fff;
+      border-top: 1px solid var(--color-border);
+    }
+
+    .why-orla__inner {
+      display: flex;
+      flex-direction: column;
+      gap: clamp(24px, 3.5vw, 36px);
+    }
+
+    .why-orla__header {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .why-orla__eyebrow {
+      margin: 0;
+      font-family: var(--font-heading);
+      font-size: clamp(12px, 1.1vw, 13px);
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: rgba(19, 18, 38, 0.48);
+    }
+
+    .why-orla__title {
+      margin: 0;
+      font-size: clamp(22px, 2.5vw, 30px);
+      font-weight: 600;
+      line-height: 1.2;
+      letter-spacing: -0.02em;
+      color: var(--color-dark);
+      text-wrap: balance;
+    }
+
+    .why-orla__grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 0;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+      background: var(--color-bg);
+      border: 1px solid var(--color-border);
+      border-radius: 16px;
+      box-shadow: 0 8px 32px rgba(19, 18, 38, 0.06);
+      overflow: hidden;
+    }
+
+    .why-orla__item {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      padding: clamp(1.35rem, 2.4vw, 2rem) clamp(1.25rem, 2.5vw, 2rem);
+      border-left: 1px solid var(--color-border);
+      background: #fff;
+    }
+
+    .why-orla__item:first-child {
+      border-left: none;
+    }
+
+    .why-orla__item-title {
+      margin: 0;
+      font-family: var(--font-heading);
+      font-size: 1.0625rem;
+      font-weight: 600;
+      letter-spacing: -0.025em;
+      color: var(--color-dark);
+    }
+
+    .why-orla__item-desc {
+      margin: 0;
+      font-size: 0.9375rem;
+      line-height: 1.58;
+      color: rgba(19, 18, 38, 0.62);
+      text-wrap: pretty;
+    }
+
+    @media (max-width: 720px) {
+      .why-orla__grid {
+        grid-template-columns: 1fr;
+      }
+
+      .why-orla__item {
+        border-left: none;
+        border-top: 1px solid var(--color-border);
+      }
+
+      .why-orla__item:first-child {
+        border-top: none;
+      }
+    }
+
+    /* ── Paper CTA ── */
+    .hero__paper-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 20px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--color-border);
+      background: #fff;
+      font-family: var(--font-heading);
+      font-size: 16px;
+      font-weight: 500;
+      color: var(--color-dark);
+      transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    .hero__paper-link:hover {
+      border-color: rgba(19, 18, 38, 0.25);
+      box-shadow: 0 2px 8px rgba(19, 18, 38, 0.06);
+    }
+
+    .hero__paper-link svg {
+      width: 16px;
+      height: 16px;
+      opacity: 0.7;
+    }
+
+    /* ── Expanded footer ── */
+    .site-footer__grid {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 2rem 3rem;
+      padding-bottom: 1.5rem;
+      margin-bottom: 1.5rem;
+      border-bottom: 1px solid var(--color-border);
+    }
+
+    .site-footer__col {
+      display: flex;
+      flex-direction: column;
+      gap: 0.65rem;
+    }
+
+    .site-footer__col-title {
+      margin: 0;
+      font-family: var(--font-heading);
+      font-size: 14px;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+      color: var(--color-dark);
+    }
+
+    .site-footer__col a {
+      font-size: 14px;
+      color: rgba(19, 18, 38, 0.58);
+      text-decoration: none;
+      transition: color 0.15s ease;
+    }
+
+    .site-footer__col a:hover {
+      color: var(--color-dark);
+    }
+
+    .site-footer__harvard {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .site-footer__harvard img {
+      height: 18px;
+      width: auto;
+      opacity: 0.7;
+    }
+
+    /* ── Star CTA ── */
+    .star-cta {
+      padding: clamp(56px, 10vh, 88px) 0;
+      background: var(--color-dark);
+      color: #fff;
+      text-align: center;
+    }
+
+    .star-cta__inner {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: clamp(16px, 2.5vw, 24px);
+    }
+
+    .star-cta__title {
+      margin: 0;
+      font-size: clamp(24px, 3vw, 36px);
+      font-weight: 600;
+      line-height: 1.2;
+      letter-spacing: -0.02em;
+    }
+
+    .star-cta__desc {
+      margin: 0;
+      font-size: clamp(15px, 1.4vw, 17px);
+      line-height: 1.6;
+      color: rgba(255, 255, 255, 0.65);
+      max-width: 36rem;
+    }
+
+    .star-cta__btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 28px;
+      border-radius: var(--radius-sm);
+      background: #fff;
+      color: var(--color-dark);
+      font-family: var(--font-heading);
+      font-size: 16px;
+      font-weight: 600;
+      transition: opacity 0.15s ease, transform 0.15s ease;
+    }
+
+    .star-cta__btn:hover {
+      opacity: 0.9;
+      transform: translateY(-1px);
+    }
+
+    .star-cta__btn svg {
+      width: 18px;
+      height: 18px;
+    }
+
+    /* ── Citation ── */
+    .citation {
+      padding: clamp(48px, 8vh, 72px) 0;
+      background: var(--color-bg);
+      border-top: 1px solid var(--color-border);
+    }
+
+    .citation__inner {
+      display: flex;
+      flex-direction: column;
+      gap: clamp(16px, 2.5vw, 24px);
+    }
+
+    .citation__title {
+      margin: 0;
+      font-size: clamp(22px, 2.5vw, 28px);
+      font-weight: 600;
+      line-height: 1.2;
+      letter-spacing: -0.02em;
+      color: var(--color-dark);
+    }
+
+    .citation__desc {
+      margin: 0;
+      font-size: clamp(15px, 1.4vw, 17px);
+      line-height: 1.6;
+      color: rgba(19, 18, 38, 0.68);
+    }
+
+    .citation__block {
+      position: relative;
+      border-radius: 10px;
+      border: 1px solid var(--color-border);
+      background: #fff;
+      overflow: hidden;
+    }
+
+    .citation__pre {
+      margin: 0;
+      padding: 20px;
+      overflow-x: auto;
+      font-family: var(--font-mono);
+      font-size: clamp(12px, 1.1vw, 14px);
+      line-height: 1.6;
+      color: rgba(19, 18, 38, 0.78);
+      white-space: pre;
+    }
+
+    .citation__copy-btn {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 36px;
+      height: 36px;
+      border: 1px solid var(--color-border);
+      border-radius: 8px;
+      background: #fff;
+      color: var(--color-dark);
+      cursor: pointer;
+      transition: background 0.15s ease, border-color 0.15s ease;
+    }
+
+    .citation__copy-btn:hover {
+      background: rgba(19, 18, 38, 0.04);
+      border-color: rgba(19, 18, 38, 0.2);
+    }
+
+    .citation__copy-btn svg {
+      width: 16px;
+      height: 16px;
+    }
+
+    .citation__copy-btn .citation__copy-check {
+      display: none;
+    }
+
+    .citation__copy-btn.is-copied .citation__copy-icon {
+      display: none;
+    }
+
+    .citation__copy-btn.is-copied .citation__copy-check {
+      display: block;
+    }
+
+    /* ── Scroll reveal ── */
+    .reveal {
+      opacity: 0;
+      transform: translateY(20px);
+      transition: opacity 0.6s ease, transform 0.6s ease;
+    }
+
+    .reveal.is-visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .reveal {
+        opacity: 1;
+        transform: none;
+        transition: none;
+      }
+    }
+
     @media (max-width: 1024px) {
       .hero__inner {
         padding-top: 108px;
@@ -1280,6 +1967,21 @@
         text-align: left;
       }
 
+      .code-example__inner {
+        text-align: center;
+      }
+
+      .code-example__block {
+        text-align: left;
+      }
+
+      .why-orla__inner {
+        text-align: center;
+      }
+
+      .why-orla__grid {
+        text-align: left;
+      }
     }
   </style>
 </head>
@@ -1312,7 +2014,6 @@
           <div class="navbar__cluster">
             <nav class="navbar__links" aria-label="Primary">
               <a href="/docs/#/overview">Docs</a>
-              <a href="/docs/#/community">Community</a>
               <a href="#team">Team</a>
             </nav>
             <div class="navbar__end">
@@ -1339,16 +2040,29 @@
         <div class="container hero__intro">
           <div class="hero__main">
             <div class="hero__content">
+              <a class="hero__affiliation" href="https://seas.harvard.edu/" target="_blank" rel="noopener noreferrer">
+                <img src="docs/harvard_shield.svg" alt="" width="22" height="22" />
+                From Harvard SEAS
+              </a>
               <h1>Build Multi-Agent Systems That <span class="hero__title-accent">Scale</span></h1>
               <div class="hero__text">
-                <p class="hero__lead">Focus on application logic. Orla optimizes cost and latency.</p>
+                <p class="hero__lead">Focus on application logic. Orla optimizes cost and latency. Up to <strong>48% faster</strong> and <strong>35% cheaper</strong> on real-world agent workloads.</p>
               </div>
             </div>
             <div class="hero__actions">
               <a class="hero__cta" href="/docs/#/quickstart">Get Started</a>
-              <div class="hero__install" role="group" aria-label="Homebrew install command">
-                <code class="hero__code"
-                  id="hero-install-cmd">brew tap harvard-cns/orla &amp;&amp; brew install --cask harvard-cns/orla/orla</code>
+              <a class="hero__paper-link" href="https://arxiv.org/abs/2603.13605" target="_blank" rel="noopener noreferrer">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                  stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                  <polyline points="14 2 14 8 20 8" />
+                  <line x1="16" x2="8" y1="13" y2="13" />
+                  <line x1="16" x2="8" y1="17" y2="17" />
+                </svg>
+                Read the Paper
+              </a>
+              <div class="hero__install" role="group" aria-label="Install command">
+                <code class="hero__code" id="hero-install-cmd">pip install pyorla</code>
                 <button type="button" class="hero__copy-btn" id="hero-copy-install" aria-label="Copy install command">
                   <svg class="hero__copy-icon--copy" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
                     stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
@@ -1367,28 +2081,165 @@
           </div>
         </div>
         <div class="container hero__diagram-band">
-          <aside class="hero__illustration">
-            <img class="hero__diagram" src="docs/orla_user_facing.drawio.svg" width="781" height="561"
-              alt="Diagram: Orla user-facing architecture and workflow" decoding="async" loading="lazy"
-              fetchpriority="low" />
-          </aside>
+          <div class="hero__arch">
+            <!-- Left: You define -->
+            <div class="hero__arch-col">
+              <p class="hero__arch-col-label">You define</p>
+              <div class="hero__arch-pill">
+                <img src="docs/logo_langgraph.png" alt="LangGraph" />
+                Your Workflows
+              </div>
+              <div class="hero__arch-pill">
+                <img src="docs/logo_qwen.png" alt="Qwen" />
+                <img src="docs/logo_claude.png" alt="Claude" />
+                Your Models
+              </div>
+              <div class="hero__arch-pill">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="8" x="2" y="2" rx="2" ry="2"/><rect width="20" height="8" x="2" y="14" rx="2" ry="2"/><line x1="6" x2="6.01" y1="6" y2="6"/><line x1="6" x2="6.01" y1="18" y2="18"/></svg>
+                Your Providers
+              </div>
+            </div>
+
+            <!-- Arrow -->
+            <div class="hero__arch-arrow" aria-hidden="true">
+              <svg viewBox="0 0 40 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M4 12h28m0 0l-6-6m6 6l-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </div>
+
+            <!-- Center: Orla -->
+            <div class="hero__arch-center">
+              <p class="hero__arch-center-title">Orla's Runtime</p>
+              <ul class="hero__arch-center-list">
+                <li>
+                  <img src="docs/icon_cash.png" alt="" />
+                  Lower inference cost
+                </li>
+                <li>
+                  <img src="docs/icon_cheetah.png" alt="" />
+                  Faster completion time
+                </li>
+              </ul>
+            </div>
+
+            <!-- Arrow -->
+            <div class="hero__arch-arrow" aria-hidden="true">
+              <svg viewBox="0 0 40 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M4 12h28m0 0l-6-6m6 6l-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </div>
+
+            <!-- Right: Engines -->
+            <div class="hero__arch-col">
+              <p class="hero__arch-col-label">LLM Inference Engines</p>
+              <div class="hero__arch-pill hero__arch-pill--engine">
+                <img src="docs/logo_sglang.png" alt="SGLang" />
+              </div>
+              <div class="hero__arch-pill hero__arch-pill--engine">
+                <img src="docs/logo_vllm.png" alt="vLLM" />
+              </div>
+              <div class="hero__arch-pill hero__arch-pill--engine">
+                <img src="docs/logo_ollama.png" alt="Ollama" />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="why-orla" id="why-orla">
+      <div class="container why-orla__inner">
+        <div class="why-orla__header reveal">
+          <p class="why-orla__eyebrow">Why Orla</p>
+          <h2 class="why-orla__title">Why Developers Choose Orla</h2>
+        </div>
+        <ul class="why-orla__grid reveal">
+          <li class="why-orla__item">
+            <p class="why-orla__item-title">Cost-aware scheduling</p>
+            <p class="why-orla__item-desc">Route cheap stages to small models and expensive stages to large ones.
+              Orla co-optimizes scheduling, KV cache, and model assignment across
+              your entire workflow to minimize cost without sacrificing quality.</p>
+          </li>
+          <li class="why-orla__item">
+            <p class="why-orla__item-title">Backend-agnostic</p>
+            <p class="why-orla__item-desc">Route stages to SGLang, vLLM, Ollama, or cloud APIs from a single workflow
+              definition. Mix and match backends without rewriting your pipeline.</p>
+          </li>
+          <li class="why-orla__item">
+            <p class="why-orla__item-title">Works with your stack</p>
+            <p class="why-orla__item-desc">Drop Orla into existing LangGraph graphs or use the native SDK.
+              No framework lock-in. Adopt incrementally.</p>
+          </li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="integrations">
+      <div class="container integrations__inner">
+        <p class="integrations__label">Works with</p>
+        <ul class="integrations__logos">
+          <li><img src="docs/logo_langgraph.png" alt="LangGraph" class="logo--lg" /></li>
+          <li><img src="docs/logo_sglang.png" alt="SGLang" /></li>
+          <li><img src="docs/logo_vllm.png" alt="vLLM" /></li>
+          <li><img src="docs/logo_ollama.png" alt="Ollama" /></li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="code-example" id="example">
+      <div class="container code-example__inner">
+        <div class="code-example__header reveal">
+          <p class="code-example__eyebrow">Quick look</p>
+          <h2 class="code-example__title">A Workflow in 20 Lines</h2>
+        </div>
+        <div class="code-example__block reveal">
+          <div class="code-example__bar">
+            <span class="code-example__dot"></span>
+            <span class="code-example__dot"></span>
+            <span class="code-example__dot"></span>
+          </div>
+          <pre class="code-example__pre"><code><span class="cm-kw">from</span> langgraph.graph <span class="cm-kw">import</span> END, StateGraph
+<span class="cm-kw">from</span> pyorla <span class="cm-kw">import</span> ChatOrla, OrlaClient, Stage, new_sglang_backend
+
+client <span class="cm-op">=</span> OrlaClient(<span class="cm-str">"http://localhost:8081"</span>)
+
+<span class="cm-cmt"># Register backends -- Orla optimizes cost and latency across them</span>
+light <span class="cm-op">=</span> new_sglang_backend(<span class="cm-str">"Qwen/Qwen3-4B"</span>,  <span class="cm-str">"http://sglang:30000/v1"</span>)
+heavy <span class="cm-op">=</span> new_sglang_backend(<span class="cm-str">"Qwen/Qwen3-32B"</span>, <span class="cm-str">"http://sglang:30001/v1"</span>)
+client.register_backend(light)
+client.register_backend(heavy)
+
+<span class="cm-cmt"># Define stages with different cost profiles</span>
+classify <span class="cm-op">=</span> Stage(<span class="cm-str">"classify"</span>, light)   <span class="cm-cmt"># fast + cheap</span>
+classify.set_max_tokens(<span class="cm-num">512</span>)
+classify_llm <span class="cm-op">=</span> ChatOrla(stage<span class="cm-op">=</span>classify)
+
+reply <span class="cm-op">=</span> Stage(<span class="cm-str">"reply"</span>, heavy)       <span class="cm-cmt"># thorough + accurate</span>
+reply.set_max_tokens(<span class="cm-num">1024</span>)
+
+<span class="cm-cmt"># Wire it up as a LangGraph StateGraph</span>
+graph <span class="cm-op">=</span> StateGraph(WorkflowState)
+graph.add_node(<span class="cm-str">"classify"</span>, <span class="cm-kw">lambda</span> s: classify_node(s, classify_llm<span class="cm-op">=</span>classify_llm))
+graph.add_node(<span class="cm-str">"reply"</span>,    <span class="cm-kw">lambda</span> s: reply_node(s, reply_stage<span class="cm-op">=</span>reply))
+graph.set_entry_point(<span class="cm-str">"classify"</span>)
+graph.add_edge(<span class="cm-str">"classify"</span>, <span class="cm-str">"reply"</span>)
+graph.add_edge(<span class="cm-str">"reply"</span>, END)
+
+app <span class="cm-op">=</span> graph.compile()
+result <span class="cm-op">=</span> app.invoke({<span class="cm-str">"ticket"</span>: <span class="cm-str">"My order hasn't arrived..."</span>})</code></pre>
         </div>
       </div>
     </section>
 
     <section class="about" id="overview" aria-labelledby="about-heading">
       <div class="container about__inner">
-        <h2 id="about-heading" class="about__title">Overview</h2>
+        <h2 id="about-heading" class="about__title reveal">Under the Hood</h2>
         <div class="about__body">
-          <p>Orla is a library for building and running LLM-based agentic systems. Modern agentic applications are
-            workflows that combine multiple LLM calls, tool invocations, and heterogeneous infrastructure. Today,
-            developers often stitch these pieces together manually using orchestration code, LLM serving engines, and
-            tool execution logic.</p>
-          <p>Orla simplifies this process by separating workflow-level decisions from request execution. Developers
-            define workflows as stages, while Orla handles how those stages are mapped to models and backends, scheduled
-            and executed, and coordinated through shared inference state.</p>
-          <p class="about__components-intro">The system exposes three core components:</p>
-          <ul class="about__components">
+          <p class="reveal">You define the workflow. Orla figures out which models to use, how to schedule them
+            across backends, and how to share inference state between steps. The result: lower cost
+            and faster completion with no changes to your application logic.</p>
+          <p class="about__components-intro reveal">Three core components make this work:</p>
+          <ul class="about__components reveal">
             <li class="about__component">
               <div class="about__component-icon" aria-hidden="true">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -1401,8 +2252,8 @@
                 </svg>
               </div>
               <p class="about__component-name">Stage Mapper</p>
-              <p class="about__component-desc">Routes each stage to the right model and backend across heterogeneous
-                infrastructure.</p>
+              <p class="about__component-desc">Routes each stage to the right model and backend, balancing cost and
+                quality across heterogeneous infrastructure.</p>
             </li>
             <li class="about__component">
               <div class="about__component-icon" aria-hidden="true">
@@ -1436,15 +2287,14 @@
     <section class="team" id="team" aria-labelledby="team-heading">
       <div class="container team__inner">
         <header>
-          <!-- <p class="team__eyebrow">Team</p> -->
-          <h2 id="team-heading" class="team__title">Team</h2>
+          <h2 id="team-heading" class="team__title reveal">Team</h2>
           <p class="team__lead">Orla was developed in
             <a href="https://minlanyu.seas.harvard.edu/" target="_blank" rel="noopener noreferrer">Minlan Yu</a>’s lab
             at
             <a href="https://www.harvard.edu/" target="_blank" rel="noopener noreferrer">Harvard University</a>.
           </p>
         </header>
-        <ul class="team__grid">
+        <ul class="team__grid reveal">
           <li class="team__member">
             <a class="team__name" href="https://jadidbourbaki.github.io/jadidbourbaki/" target="_blank"
               rel="noopener noreferrer">Hayder Tirmazi</a>
@@ -1469,17 +2319,16 @@
       </div>
     </section>
 
-    <!-- Portable deployments / features (hidden for now)
     <section class="features" aria-labelledby="features-heading">
       <div class="container features__inner">
-        <div class="features__intro" id="features-intro">
+        <div class="features__intro reveal" id="features-intro">
           <p class="features__eyebrow">Portable deployments</p>
           <h2 id="features-heading" class="features__title">Build Your Agents Once, Ship Them Anywhere</h2>
           <p class="features__lead">Write agentic workflows once. Test and run them consistently
             across&nbsp;your&nbsp;stack.</p>
           <p class="features__sub">Mix private infrastructure and cloud models in the same graph when you need both.</p>
         </div>
-        <ul class="features__grid" aria-describedby="features-intro">
+        <ul class="features__grid reveal" aria-describedby="features-intro">
           <li class="features__card">
             <div class="features__card-icon" aria-hidden="true">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -1528,14 +2377,83 @@
               </svg>
             </div>
             <h3 class="features__card-title">Cloud models</h3>
-            <p class="features__card-text">Use hosted APIs alone or beside private backends—one workflow, mixed stages,
+            <p class="features__card-text">Use hosted APIs alone or beside private backends. One workflow, mixed stages,
               tuned for cost, latency, and&nbsp;compliance.</p>
           </li>
         </ul>
       </div>
     </section>
-    -->
+    <section class="citation" id="citation">
+      <div class="container citation__inner reveal">
+        <h2 class="citation__title">Cite this work</h2>
+        <p class="citation__desc">If you use Orla in your research, please cite our paper.</p>
+        <div class="citation__block">
+          <button type="button" class="citation__copy-btn" id="citation-copy-btn" aria-label="Copy BibTeX">
+            <svg class="citation__copy-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <rect width="14" height="14" x="8" y="8" rx="2" ry="2" />
+              <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2" />
+            </svg>
+            <svg class="citation__copy-check" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M20 6 9 17l-5-5" />
+            </svg>
+          </button>
+          <pre class="citation__pre" id="citation-bibtex">@misc{shahout2026orlalibraryservingllmbased,
+      title={Orla: A Library for Serving LLM-Based Multi-Agent Systems},
+      author={Rana Shahout and Hayder Tirmazi and Minlan Yu and Michael Mitzenmacher},
+      year={2026},
+      eprint={2603.13605},
+      archivePrefix={arXiv},
+      primaryClass={cs.AI},
+      url={https://arxiv.org/abs/2603.13605},
+}</pre>
+        </div>
+      </div>
+    </section>
+
+    <section class="star-cta">
+      <div class="container star-cta__inner">
+        <h2 class="star-cta__title">Help Orla grow</h2>
+        <p class="star-cta__desc">A GitHub star helps other developers discover Orla and keeps the project going.</p>
+        <a class="star-cta__btn" href="https://github.com/harvard-cns/orla" target="_blank" rel="noopener noreferrer">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+            stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+          </svg>
+          Star on GitHub
+        </a>
+      </div>
+    </section>
   </main>
+
+  <div class="site-footer">
+    <div class="container site-footer__inner">
+      <div class="site-footer__grid">
+        <div class="site-footer__col">
+          <p class="site-footer__col-title">Project</p>
+          <a href="/docs/#/quickstart">Quickstart</a>
+          <a href="/docs/#/overview">Documentation</a>
+          <a href="https://github.com/harvard-cns/orla" target="_blank" rel="noopener noreferrer">GitHub</a>
+          <a href="https://arxiv.org/abs/2603.13605" target="_blank" rel="noopener noreferrer">Paper (arXiv)</a>
+        </div>
+        <div class="site-footer__col">
+          <p class="site-footer__col-title">Community</p>
+          <a href="https://github.com/harvard-cns/orla/issues" target="_blank" rel="noopener noreferrer">Report an issue</a>
+          <a href="https://github.com/sponsors/jadidbourbaki" target="_blank" rel="noopener noreferrer">Sponsor</a>
+        </div>
+        <div class="site-footer__col">
+          <p class="site-footer__col-title">Affiliation</p>
+          <a class="site-footer__harvard" href="https://seas.harvard.edu/" target="_blank" rel="noopener noreferrer">
+            <img src="docs/harvard_shield.svg" alt="" width="18" height="18" />
+            Harvard SEAS
+          </a>
+          <a href="https://minlanyu.seas.harvard.edu/" target="_blank" rel="noopener noreferrer">Minlan Yu's Lab</a>
+        </div>
+      </div>
+      <p class="site-footer__copy">&copy; 2026 Orla Contributors. Released under the MIT License.</p>
+    </div>
+  </div>
 
   <script>
     (function () {
@@ -1755,6 +2673,49 @@
         }
         schedulePlace();
       });
+    })();
+  </script>
+
+  <script>
+    (function () {
+      var btn = document.getElementById('citation-copy-btn');
+      var pre = document.getElementById('citation-bibtex');
+      if (!btn || !pre) return;
+      btn.addEventListener('click', function () {
+        var text = pre.textContent;
+        function onDone() {
+          btn.classList.add('is-copied');
+          btn.setAttribute('aria-label', 'Copied');
+          clearTimeout(btn._t);
+          btn._t = setTimeout(function () {
+            btn.classList.remove('is-copied');
+            btn.setAttribute('aria-label', 'Copy BibTeX');
+          }, 2000);
+        }
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(text).then(onDone).catch(function () { onDone(); });
+        } else { onDone(); }
+      });
+    })();
+  </script>
+
+  <script>
+    (function () {
+      var els = document.querySelectorAll('.reveal');
+      if (!els.length) return;
+      if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        els.forEach(function (el) { el.classList.add('is-visible'); });
+        return;
+      }
+      var observer = new IntersectionObserver(function (entries) {
+        entries.forEach(function (entry) {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('is-visible');
+            observer.unobserve(entry.target);
+          }
+        });
+      }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+      els.forEach(function (el) { observer.observe(el); });
     })();
   </script>
 
