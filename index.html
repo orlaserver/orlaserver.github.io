@@ -15,7 +15,8 @@
   <!-- Open Graph -->
   <meta property="og:type" content="website">
   <meta property="og:title" content="Orla: Cost-Optimized Multi-Agent LLM Workflows">
-  <meta property="og:description" content="Up to 48% faster and 35% cheaper agent workflows. Smart model routing, KV cache management, and cost optimization across SGLang, vLLM, and Ollama.">
+  <meta property="og:description"
+    content="Up to 48% faster and 35% cheaper agent workflows. Smart model routing, KV cache management, and cost optimization across SGLang, vLLM, and Ollama.">
   <meta property="og:image" content="https://orlaserver.github.io/docs/orla_banner_no_caption.png">
   <meta property="og:url" content="https://orlaserver.github.io">
   <meta property="og:site_name" content="Orla">
@@ -23,7 +24,8 @@
   <!-- Twitter Card -->
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="Orla: Cost-Optimized Multi-Agent LLM Workflows">
-  <meta name="twitter:description" content="Up to 48% faster and 35% cheaper agent workflows. Smart model routing, KV cache management, and cost optimization.">
+  <meta name="twitter:description"
+    content="Up to 48% faster and 35% cheaper agent workflows. Smart model routing, KV cache management, and cost optimization.">
   <meta name="twitter:image" content="https://orlaserver.github.io/docs/orla_banner_no_caption.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -109,6 +111,51 @@
       max-width: var(--container-max);
       margin-inline: auto;
       padding-inline: var(--container-pad);
+    }
+
+    /* ── Top bar (affiliation) ── */
+    .topbar {
+      background: rgba(19, 18, 38, 0.03);
+      border-bottom: 1px solid var(--color-border);
+    }
+
+    .topbar__inner {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 6px 1rem;
+    }
+
+    .topbar__text {
+      margin: 0;
+      font-family: var(--font-heading);
+      font-size: 12.5px;
+      font-weight: 500;
+      color: rgba(19, 18, 38, 0.55);
+      letter-spacing: 0.01em;
+      line-height: 1.4;
+      text-align: center;
+    }
+
+    .topbar__text a {
+      color: rgba(19, 18, 38, 0.72);
+      text-decoration: none;
+      border-bottom: 1px solid transparent;
+      transition: color 0.15s ease, border-color 0.15s ease;
+    }
+
+    .topbar__text a:hover {
+      color: var(--color-dark);
+      border-bottom-color: rgba(19, 18, 38, 0.25);
+    }
+
+    .topbar__shield {
+      height: 16px;
+      width: auto;
+      vertical-align: middle;
+      margin-right: 4px;
+      position: relative;
+      top: -1px;
     }
 
     /* ── Nav ── */
@@ -545,7 +592,7 @@
       flex-direction: column;
       align-items: stretch;
       gap: clamp(36px, 5vw, 56px);
-      padding-top: clamp(96px, 13vw, 128px);
+      padding-top: clamp(126px, 16vw, 158px);
     }
 
     .hero__intro {
@@ -1397,37 +1444,6 @@
       }
     }
 
-    /* ── Harvard affiliation badge (hero) ── */
-    .hero__affiliation {
-      display: inline-flex;
-      align-items: center;
-      gap: 10px;
-      padding: 8px 18px 8px 12px;
-      border-radius: 999px;
-      border: 1px solid var(--color-border);
-      background: rgba(255, 255, 255, 0.85);
-      box-shadow: 0 2px 8px rgba(19, 18, 38, 0.04);
-      font-family: var(--font-heading);
-      font-size: clamp(13px, 1.2vw, 15px);
-      font-weight: 600;
-      letter-spacing: -0.01em;
-      color: rgba(19, 18, 38, 0.72);
-      text-decoration: none;
-      transition: border-color 0.15s ease, box-shadow 0.15s ease, color 0.15s ease;
-    }
-
-    .hero__affiliation:hover {
-      border-color: rgba(19, 18, 38, 0.2);
-      box-shadow: 0 4px 14px rgba(19, 18, 38, 0.08);
-      color: var(--color-dark);
-    }
-
-    .hero__affiliation img {
-      height: 22px;
-      width: auto;
-      flex-shrink: 0;
-    }
-
     /* ── Integrations / compatible-with logo strip ── */
     .integrations {
       padding: clamp(32px, 5vh, 48px) 0;
@@ -1565,12 +1581,30 @@
       white-space: pre;
     }
 
-    .code-example__pre .cm-kw { color: #cba6f7; }
-    .code-example__pre .cm-fn { color: #89b4fa; }
-    .code-example__pre .cm-str { color: #a6e3a1; }
-    .code-example__pre .cm-num { color: #fab387; }
-    .code-example__pre .cm-cmt { color: #6c7086; font-style: italic; }
-    .code-example__pre .cm-op { color: #89dceb; }
+    .code-example__pre .cm-kw {
+      color: #cba6f7;
+    }
+
+    .code-example__pre .cm-fn {
+      color: #89b4fa;
+    }
+
+    .code-example__pre .cm-str {
+      color: #a6e3a1;
+    }
+
+    .code-example__pre .cm-num {
+      color: #fab387;
+    }
+
+    .code-example__pre .cm-cmt {
+      color: #6c7086;
+      font-style: italic;
+    }
+
+    .code-example__pre .cm-op {
+      color: #89dceb;
+    }
 
     /* ── Why Orla section ── */
     .why-orla {
@@ -1742,9 +1776,9 @@
     }
 
     .site-footer__harvard img {
-      height: 18px;
+      height: 24px;
       width: auto;
-      opacity: 0.7;
+      opacity: 0.8;
     }
 
     /* ── Star CTA ── */
@@ -1911,7 +1945,7 @@
 
     @media (max-width: 1024px) {
       .hero__inner {
-        padding-top: 108px;
+        padding-top: 138px;
       }
 
       .hero__intro {
@@ -1988,6 +2022,17 @@
 
 <body>
   <header class="navbar">
+    <div class="topbar">
+      <div class="container topbar__inner">
+        <p class="topbar__text">
+          <img src="docs/seas_shield.png" alt="" class="topbar__shield" />
+          Orla is a project of <a href="https://minlanyu.seas.harvard.edu/" target="_blank"
+            rel="noopener noreferrer">Dr.&nbsp;Minlan Yu's lab</a> within the <a
+            href="https://systems.seas.harvard.edu/" target="_blank" rel="noopener noreferrer">Harvard Systems
+            Group</a>.
+        </p>
+      </div>
+    </div>
     <div class="navbar__bar">
       <div class="container navbar__bar-inner">
         <a class="navbar__brand" href="/" aria-label="Orla home">
@@ -2018,8 +2063,8 @@
               <a href="#team">Team</a>
             </nav>
             <div class="navbar__end">
-              <a id="github-star-badge" class="github-star-badge" href="https://github.com/harvard-cns/orla" target="_blank"
-                rel="noopener noreferrer" aria-label="Star on GitHub — harvard-cns/orla">
+              <a id="github-star-badge" class="github-star-badge" href="https://github.com/harvard-cns/orla"
+                target="_blank" rel="noopener noreferrer" aria-label="Star on GitHub — harvard-cns/orla">
                 <span class="github-star-badge__frame">
                   <img src="https://img.shields.io/github/stars/harvard-cns/orla?style=social"
                     alt="GitHub stars for harvard-cns/orla" height="30" decoding="async" />
@@ -2040,18 +2085,16 @@
         <div class="container hero__intro">
           <div class="hero__main">
             <div class="hero__content">
-              <a class="hero__affiliation" href="https://seas.harvard.edu/" target="_blank" rel="noopener noreferrer">
-                <img src="docs/harvard_shield.svg" alt="" width="22" height="22" />
-                From Harvard SEAS
-              </a>
               <h1>Build Multi-Agent Systems That <span class="hero__title-accent">Scale</span></h1>
               <div class="hero__text">
-                <p class="hero__lead">Focus on application logic. Orla optimizes cost and latency. Up to <strong>48% faster</strong> and <strong>35% cheaper</strong> on real-world agent workloads.</p>
+                <p class="hero__lead">Focus on application logic. Orla optimizes cost and latency. Up to <strong>48%
+                    faster</strong> and <strong>35% cheaper</strong> on real-world agent workloads.</p>
               </div>
             </div>
             <div class="hero__actions">
               <a class="hero__cta" href="/docs/#/quickstart">Get Started</a>
-              <a class="hero__paper-link" href="https://arxiv.org/abs/2603.13605" target="_blank" rel="noopener noreferrer">
+              <a class="hero__paper-link" href="https://arxiv.org/abs/2603.13605" target="_blank"
+                rel="noopener noreferrer">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                   stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                   <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
@@ -2095,7 +2138,13 @@
                 Your Models
               </div>
               <div class="hero__arch-pill">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="8" x="2" y="2" rx="2" ry="2"/><rect width="20" height="8" x="2" y="14" rx="2" ry="2"/><line x1="6" x2="6.01" y1="6" y2="6"/><line x1="6" x2="6.01" y1="18" y2="18"/></svg>
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                  stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <rect width="20" height="8" x="2" y="2" rx="2" ry="2" />
+                  <rect width="20" height="8" x="2" y="14" rx="2" ry="2" />
+                  <line x1="6" x2="6.01" y1="6" y2="6" />
+                  <line x1="6" x2="6.01" y1="18" y2="18" />
+                </svg>
                 Your Providers
               </div>
             </div>
@@ -2103,7 +2152,8 @@
             <!-- Arrow -->
             <div class="hero__arch-arrow" aria-hidden="true">
               <svg viewBox="0 0 40 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M4 12h28m0 0l-6-6m6 6l-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M4 12h28m0 0l-6-6m6 6l-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                  stroke-linejoin="round" />
               </svg>
             </div>
 
@@ -2125,7 +2175,8 @@
             <!-- Arrow -->
             <div class="hero__arch-arrow" aria-hidden="true">
               <svg viewBox="0 0 40 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M4 12h28m0 0l-6-6m6 6l-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M4 12h28m0 0l-6-6m6 6l-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                  stroke-linejoin="round" />
               </svg>
             </div>
 
@@ -2198,7 +2249,8 @@
             <span class="code-example__dot"></span>
             <span class="code-example__dot"></span>
           </div>
-          <pre class="code-example__pre"><code><span class="cm-kw">from</span> langgraph.graph <span class="cm-kw">import</span> END, StateGraph
+          <pre
+            class="code-example__pre"><code><span class="cm-kw">from</span> langgraph.graph <span class="cm-kw">import</span> END, StateGraph
 <span class="cm-kw">from</span> pyorla <span class="cm-kw">import</span> ChatOrla, OrlaClient, Stage, new_sglang_backend
 
 client <span class="cm-op">=</span> OrlaClient(<span class="cm-str">"http://localhost:8081"</span>)
@@ -2395,7 +2447,8 @@ result <span class="cm-op">=</span> app.invoke({<span class="cm-str">"ticket"</s
               <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2" />
             </svg>
             <svg class="citation__copy-check" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
-              stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"
+              aria-hidden="true">
               <path d="M20 6 9 17l-5-5" />
             </svg>
           </button>
@@ -2417,9 +2470,10 @@ result <span class="cm-op">=</span> app.invoke({<span class="cm-str">"ticket"</s
         <h2 class="star-cta__title">Help Orla grow</h2>
         <p class="star-cta__desc">A GitHub star helps other developers discover Orla and keeps the project going.</p>
         <a class="star-cta__btn" href="https://github.com/harvard-cns/orla" target="_blank" rel="noopener noreferrer">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-            stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <polygon
+              points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
           </svg>
           Star on GitHub
         </a>
@@ -2438,16 +2492,18 @@ result <span class="cm-op">=</span> app.invoke({<span class="cm-str">"ticket"</s
         </div>
         <div class="site-footer__col">
           <p class="site-footer__col-title">Community</p>
-          <a href="https://github.com/harvard-cns/orla/issues" target="_blank" rel="noopener noreferrer">Report an issue</a>
+          <a href="https://github.com/harvard-cns/orla/issues" target="_blank" rel="noopener noreferrer">Report an
+            issue</a>
           <a href="https://github.com/sponsors/jadidbourbaki" target="_blank" rel="noopener noreferrer">Sponsor</a>
         </div>
         <div class="site-footer__col">
           <p class="site-footer__col-title">Affiliation</p>
-          <a class="site-footer__harvard" href="https://seas.harvard.edu/" target="_blank" rel="noopener noreferrer">
-            <img src="docs/harvard_shield.svg" alt="" width="18" height="18" />
-            Harvard SEAS
+          <a class="site-footer__harvard" href="https://systems.seas.harvard.edu/people/" target="_blank"
+            rel="noopener noreferrer">
+            <img src="docs/seas_shield.png" alt="" width="24" height="24" />
+            Harvard Systems Group
           </a>
-          <a href="https://minlanyu.seas.harvard.edu/" target="_blank" rel="noopener noreferrer">Minlan Yu's Lab</a>
+          <a href="https://minlanyu.seas.harvard.edu/" target="_blank" rel="noopener noreferrer">Dr. Minlan Yu's Lab</a>
         </div>
       </div>
       <p class="site-footer__copy">&copy; 2026 Orla Contributors. Released under the MIT License.</p>

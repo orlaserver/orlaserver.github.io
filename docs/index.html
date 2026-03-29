@@ -31,8 +31,10 @@
       --font-body: "Inter", system-ui, sans-serif;
       --font-mono: "Source Code Pro", ui-monospace, monospace;
       --radius-sm: 8px;
-      /* Match landing .navbar__bar-inner: 14+40+14 padding + 1px border */
-      --docs-header-h: 69px;
+      /* Harvard top strip + main bar (matches landing index.html) */
+      --docs-topbar-h: 31px;
+      --docs-navbar-bar-h: 69px;
+      --docs-header-h: calc(var(--docs-topbar-h) + var(--docs-navbar-bar-h));
       --landing-strip-bg: #f8f4ef;
       --container-max: 1440px;
       --container-pad: 100px;
@@ -132,13 +134,58 @@
       padding-inline: var(--container-pad);
     }
 
+    /* ── Top bar (affiliation; same as landing) ── */
+    .topbar {
+      background: rgba(19, 18, 38, 0.03);
+      border-bottom: 1px solid var(--color-border);
+    }
+
+    .topbar__inner {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 6px 1rem;
+    }
+
+    .topbar__text {
+      margin: 0;
+      font-family: var(--font-heading);
+      font-size: 12.5px;
+      font-weight: 500;
+      color: rgba(19, 18, 38, 0.55);
+      letter-spacing: 0.01em;
+      line-height: 1.4;
+      text-align: center;
+    }
+
+    .topbar__text a {
+      color: rgba(19, 18, 38, 0.72);
+      text-decoration: none;
+      border-bottom: 1px solid transparent;
+      transition: color 0.15s ease, border-color 0.15s ease;
+    }
+
+    .topbar__text a:hover {
+      color: var(--color-dark);
+      border-bottom-color: rgba(19, 18, 38, 0.25);
+    }
+
+    .topbar__shield {
+      height: 16px;
+      width: auto;
+      vertical-align: middle;
+      margin-right: 4px;
+      position: relative;
+      top: -1px;
+    }
+
     .navbar {
       position: fixed;
       top: 0;
       left: 0;
       right: 0;
       z-index: 100;
-      background: var(--landing-strip-bg);
+      background: #fff;
       color: var(--color-dark);
     }
 
@@ -1253,6 +1300,17 @@
 <body>
   <a class="skip-link" href="#main-content">Skip to main content</a>
   <header class="navbar">
+    <div class="topbar">
+      <div class="container topbar__inner">
+        <p class="topbar__text">
+          <img src="/docs/seas_shield.png" alt="" class="topbar__shield" />
+          Orla is a project of <a href="https://minlanyu.seas.harvard.edu/" target="_blank"
+            rel="noopener noreferrer">Dr.&nbsp;Minlan Yu's lab</a> within the <a
+            href="https://systems.seas.harvard.edu/" target="_blank" rel="noopener noreferrer">Harvard Systems
+            Group</a>.
+        </p>
+      </div>
+    </div>
     <div class="navbar__bar">
       <div class="container navbar__bar-inner">
         <a class="navbar__brand" href="/" aria-label="Orla home">
