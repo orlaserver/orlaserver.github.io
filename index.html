@@ -937,39 +937,58 @@
       border-radius: 2px;
     }
 
-    /* Roster rows (directory-style), not card chips */
+    /* Photo grid (no card chrome; circles + text like systems.seas.harvard.edu/people/) */
     .team__grid {
-      display: flex;
-      flex-direction: column;
-      gap: 0;
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: clamp(1.25rem, 2.5vw, 2rem);
       width: 100%;
-      margin: 0;
+      max-width: 1080px;
+      margin: 0 auto;
       padding: 0;
       list-style: none;
-      border-top: 1px solid var(--color-border);
+    }
+
+    @media (max-width: 900px) {
+      .team__grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 480px) {
+      .team__grid {
+        grid-template-columns: minmax(0, 1fr);
+        max-width: 20rem;
+      }
     }
 
     .team__member {
       display: flex;
-      flex-wrap: wrap;
-      align-items: baseline;
-      justify-content: space-between;
-      gap: 0.35rem 1.5rem;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
       margin: 0;
-      padding: 1rem 0;
-      border-bottom: 1px solid var(--color-border);
-      background: none;
-      border-radius: 0;
-      transition: background-color 0.15s ease;
+      padding: 0.5rem 0.75rem 1.25rem;
     }
 
-    .team__member:hover {
-      background-color: rgba(19, 18, 38, 0.02);
+    .team__photo {
+      width: 12rem;
+      height: 12rem;
+      object-fit: cover;
+      margin: 0 auto 1.1rem;
+      border-radius: 50%;
+      flex-shrink: 0;
+      box-shadow: 0 0 0 1px rgba(19, 18, 38, 0.08);
+    }
+
+    /* Michael’s Harvard headshot: bias crop up slightly so the top of the head stays in frame */
+    .team__photo--mitzenmacher {
+      object-position: center 18%;
     }
 
     .team__name {
-      flex: 0 1 auto;
-      min-width: min(100%, 12rem);
+      display: block;
+      margin: 0 0 0.4rem;
       font-family: var(--font-heading);
       font-size: 1.0625rem;
       font-weight: 600;
@@ -997,26 +1016,11 @@
     }
 
     .team__role {
-      flex: 1 1 auto;
       margin: 0;
       font-size: 0.9375rem;
-      line-height: 1.5;
+      line-height: 1.45;
       color: rgba(19, 18, 38, 0.58);
-      text-align: right;
-    }
-
-    @media (max-width: 640px) {
-      .team__member {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 0.2rem;
-        padding: 0.85rem 0;
-      }
-
-      .team__role {
-        text-align: left;
-        padding-left: 0;
-      }
+      text-align: center;
     }
 
     .team__more {
@@ -1974,7 +1978,7 @@
       }
 
       .team__grid {
-        text-align: left;
+        text-align: center;
       }
 
       .team__more {
@@ -2201,8 +2205,8 @@
     <section class="why-orla" id="why-orla">
       <div class="container why-orla__inner">
         <div class="why-orla__header reveal">
-          <p class="why-orla__eyebrow">Why Orla</p>
-          <h2 class="why-orla__title">Why Developers Choose Orla</h2>
+          <!-- <p class="why-orla__eyebrow">Why Orla</p> -->
+          <h2 class="why-orla__title">Why Use Orla For Your Agentic Applications</h2>
         </div>
         <ul class="why-orla__grid reveal">
           <li class="why-orla__item">
@@ -2348,21 +2352,31 @@ result <span class="cm-op">=</span> app.invoke({<span class="cm-str">"ticket"</s
         </header>
         <ul class="team__grid reveal">
           <li class="team__member">
+            <img class="team__photo"
+              src="https://raw.githubusercontent.com/jadidbourbaki/jadidbourbaki/main/hayder2.png" width="192"
+              height="192" alt="Hayder Tirmazi" loading="lazy" decoding="async" />
             <a class="team__name" href="https://jadidbourbaki.github.io/jadidbourbaki/" target="_blank"
               rel="noopener noreferrer">Hayder Tirmazi</a>
             <p class="team__role">Developer and Maintainer</p>
           </li>
           <li class="team__member">
+            <img class="team__photo" src="https://systems.seas.harvard.edu/images/people/rana-shahout.jpg" width="192"
+              height="192" alt="Rana Shahout" loading="lazy" decoding="async" />
             <a class="team__name" href="https://sites.google.com/view/ranash" target="_blank"
               rel="noopener noreferrer">Rana Shahout</a>
             <p class="team__role">Primary Researcher</p>
           </li>
           <li class="team__member">
+            <img class="team__photo team__photo--mitzenmacher"
+              src="https://systems.seas.harvard.edu/images/people/michael-mitzenmacher.jpg" width="192" height="192"
+              alt="Michael Mitzenmacher" loading="lazy" decoding="async" />
             <a class="team__name" href="https://www.eecs.harvard.edu/~michaelm/" target="_blank"
               rel="noopener noreferrer">Michael Mitzenmacher</a>
             <p class="team__role">Principal Investigator</p>
           </li>
           <li class="team__member">
+            <img class="team__photo" src="https://systems.seas.harvard.edu/images/people/minlan-yu.jpg" width="192"
+              height="192" alt="Minlan Yu" loading="lazy" decoding="async" />
             <a class="team__name" href="https://minlanyu.seas.harvard.edu/" target="_blank"
               rel="noopener noreferrer">Minlan Yu</a>
             <p class="team__role">Principal Investigator</p>
