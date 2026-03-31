@@ -353,7 +353,7 @@ Orla supports two-level scheduling on the server. Each LLM request carries a glo
 ```go
 stage := orla.NewStage("heavy", heavyBackend)
 stage.SetSchedulingPolicy(orla.SchedulingPolicyPriority)
-stage.SetRequestSchedulingPolicy("fifo")
+stage.SetRequestSchedulingPolicy("fcfs")
 priority := 9
 stage.SetSchedulingHints(&orla.SchedulingHints{
     Priority: &priority,
@@ -361,7 +361,7 @@ stage.SetSchedulingHints(&orla.SchedulingHints{
 ```
 
 - `scheduling_policy` defaults to `fcfs` (first-come-first-served across stage queues).
-- `request_scheduling_policy` defaults to `fifo` (arrival order within a stage queue). Set to `priority` to pick the highest-priority request first.
+- `request_scheduling_policy` defaults to `fcfs` (arrival order within a stage queue). Set to `priority` to pick the highest-priority request first.
 - Scheduler metrics are returned in `response.metrics` (`queue_wait_ms`, `scheduler_decision_ms`, `dispatch_ms`, `backend_latency_ms`).
 
 For stage routing, use the `StageMapper` interface (`OneBitStageMapper` and `ThresholdStageMapper` are built-ins). For workflow-level stage-to-backend assignment, use the `StageMapping` interface.
