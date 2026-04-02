@@ -1,5 +1,6 @@
 * [Quickstart](quickstart.md)
 * [Using Cost Policies](cost-policies.md)
+* [Optimizing Latency](latency-routing.md)
 * [Using Scheduling Policies](scheduling-policies.md)
 * [Using the Memory Manager](memory-manager.md)
 * [Using the Stage Mapper](stage-mapper.md)
