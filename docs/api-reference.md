@@ -40,6 +40,8 @@ Request body:
 | `cache_policy` | string | no | Cache override: `"preserve"` or `"flush"` |
 | `accuracy` | number | no | Quality floor (0.0 to 1.0) for cost-optimized backend selection |
 | `accuracy_policy` | string | no | Fallback behavior: `"prefer"` (default) or `"strict"` |
+| `tags` | object | no | Key-value tags identifying the caller (e.g. `{"tenant": "interns"}`) for access control |
+| `data_labels` | array | no | Sensitivity labels on this request (e.g. `["pii"]`) for data access control |
 
 Response (non-streaming):
 
@@ -104,6 +106,51 @@ Live-update mutable fields on a registered backend. Only supplied fields are cha
 | `cost_model` | object | Updated pricing |
 | `quality` | number | Updated quality score |
 | `max_concurrency` | integer | Updated concurrency limit |
+
+## Add an access control policy
+
+```
+POST /api/v1/policies
+```
+
+Install or replace an access control policy.
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `name` | string | yes | Unique policy identifier |
+| `subjects` | array | yes | Glob patterns matching request tags (e.g. `["tenant:interns"]`) |
+| `resources` | array | yes | Glob patterns matching resources (e.g. `["backend:*"]`, `["tool:shell_*"]`, `["data:pii"]`) |
+| `action` | string | yes | `"allow"` or `"deny"` |
+
+## List access control policies
+
+```
+GET /api/v1/policies
+```
+
+Returns `{"policies": [...]}` with all installed policies.
+
+## Remove an access control policy
+
+```
+DELETE /api/v1/policies/{name}
+```
+
+Removes the named policy. Returns 404 if not found.
+
+## Register a workflow DAG
+
+```
+POST /api/v1/workflows
+```
+
+Register a workflow's DAG structure so the daemon can propagate data labels along edges. If a stage processes PII, all downstream stages in the registered DAG inherit the label.
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `workflow_id` | string | yes | The workflow ID that stages will reference in execute requests |
+| `edges` | array | yes | List of `{"from": string, "to": string}` directed edges between stage IDs |
+| `declassifications` | array | no | List of `{"stage_id": string, "labels": [...]}` entries for stages that strip labels from propagation |
 
 ## Notify workflow complete
 
