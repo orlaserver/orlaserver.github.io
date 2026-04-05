@@ -1651,7 +1651,7 @@
 
     .why-orla__grid {
       display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
+      grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: 0;
       margin: 0;
       padding: 0;
@@ -1672,8 +1672,13 @@
       background: #fff;
     }
 
-    .why-orla__item:first-child {
+    .why-orla__item:first-child,
+    .why-orla__item:nth-child(odd) {
       border-left: none;
+    }
+
+    .why-orla__item:nth-child(n+3) {
+      border-top: 1px solid var(--color-border);
     }
 
     .why-orla__item-title {
@@ -2173,6 +2178,10 @@
                   <img src="docs/icon_cheetah.png" alt="" />
                   Faster completion time
                 </li>
+                <li>
+                  <img src="docs/icon_lock.svg" alt="" />
+                  Fine-grained access control
+                </li>
               </ul>
             </div>
 
@@ -2224,6 +2233,12 @@
             <p class="why-orla__item-title">Works with your stack</p>
             <p class="why-orla__item-desc">Drop Orla into existing LangGraph graphs or use the native SDK.
               No framework lock-in. Adopt incrementally.</p>
+          </li>
+          <li class="why-orla__item">
+            <p class="why-orla__item-title">Fine-grained access control</p>
+            <p class="why-orla__item-desc">Control which teams can use which models, tools, and data.
+              Sensitivity labels propagate across stages so PII never reaches
+              unauthorized backends. Policy management is decoupled from agent code.</p>
           </li>
         </ul>
       </div>
@@ -2321,7 +2336,8 @@ result <span class="cm-op">=</span> app.invoke({<span class="cm-str">"ticket"</s
                 </svg>
               </div>
               <p class="about__component-name">Workflow Orchestrator</p>
-              <p class="about__component-desc">Executes and schedules stages according to your workflow graph.</p>
+              <p class="about__component-desc">Executes and schedules stages according to your workflow graph, enforcing
+                access control policies on every request.</p>
             </li>
             <li class="about__component">
               <div class="about__component-icon" aria-hidden="true">
