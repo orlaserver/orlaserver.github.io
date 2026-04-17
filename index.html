@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Orla: Cost-Optimized Multi-Agent LLM Workflows for Python</title>
   <meta name="description"
-    content="Orla optimizes cost and latency for multi-stage LLM agent workflows across SGLang, vLLM, and Ollama. Up to 3.45x faster and 35% cheaper with smart model routing.">
+    content="Orla optimizes cost and latency for multi-stage LLM agent workflows across SGLang, vLLM, and Ollama. Up to 3.45x faster and 41% cheaper with smart model routing.">
   <meta name="theme-color" content="#f8f4ef">
   <meta name="color-scheme" content="light">
   <link rel="icon" href="/docs/orla_cat.png" type="image/png">
@@ -16,7 +16,7 @@
   <meta property="og:type" content="website">
   <meta property="og:title" content="Orla: Cost-Optimized Multi-Agent LLM Workflows">
   <meta property="og:description"
-    content="Up to 3.45x faster and 35% cheaper agent workflows. Smart model routing, KV cache management, and cost optimization across SGLang, vLLM, and Ollama.">
+    content="Up to 3.45x faster and 41% cheaper agent workflows. Smart model routing, KV cache management, and cost optimization across SGLang, vLLM, and Ollama.">
   <meta property="og:image" content="https://orlaserver.github.io/docs/orla_banner_no_caption.png">
   <meta property="og:url" content="https://orlaserver.github.io">
   <meta property="og:site_name" content="Orla">
@@ -25,7 +25,7 @@
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="Orla: Cost-Optimized Multi-Agent LLM Workflows">
   <meta name="twitter:description"
-    content="Up to 3.45x faster and 35% cheaper agent workflows. Smart model routing, KV cache management, and cost optimization.">
+    content="Up to 3.45x faster and 41% cheaper agent workflows. Smart model routing, KV cache management, and cost optimization.">
   <meta name="twitter:image" content="https://orlaserver.github.io/docs/orla_banner_no_caption.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -702,6 +702,26 @@
       text-wrap: pretty;
     }
 
+    .hero__ref {
+      color: inherit;
+      text-decoration: underline;
+      text-decoration-color: rgba(19, 18, 38, 0.25);
+      text-underline-offset: 0.2em;
+      text-decoration-thickness: 0.08em;
+      transition: text-decoration-color 0.15s ease;
+    }
+
+    .hero__ref:hover {
+      text-decoration-color: rgba(19, 18, 38, 0.6);
+    }
+
+    .hero__ref sup {
+      font-size: 0.55em;
+      font-weight: 600;
+      margin-left: 0.15em;
+      color: rgba(19, 18, 38, 0.55);
+    }
+
     .hero__actions {
       display: flex;
       flex-wrap: wrap;
@@ -1062,17 +1082,13 @@
     }
 
     .site-footer__inner {
-      display: flex;
-      flex-wrap: wrap;
-      align-items: baseline;
-      justify-content: space-between;
-      gap: 0.75rem 1.5rem;
+      display: block;
       font-size: 14px;
       line-height: 1.45;
     }
 
     .site-footer__copy {
-      margin: 0;
+      margin: 1.5rem 0 0;
       max-width: 40rem;
       color: rgba(19, 18, 38, 0.62);
     }
@@ -1778,6 +1794,45 @@
       color: var(--color-dark);
     }
 
+    .site-footer__refs {
+      margin: 0 0 1.75rem;
+      padding-bottom: 1.5rem;
+      border-bottom: 1px solid var(--color-border);
+      font-size: 13px;
+      line-height: 1.6;
+      color: rgba(19, 18, 38, 0.6);
+    }
+
+    .site-footer__refs-title {
+      margin: 0 0 0.5rem;
+      font-family: var(--font-heading);
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: rgba(19, 18, 38, 0.48);
+    }
+
+    .site-footer__refs ol {
+      margin: 0;
+      padding-left: 1.25rem;
+    }
+
+    .site-footer__refs li {
+      margin-bottom: 0.35rem;
+    }
+
+    .site-footer__refs a {
+      color: var(--color-dark);
+      text-decoration: underline;
+      text-decoration-color: rgba(19, 18, 38, 0.3);
+      text-underline-offset: 0.15em;
+    }
+
+    .site-footer__refs a:hover {
+      text-decoration-color: rgba(19, 18, 38, 0.6);
+    }
+
     .site-footer__harvard {
       display: inline-flex;
       align-items: center;
@@ -2096,8 +2151,8 @@
             <div class="hero__content">
               <h1>Build Multi-Agent Systems That <span class="hero__title-accent">Scale</span></h1>
               <div class="hero__text">
-                <p class="hero__lead">Focus on application logic. Orla optimizes cost and latency. Up to 3.45x
-                  faster and 41% cheaper on real-world agentic workloads.</p>
+                <p class="hero__lead">Focus on application logic. Orla optimizes cost and latency. Up to <a href="#ref-latency" class="hero__ref">3.45x faster<sup>1</sup></a>
+                  and <a href="#ref-cost" class="hero__ref">41% cheaper<sup>2</sup></a> on real-world agentic workloads.</p>
               </div>
             </div>
             <div class="hero__actions">
@@ -2513,6 +2568,28 @@ result <span class="cm-op">=</span> app.invoke({<span class="cm-str">"ticket"</s
 
   <div class="site-footer">
     <div class="container site-footer__inner">
+      <div class="site-footer__refs">
+        <p class="site-footer__refs-title">Benchmark references</p>
+        <ol>
+          <li id="ref-latency">
+            <strong>3.45x faster:</strong> LangGraph agent on the first 25 problems of the
+            <a href="https://arxiv.org/abs/2103.03874" target="_blank" rel="noopener noreferrer">Hendrycks MATH</a>
+            benchmark with chain-of-thought reasoning. Baseline sends every problem to Qwen3-32B on vLLM; Orla maps
+            Levels 1–4 to Qwen3-4B and Level 5 to Qwen3-32B. Mean latency drops from 140.9s to 40.9s while matching
+            the baseline's 88.0% accuracy. Both models run on NVIDIA RTX PRO 6000 Blackwell GPUs.
+            <a href="/docs/#/latency-routing">Full methodology and per-problem results.</a>
+          </li>
+          <li id="ref-cost">
+            <strong>41% cheaper:</strong> LangGraph agent on
+            <a href="https://openai.com/index/solving-math-word-problems/" target="_blank" rel="noopener noreferrer">GSM8K</a>
+            (1,319 grade-school math problems). Baseline sends every problem to a strong model; Orla uses a cheap
+            triage stage to classify difficulty and routes each problem to the cheapest backend that meets the
+            required quality floor (Ministral-3B, Qwen3-32B, or Qwen3-235B on Amazon Bedrock). Cost drops by 41%
+            with less than 2 percentage points of accuracy loss.
+            <a href="/docs/#/cost-policies">Full methodology and cost/accuracy frontier.</a>
+          </li>
+        </ol>
+      </div>
       <div class="site-footer__grid">
         <div class="site-footer__col">
           <p class="site-footer__col-title">Project</p>
