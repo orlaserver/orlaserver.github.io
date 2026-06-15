@@ -4,9 +4,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Orla: Cost-Optimized Multi-Agent LLM Workflows for Python</title>
+  <title>Orla: Runtime-Adaptive Execution Layer for AI Agents</title>
   <meta name="description"
-    content="Orla optimizes cost and latency for multi-stage LLM agent workflows across SGLang, vLLM, and Ollama. Up to 3.45x faster and 41% cheaper with smart model routing.">
+    content="Orla is a runtime-adaptive execution layer for AI agents. It routes each call to the right model and tunes that choice from real outcomes, optimizing cost and accuracy across SGLang, vLLM, Ollama, and OpenAI-compatible APIs.">
   <meta name="theme-color" content="#f8f4ef">
   <meta name="color-scheme" content="light">
   <link rel="icon" href="/docs/orla_cat.png" type="image/png">
@@ -14,18 +14,18 @@
 
   <!-- Open Graph -->
   <meta property="og:type" content="website">
-  <meta property="og:title" content="Orla: Cost-Optimized Multi-Agent LLM Workflows">
+  <meta property="og:title" content="Orla: Runtime-Adaptive Execution Layer for AI Agents">
   <meta property="og:description"
-    content="Up to 3.45x faster and 41% cheaper agent workflows. Smart model routing, KV cache management, and cost optimization across SGLang, vLLM, and Ollama.">
+    content="Route each agent call to the right model and let Orla tune that choice from real outcomes, optimizing cost and accuracy across SGLang, vLLM, Ollama, and OpenAI-compatible APIs.">
   <meta property="og:image" content="https://orlaserver.github.io/docs/orla_banner_no_caption.png">
   <meta property="og:url" content="https://orlaserver.github.io">
   <meta property="og:site_name" content="Orla">
 
   <!-- Twitter Card -->
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="Orla: Cost-Optimized Multi-Agent LLM Workflows">
+  <meta name="twitter:title" content="Orla: Runtime-Adaptive Execution Layer for AI Agents">
   <meta name="twitter:description"
-    content="Up to 3.45x faster and 41% cheaper agent workflows. Smart model routing, KV cache management, and cost optimization.">
+    content="Route each agent call to the right model and let Orla tune that choice from real outcomes, optimizing cost and accuracy.">
   <meta name="twitter:image" content="https://orlaserver.github.io/docs/orla_banner_no_caption.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -1626,6 +1626,33 @@
       color: #89dceb;
     }
 
+    .code-example__cols {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: clamp(14px, 2vw, 20px);
+      align-items: start;
+    }
+
+    .code-example__col-label {
+      margin: 0 0 0.55rem;
+      font-family: var(--font-heading);
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: rgba(19, 18, 38, 0.45);
+    }
+
+    .code-example__col-label--after {
+      color: #1f9d57;
+    }
+
+    @media (max-width: 768px) {
+      .code-example__cols {
+        grid-template-columns: 1fr;
+      }
+    }
+
     /* ── Why Orla section ── */
     .why-orla {
       padding: clamp(56px, 10vh, 96px) 0;
@@ -1667,7 +1694,7 @@
 
     .why-orla__grid {
       display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
+      grid-template-columns: repeat(3, minmax(0, 1fr));
       gap: 0;
       margin: 0;
       padding: 0;
@@ -1688,13 +1715,8 @@
       background: #fff;
     }
 
-    .why-orla__item:first-child,
-    .why-orla__item:nth-child(odd) {
+    .why-orla__item:first-child {
       border-left: none;
-    }
-
-    .why-orla__item:nth-child(n+3) {
-      border-top: 1px solid var(--color-border);
     }
 
     .why-orla__item-title {
@@ -2122,7 +2144,7 @@
         <div id="navbar-menu" class="navbar__menu">
           <div class="navbar__cluster">
             <nav class="navbar__links" aria-label="Primary">
-              <a href="/docs/">Docs</a>
+              <a href="/docs/#/v2/quickstart">Docs</a>
               <a href="https://arxiv.org/abs/2603.13605" target="_blank" rel="noopener noreferrer">Paper</a>
               <a href="#team">Team</a>
             </nav>
@@ -2151,12 +2173,12 @@
             <div class="hero__content">
               <h1>Build Multi-Agent Systems That <span class="hero__title-accent">Scale</span></h1>
               <div class="hero__text">
-                <p class="hero__lead">Focus on application logic. Orla optimizes cost and latency. Up to <a href="#ref-latency" class="hero__ref">3.45x faster<sup>1</sup></a>
-                  and <a href="#ref-cost" class="hero__ref">41% cheaper<sup>2</sup></a> on real-world agentic workloads.</p>
+                <p class="hero__lead">Orla is a runtime-adaptive execution layer for agentic systems. It optimizes
+                  the infrastructure behind your agents for cost and accuracy, learning from production data in real time.</p>
               </div>
             </div>
             <div class="hero__actions">
-              <a class="hero__cta" href="/docs/#/quickstart">Get Started</a>
+              <a class="hero__cta" href="/docs/#/v2/quickstart">Get Started</a>
               <a class="hero__paper-link" href="https://arxiv.org/abs/2603.13605" target="_blank"
                 rel="noopener noreferrer">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -2168,22 +2190,6 @@
                 </svg>
                 Read the Paper
               </a>
-              <div class="hero__install" role="group" aria-label="Install command">
-                <code class="hero__code" id="hero-install-cmd">pip install pyorla</code>
-                <button type="button" class="hero__copy-btn" id="hero-copy-install" aria-label="Copy install command">
-                  <svg class="hero__copy-icon--copy" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
-                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                    aria-hidden="true">
-                    <rect width="14" height="14" x="8" y="8" rx="2" ry="2" />
-                    <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2" />
-                  </svg>
-                  <svg class="hero__copy-icon--check" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
-                    stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"
-                    aria-hidden="true">
-                    <path d="M20 6 9 17l-5-5" />
-                  </svg>
-                </button>
-              </div>
             </div>
           </div>
         </div>
@@ -2194,7 +2200,7 @@
               <p class="hero__arch-col-label">You define</p>
               <div class="hero__arch-pill">
                 <img src="docs/logo_langgraph.png" alt="LangGraph" />
-                Your Workflows
+                Your Agents
               </div>
               <div class="hero__arch-pill">
                 <img src="docs/logo_qwen.png" alt="Qwen" />
@@ -2227,15 +2233,15 @@
               <ul class="hero__arch-center-list">
                 <li>
                   <img src="docs/icon_cash.png" alt="" />
-                  Lower inference cost
+                  Lower cost
                 </li>
                 <li>
-                  <img src="docs/icon_cheetah.png" alt="" />
-                  Faster completion time
+                  <img src="docs/icon_accuracy.png" alt="" />
+                  Higher accuracy
                 </li>
                 <li>
-                  <img src="docs/icon_lock.svg" alt="" />
-                  Fine-grained access control
+                  <img src="docs/icon_adaptability.png" alt="" />
+                  Adapts at runtime
                 </li>
               </ul>
             </div>
@@ -2274,26 +2280,19 @@
         </div>
         <ul class="why-orla__grid reveal">
           <li class="why-orla__item">
-            <p class="why-orla__item-title">Cost-aware scheduling</p>
-            <p class="why-orla__item-desc">Route cheap stages to small models and expensive stages to large ones.
-              Orla co-optimizes scheduling, KV cache, and model assignment across
-              your entire workflow to minimize cost without sacrificing quality.</p>
+            <p class="why-orla__item-title">Optimizes cost and accuracy</p>
+            <p class="why-orla__item-desc">Route each stage of your agent to the model that fits it. Orla learns
+              from real outcomes and shifts work to the cheapest model that holds quality.</p>
           </li>
           <li class="why-orla__item">
             <p class="why-orla__item-title">Backend-agnostic</p>
-            <p class="why-orla__item-desc">Route stages to SGLang, vLLM, Ollama, or cloud APIs from a single workflow
-              definition. Mix and match backends without rewriting your pipeline.</p>
+            <p class="why-orla__item-desc">Route stages to SGLang, vLLM, Ollama, or any OpenAI-compatible cloud API.
+              Mix and match backends without changing your agent.</p>
           </li>
           <li class="why-orla__item">
-            <p class="why-orla__item-title">Works with your stack</p>
-            <p class="why-orla__item-desc">Drop Orla into existing LangGraph graphs or use the native SDK.
-              No framework lock-in. Adopt incrementally.</p>
-          </li>
-          <li class="why-orla__item">
-            <p class="why-orla__item-title">Fine-grained access control</p>
-            <p class="why-orla__item-desc">Control which teams can use which models, tools, and data.
-              Sensitivity labels propagate across stages so PII never reaches
-              unauthorized backends. Policy management is decoupled from agent code.</p>
+            <p class="why-orla__item-title">Adapts at runtime</p>
+            <p class="why-orla__item-desc">Orla shadow-tests model changes against real traffic and promotes only the
+              ones that improve cost and quality, so your agents keep getting better with no redeploys.</p>
           </li>
         </ul>
       </div>
@@ -2314,45 +2313,52 @@
     <section class="code-example" id="example">
       <div class="container code-example__inner">
         <div class="code-example__header reveal">
-          <p class="code-example__eyebrow">Quick look</p>
-          <h2 class="code-example__title">A Workflow in 20 Lines</h2>
+          <p class="code-example__eyebrow">Drop-in integration</p>
+          <h2 class="code-example__title">Add Orla in One Change</h2>
         </div>
-        <div class="code-example__block reveal">
-          <div class="code-example__bar">
-            <span class="code-example__dot"></span>
-            <span class="code-example__dot"></span>
-            <span class="code-example__dot"></span>
+        <div class="code-example__cols reveal">
+          <div>
+            <p class="code-example__col-label">Before</p>
+            <div class="code-example__block">
+              <div class="code-example__bar">
+                <span class="code-example__dot"></span>
+                <span class="code-example__dot"></span>
+                <span class="code-example__dot"></span>
+              </div>
+              <pre class="code-example__pre"><code><span class="cm-kw">from</span> openai <span class="cm-kw">import</span> OpenAI
+
+client <span class="cm-op">=</span> OpenAI(api_key<span class="cm-op">=</span>KEY)
+
+<span class="cm-kw">def</span> call(prompt):
+    <span class="cm-kw">return</span> client.chat.completions.create(
+        model<span class="cm-op">=</span><span class="cm-str">"gpt-5.1"</span>,
+        messages<span class="cm-op">=</span>[{<span class="cm-str">"role"</span>: <span class="cm-str">"user"</span>, <span class="cm-str">"content"</span>: prompt}],
+    )</code></pre>
+            </div>
           </div>
-          <pre
-            class="code-example__pre"><code><span class="cm-kw">from</span> langgraph.graph <span class="cm-kw">import</span> END, StateGraph
-<span class="cm-kw">from</span> pyorla <span class="cm-kw">import</span> ChatOrla, OrlaClient, Stage, new_sglang_backend
+          <div>
+            <p class="code-example__col-label code-example__col-label--after">After</p>
+            <div class="code-example__block">
+              <div class="code-example__bar">
+                <span class="code-example__dot"></span>
+                <span class="code-example__dot"></span>
+                <span class="code-example__dot"></span>
+              </div>
+              <pre class="code-example__pre"><code><span class="cm-kw">from</span> openai <span class="cm-kw">import</span> OpenAI
 
-client <span class="cm-op">=</span> OrlaClient(<span class="cm-str">"http://localhost:8081"</span>)
+client <span class="cm-op">=</span> OpenAI(
+    base_url<span class="cm-op">=</span><span class="cm-str">"http://localhost:8081/v1"</span>,
+    api_key<span class="cm-op">=</span>KEY,
+)
 
-<span class="cm-cmt"># Register backends -- Orla optimizes cost and latency across them</span>
-light <span class="cm-op">=</span> new_sglang_backend(<span class="cm-str">"Qwen/Qwen3-4B"</span>,  <span class="cm-str">"http://sglang:30000/v1"</span>)
-heavy <span class="cm-op">=</span> new_sglang_backend(<span class="cm-str">"Qwen/Qwen3-32B"</span>, <span class="cm-str">"http://sglang:30001/v1"</span>)
-client.register_backend(light)
-client.register_backend(heavy)
-
-<span class="cm-cmt"># Define stages with different cost profiles</span>
-classify <span class="cm-op">=</span> Stage(<span class="cm-str">"classify"</span>, light)   <span class="cm-cmt"># fast + cheap</span>
-classify.set_max_tokens(<span class="cm-num">512</span>)
-classify_llm <span class="cm-op">=</span> ChatOrla(stage<span class="cm-op">=</span>classify)
-
-reply <span class="cm-op">=</span> Stage(<span class="cm-str">"reply"</span>, heavy)       <span class="cm-cmt"># thorough + accurate</span>
-reply.set_max_tokens(<span class="cm-num">1024</span>)
-
-<span class="cm-cmt"># Wire it up as a LangGraph StateGraph</span>
-graph <span class="cm-op">=</span> StateGraph(WorkflowState)
-graph.add_node(<span class="cm-str">"classify"</span>, <span class="cm-kw">lambda</span> s: classify_node(s, classify_llm<span class="cm-op">=</span>classify_llm))
-graph.add_node(<span class="cm-str">"reply"</span>,    <span class="cm-kw">lambda</span> s: reply_node(s, reply_stage<span class="cm-op">=</span>reply))
-graph.set_entry_point(<span class="cm-str">"classify"</span>)
-graph.add_edge(<span class="cm-str">"classify"</span>, <span class="cm-str">"reply"</span>)
-graph.add_edge(<span class="cm-str">"reply"</span>, END)
-
-app <span class="cm-op">=</span> graph.compile()
-result <span class="cm-op">=</span> app.invoke({<span class="cm-str">"ticket"</span>: <span class="cm-str">"My order hasn't arrived..."</span>})</code></pre>
+<span class="cm-kw">def</span> call(prompt, stage):
+    <span class="cm-kw">return</span> client.chat.completions.create(
+        model<span class="cm-op">=</span><span class="cm-str">"set-by-orla"</span>,
+        messages<span class="cm-op">=</span>[{<span class="cm-str">"role"</span>: <span class="cm-str">"user"</span>, <span class="cm-str">"content"</span>: prompt}],
+        extra_headers<span class="cm-op">=</span>{<span class="cm-str">"X-Orla-Stage"</span>: stage},
+    )</code></pre>
+            </div>
+          </div>
         </div>
       </div>
     </section>
@@ -2361,9 +2367,9 @@ result <span class="cm-op">=</span> app.invoke({<span class="cm-str">"ticket"</s
       <div class="container about__inner">
         <h2 id="about-heading" class="about__title reveal">Under the Hood</h2>
         <div class="about__body">
-          <p class="reveal">You define the workflow. Orla figures out which models to use, how to schedule them
-            across backends, and how to share inference state between steps. The result: lower cost
-            and faster completion with no changes to your application logic.</p>
+          <p class="reveal">Your agent tags each call with a stage and sends it to Orla. Orla routes the call to
+            the mapped backend, records what it cost and how it went, and a mapper retunes the mapping from
+            those outcomes. The result is lower cost and higher accuracy with no changes to your agent.</p>
           <p class="about__components-intro reveal">Three core components make this work:</p>
           <ul class="about__components reveal">
             <li class="about__component">
@@ -2377,9 +2383,9 @@ result <span class="cm-op">=</span> app.invoke({<span class="cm-str">"ticket"</s
                   <path d="M12 12V8" />
                 </svg>
               </div>
-              <p class="about__component-name">Stage Mapper</p>
-              <p class="about__component-desc">Routes each stage to the right model and backend, balancing cost and
-                quality across heterogeneous infrastructure.</p>
+              <p class="about__component-name">Stage Router</p>
+              <p class="about__component-desc">An OpenAI-compatible proxy that routes each tagged call to the backend
+                currently mapped to that stage, across heterogeneous infrastructure.</p>
             </li>
             <li class="about__component">
               <div class="about__component-icon" aria-hidden="true">
@@ -2390,9 +2396,9 @@ result <span class="cm-op">=</span> app.invoke({<span class="cm-str">"ticket"</s
                   <polyline points="2 12 12 17 22 12" />
                 </svg>
               </div>
-              <p class="about__component-name">Workflow Orchestrator</p>
-              <p class="about__component-desc">Executes and schedules stages according to your workflow graph, enforcing
-                access control policies on every request.</p>
+              <p class="about__component-name">Telemetry</p>
+              <p class="about__component-desc">Records cost, latency, and the quality ratings you report for every call,
+                giving the mapper a live signal to learn from.</p>
             </li>
             <li class="about__component">
               <div class="about__component-icon" aria-hidden="true">
@@ -2403,8 +2409,9 @@ result <span class="cm-op">=</span> app.invoke({<span class="cm-str">"ticket"</s
                   <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5" />
                 </svg>
               </div>
-              <p class="about__component-name">Memory Manager</p>
-              <p class="about__component-desc">Coordinates KV cache and shared inference state across stages.</p>
+              <p class="about__component-name">Runtime Mapper</p>
+              <p class="about__component-desc">Reads the telemetry and remaps each stage to the model that best balances
+                cost and accuracy, shadow-testing changes before it promotes them.</p>
             </li>
           </ul>
         </div>
@@ -2428,7 +2435,7 @@ result <span class="cm-op">=</span> app.invoke({<span class="cm-str">"ticket"</s
               height="192" alt="Hayder Tirmazi" loading="lazy" decoding="async" />
             <a class="team__name" href="https://jadidbourbaki.github.io" target="_blank"
               rel="noopener noreferrer">Hayder Tirmazi</a>
-            <p class="team__role">Developer and Maintainer</p>
+            <p class="team__role">Creator and Lead Developer</p>
           </li>
           <li class="team__member">
             <img class="team__photo" src="https://systems.seas.harvard.edu/images/people/rana-shahout.jpg" width="192"
@@ -2461,9 +2468,9 @@ result <span class="cm-op">=</span> app.invoke({<span class="cm-str">"ticket"</s
         <div class="features__intro reveal" id="features-intro">
           <p class="features__eyebrow">Portable deployments</p>
           <h2 id="features-heading" class="features__title">Build Your Agents Once, Ship Them Anywhere</h2>
-          <p class="features__lead">Write agentic workflows once. Test and run them consistently
+          <p class="features__lead">Build your agents once. Test and run them consistently
             across&nbsp;your&nbsp;stack.</p>
-          <p class="features__sub">Mix private infrastructure and cloud models in the same graph when you need both.</p>
+          <p class="features__sub">Mix private infrastructure and cloud models in the same agent when you need both.</p>
         </div>
         <ul class="features__grid reveal" aria-describedby="features-intro">
           <li class="features__card">
@@ -2490,7 +2497,7 @@ result <span class="cm-op">=</span> app.invoke({<span class="cm-str">"ticket"</s
               </svg>
             </div>
             <h3 class="features__card-title">CI</h3>
-            <p class="features__card-text">Gate merges with the same agent tests and workflows you run&nbsp;locally.</p>
+            <p class="features__card-text">Gate merges with the same agent runtime you run&nbsp;locally.</p>
           </li>
           <li class="features__card">
             <div class="features__card-icon" aria-hidden="true">
@@ -2503,8 +2510,8 @@ result <span class="cm-op">=</span> app.invoke({<span class="cm-str">"ticket"</s
               </svg>
             </div>
             <h3 class="features__card-title">Private infrastructure</h3>
-            <p class="features__card-text">Keep models and data on your network; call hosted APIs from the same graph
-              where&nbsp;policy&nbsp;allows.</p>
+            <p class="features__card-text">Keep models and data on your network and call hosted APIs from the same agent
+              when&nbsp;you&nbsp;need&nbsp;them.</p>
           </li>
           <li class="features__card">
             <div class="features__card-icon" aria-hidden="true">
@@ -2514,8 +2521,8 @@ result <span class="cm-op">=</span> app.invoke({<span class="cm-str">"ticket"</s
               </svg>
             </div>
             <h3 class="features__card-title">Cloud models</h3>
-            <p class="features__card-text">Use hosted APIs alone or beside private backends. One workflow, mixed stages,
-              tuned for cost, latency, and&nbsp;compliance.</p>
+            <p class="features__card-text">Use hosted APIs alone or beside private backends. One agent, mixed backends,
+              tuned for cost and&nbsp;accuracy.</p>
           </li>
         </ul>
       </div>
@@ -2568,32 +2575,10 @@ result <span class="cm-op">=</span> app.invoke({<span class="cm-str">"ticket"</s
 
   <div class="site-footer">
     <div class="container site-footer__inner">
-      <div class="site-footer__refs">
-        <p class="site-footer__refs-title">Benchmark references</p>
-        <ol>
-          <li id="ref-latency">
-            <strong>3.45x faster:</strong> LangGraph agent on the first 25 problems of the
-            <a href="https://arxiv.org/abs/2103.03874" target="_blank" rel="noopener noreferrer">Hendrycks MATH</a>
-            benchmark with chain-of-thought reasoning. Baseline sends every problem to Qwen3-32B on vLLM; Orla maps
-            Levels 1–4 to Qwen3-4B and Level 5 to Qwen3-32B. Mean latency drops from 140.9s to 40.9s while matching
-            the baseline's 88.0% accuracy. Both models run on NVIDIA RTX PRO 6000 Blackwell GPUs.
-            <a href="/docs/#/latency-routing">Full methodology and per-problem results.</a>
-          </li>
-          <li id="ref-cost">
-            <strong>41% cheaper:</strong> LangGraph agent on
-            <a href="https://openai.com/index/solving-math-word-problems/" target="_blank" rel="noopener noreferrer">GSM8K</a>
-            (1,319 grade-school math problems). Baseline sends every problem to a strong model; Orla uses a cheap
-            triage stage to classify difficulty and routes each problem to the cheapest backend that meets the
-            required quality floor (Ministral-3B, Qwen3-32B, or Qwen3-235B on Amazon Bedrock). Cost drops by 41%
-            with less than 2 percentage points of accuracy loss.
-            <a href="/docs/#/cost-policies">Full methodology and cost/accuracy frontier.</a>
-          </li>
-        </ol>
-      </div>
       <div class="site-footer__grid">
         <div class="site-footer__col">
           <p class="site-footer__col-title">Project</p>
-          <a href="/docs/">Documentation</a>
+          <a href="/docs/#/v2/quickstart">Documentation</a>
           <a href="https://github.com/harvard-cns/orla" target="_blank" rel="noopener noreferrer">GitHub</a>
           <a href="https://arxiv.org/abs/2603.13605" target="_blank" rel="noopener noreferrer">Paper (arXiv)</a>
         </div>
@@ -2613,7 +2598,8 @@ result <span class="cm-op">=</span> app.invoke({<span class="cm-str">"ticket"</s
           <a href="https://minlanyu.seas.harvard.edu/" target="_blank" rel="noopener noreferrer">Dr. Minlan Yu's Lab</a>
         </div>
       </div>
-      <p class="site-footer__copy">&copy; 2026 Orla Contributors. Released under the MIT License.</p>
+      <p class="site-footer__copy">&copy; 2026 Orla Contributors. Released under the MIT License. Icons by
+        <a href="https://www.flaticon.com/" target="_blank" rel="noopener noreferrer">Flaticon</a>.</p>
     </div>
   </div>
 
