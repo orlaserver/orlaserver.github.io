@@ -17,36 +17,26 @@ ollama pull llama3.2:1b
 
 ## Run Orla
 
-Create a database, build the binary, and start the daemon. Orla runs its migrations on first start and listens on `localhost:8081`. Leave it running and open a second terminal for the rest of the steps.
+Create a database, install the daemon and the `orlactl` control-plane CLI, then start the daemon. `go install` puts `orla` and `orlactl` on your PATH, under `$(go env GOPATH)/bin`. Orla runs its migrations on first start and listens on `localhost:8081`. Leave it running and open a second terminal for the rest of the steps.
 
 ```bash
 createdb orla
 git clone https://github.com/harvard-cns/orla
 cd orla
-go build -o bin/orla ./cmd/orla
-ORLA_DATABASE_URL=postgres://localhost/orla?sslmode=disable ./bin/orla serve
+go install ./cmd/orla ./cmd/orlactl
+ORLA_DATABASE_URL=postgres://localhost/orla?sslmode=disable orla serve
 ```
 
 ## Register the backends
 
-A backend is one inference endpoint. Register both Ollama models through the control plane. The `model_id` is written as `ollama:<model>`, where the part before the first colon is a free label and the rest is the model name Orla passes to the endpoint. Ollama needs no API key, so `api_key_env_var` can name a variable you never set.
+A backend is one inference endpoint. Register both Ollama models with `orlactl`. The model id is written as `ollama:<model>`, where the part before the first colon is a free label and the rest is the model name Orla passes to the endpoint. Ollama needs no API key, so `--api-key-env` can name a variable you never set.
 
 ```bash
-curl -X POST localhost:8081/api/v1/backends -H 'Content-Type: application/json' -d '{
-  "name": "qwen-05b",
-  "endpoint": "http://localhost:11434/v1",
-  "model_id": "ollama:qwen2.5:0.5b",
-  "api_key_env_var": "OLLAMA_API_KEY",
-  "max_concurrency": 2
-}'
+orlactl backend create --name qwen-05b --endpoint http://localhost:11434/v1 \
+  --model ollama:qwen2.5:0.5b --api-key-env OLLAMA_API_KEY --max-concurrency 2
 
-curl -X POST localhost:8081/api/v1/backends -H 'Content-Type: application/json' -d '{
-  "name": "llama-1b",
-  "endpoint": "http://localhost:11434/v1",
-  "model_id": "ollama:llama3.2:1b",
-  "api_key_env_var": "OLLAMA_API_KEY",
-  "max_concurrency": 2
-}'
+orlactl backend create --name llama-1b --endpoint http://localhost:11434/v1 \
+  --model ollama:llama3.2:1b --api-key-env OLLAMA_API_KEY --max-concurrency 2
 ```
 
 ## Map stages to backends
@@ -54,8 +44,8 @@ curl -X POST localhost:8081/api/v1/backends -H 'Content-Type: application/json' 
 A stage is a label for what a call is doing. The agent here has two stages, `plan` and `answer`. Map each one to a backend so Orla knows where to send it.
 
 ```bash
-curl -X PUT localhost:8081/api/v1/stages/plan   -H 'Content-Type: application/json' -d '{"backend": "qwen-05b"}'
-curl -X PUT localhost:8081/api/v1/stages/answer -H 'Content-Type: application/json' -d '{"backend": "llama-1b"}'
+orlactl stage map plan   qwen-05b
+orlactl stage map answer llama-1b
 ```
 
 ## Write the agent
@@ -100,13 +90,13 @@ Running it sends the `plan` call to `qwen-05b` and the `answer` call to `llama-1
 This is the point of the control plane. Send the planning stage to the larger model with a single call.
 
 ```bash
-curl -X PATCH localhost:8081/api/v1/stages/plan -H 'Content-Type: application/json' -d '{"backend": "llama-1b"}'
+orlactl stage map plan llama-1b
 ```
 
 Run the agent again. The `plan` call is now served by `llama-1b`, and the agent code did not change. Put it back when you are done.
 
 ```bash
-curl -X PATCH localhost:8081/api/v1/stages/plan -H 'Content-Type: application/json' -d '{"backend": "qwen-05b"}'
+orlactl stage map plan qwen-05b
 ```
 
 ## Inspect mappings and report outcomes
@@ -114,17 +104,13 @@ curl -X PATCH localhost:8081/api/v1/stages/plan -H 'Content-Type: application/js
 You can list the current stage mappings at any time.
 
 ```bash
-curl localhost:8081/api/v1/stages
+orlactl stage ls
 ```
 
-After a call completes, your agent can post a rating for the stage it used. A mapper process reads these ratings and re-maps stages to better backends over time. Attach the rating to the completion id from the response.
+After a call completes, you report a rating for the stage it used. A mapper process reads these ratings and re-maps stages to better backends over time. In production your agent posts this from code, but you can also do it by hand with the completion id from the response.
 
 ```bash
-curl -X POST localhost:8081/v1/feedback -H 'Content-Type: application/json' -d '{
-  "completion_id": "<id from the response>",
-  "stage_id": "answer",
-  "rating": 1.0
-}'
+orlactl feedback <completion-id> --stage answer --rating 1.0
 ```
 
 ## Takeaways
