@@ -607,8 +607,18 @@
 
     .hero__main {
       display: flex;
+      flex-direction: row;
+      align-items: center;
+      justify-content: space-between;
+      gap: clamp(28px, 4vw, 64px);
+      min-width: 0;
+    }
+
+    .hero__main-copy {
+      display: flex;
       flex-direction: column;
       gap: 28px;
+      flex: 1 1 auto;
       min-width: 0;
     }
 
@@ -739,6 +749,125 @@
       flex-direction: column;
       align-items: flex-start;
       gap: 10px;
+    }
+
+    /* Orla mascot CTA: the pixel cat peeks into the hero whitespace with a comic
+       speech bubble, echoing the cat on the form's Thank You screen. */
+    .hero-cat {
+      flex: 0 0 auto;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+      width: clamp(208px, 21vw, 268px);
+      text-decoration: none;
+      color: var(--color-dark);
+    }
+
+    .hero-cat__bubble {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      gap: 9px;
+      background: #fff;
+      border: 2px solid var(--color-dark);
+      border-radius: 16px;
+      padding: 15px 17px;
+      box-shadow: 5px 6px 0 rgba(19, 18, 38, 0.12);
+      font-family: var(--font-mono);
+      font-size: 12.5px;
+      line-height: 1.55;
+      text-align: left;
+      transition: transform 0.25s ease, box-shadow 0.25s ease;
+      animation: cat-bubble-in 0.55s 1s both cubic-bezier(0.22, 1.2, 0.36, 1);
+    }
+
+    .hero-cat__bubble::after {
+      content: "";
+      position: absolute;
+      left: 50%;
+      bottom: -13px;
+      transform: translateX(-50%);
+      border-left: 11px solid transparent;
+      border-right: 11px solid transparent;
+      border-top: 13px solid var(--color-dark);
+    }
+
+    .hero-cat__bubble::before {
+      content: "";
+      position: absolute;
+      left: 50%;
+      bottom: -9px;
+      transform: translateX(-50%);
+      border-left: 8px solid transparent;
+      border-right: 8px solid transparent;
+      border-top: 10px solid #fff;
+      z-index: 1;
+    }
+
+    .hero-cat__msg strong {
+      font-weight: 600;
+    }
+
+    .hero-cat__cue {
+      font-weight: 600;
+      letter-spacing: 0.01em;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .hero-cat__arrow {
+      transition: transform 0.25s ease;
+    }
+
+    .hero-cat__avatar {
+      display: block;
+      animation: cat-bob 3.4s ease-in-out infinite;
+    }
+
+    .hero-cat__img {
+      width: clamp(104px, 11vw, 132px);
+      height: auto;
+      image-rendering: pixelated;
+      image-rendering: crisp-edges;
+      transform-origin: bottom center;
+      transform: scaleX(-1);
+      transition: transform 0.3s cubic-bezier(0.22, 1.2, 0.36, 1);
+    }
+
+    .hero-cat:hover .hero-cat__bubble,
+    .hero-cat:focus-visible .hero-cat__bubble {
+      transform: translateY(-3px);
+      box-shadow: 6px 9px 0 rgba(19, 18, 38, 0.16);
+    }
+
+    .hero-cat:hover .hero-cat__arrow,
+    .hero-cat:focus-visible .hero-cat__arrow {
+      transform: translateX(4px);
+    }
+
+    .hero-cat:hover .hero-cat__img,
+    .hero-cat:focus-visible .hero-cat__img {
+      transform: scaleX(-1) scale(1.08) rotate(-4deg);
+    }
+
+    @keyframes cat-bob {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-7px); }
+    }
+
+    @keyframes cat-bubble-in {
+      0% { opacity: 0; transform: translateY(10px) scale(0.9); }
+      100% { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .hero-cat__avatar,
+      .hero-cat__bubble { animation: none; }
+      .hero-cat__img,
+      .hero-cat__bubble,
+      .hero-cat__arrow { transition: none; }
     }
 
     .hero__github-tertiary {
@@ -2040,7 +2169,12 @@
       }
 
       .hero__main {
+        flex-direction: column;
         align-items: center;
+      }
+
+      .hero-cat {
+        margin-top: 4px;
       }
 
       .hero__content {
@@ -2147,6 +2281,7 @@
               <a href="/docs/#/v2/quickstart">Docs</a>
               <a href="https://arxiv.org/abs/2603.13605" target="_blank" rel="noopener noreferrer">Paper</a>
               <a href="#team">Team</a>
+              <a href="https://forms.gle/t4XK6pSBy3HTkLHk7" target="_blank" rel="noopener noreferrer">Work with us</a>
             </nav>
             <div class="navbar__end">
               <a id="github-star-badge" class="github-star-badge" href="https://github.com/harvard-cns/orla"
@@ -2170,27 +2305,37 @@
       <div class="hero__inner">
         <div class="container hero__intro">
           <div class="hero__main">
-            <div class="hero__content">
-              <h1>Build Multi-Agent Systems That <span class="hero__title-accent">Scale</span></h1>
-              <div class="hero__text">
-                <p class="hero__lead">Orla is a runtime-adaptive execution layer for agentic systems. It optimizes
-                  the infrastructure behind your agents for cost and accuracy, learning from production data in real time.</p>
+            <div class="hero__main-copy">
+              <div class="hero__content">
+                <h1>Build Multi-Agent Systems That <span class="hero__title-accent">Scale</span></h1>
+                <div class="hero__text">
+                  <p class="hero__lead">Orla is a runtime-adaptive execution layer for agentic systems. It optimizes
+                    the infrastructure behind your agents for cost and accuracy, learning from production data in real time.</p>
+                </div>
+              </div>
+              <div class="hero__actions">
+                <a class="hero__cta" href="/docs/#/v2/quickstart">Get Started</a>
+                <a class="hero__paper-link" href="https://arxiv.org/abs/2603.13605" target="_blank"
+                  rel="noopener noreferrer">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                    <polyline points="14 2 14 8 20 8" />
+                    <line x1="16" x2="8" y1="13" y2="13" />
+                    <line x1="16" x2="8" y1="17" y2="17" />
+                  </svg>
+                  Read the Paper
+                </a>
               </div>
             </div>
-            <div class="hero__actions">
-              <a class="hero__cta" href="/docs/#/v2/quickstart">Get Started</a>
-              <a class="hero__paper-link" href="https://arxiv.org/abs/2603.13605" target="_blank"
-                rel="noopener noreferrer">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                  stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-                  <polyline points="14 2 14 8 20 8" />
-                  <line x1="16" x2="8" y1="13" y2="13" />
-                  <line x1="16" x2="8" y1="17" y2="17" />
-                </svg>
-                Read the Paper
-              </a>
-            </div>
+            <a class="hero-cat" href="https://forms.gle/t4XK6pSBy3HTkLHk7" target="_blank" rel="noopener noreferrer"
+              aria-label="Work with us: tell us about your agentic workflow and get free Anthropic and Claude credits">
+              <span class="hero-cat__bubble">
+                <span class="hero-cat__msg">Want to <strong>supercharge your agentic workflows</strong> with us? Free Anthropic + Claude credits to bring your vision to life.</span>
+                <span class="hero-cat__cue">Click me to signal your interest <span class="hero-cat__arrow">&rarr;</span></span>
+              </span>
+              <span class="hero-cat__avatar"><img class="hero-cat__img" src="docs/orla_cat.png" alt="Orla the cat mascot" /></span>
+            </a>
           </div>
         </div>
         <div class="container hero__diagram-band">
