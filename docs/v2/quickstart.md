@@ -8,16 +8,18 @@ You need Postgres running locally, [Ollama](https://ollama.com), and Go 1.26 or 
 
 ## Pull two small models
 
-Pull two models small enough to run on a laptop. Ollama serves them on an OpenAI-compatible endpoint at `http://localhost:11434/v1`.
+Pull two models small enough to run on a laptop, a tiny one and a slightly larger one, so you have two backends to route between later. Ollama serves both on an OpenAI-compatible endpoint at `http://localhost:11434/v1`, which is the endpoint Orla will call.
 
 ```bash
 ollama pull qwen2.5:0.5b
 ollama pull llama3.2:1b
 ```
 
+Each command downloads one model into your local Ollama server.
+
 ## Run Orla
 
-Create a database, install the daemon and the `orlactl` control-plane CLI, then start the daemon. `go install` puts `orla` and `orlactl` on your PATH, under `$(go env GOPATH)/bin`. Orla runs its migrations on first start and listens on `localhost:8081`. Leave it running and open a second terminal for the rest of the steps.
+These commands set up and start Orla. `createdb orla` creates the Postgres database it will use. After cloning the repo and changing into it, `go install ./cmd/orla ./cmd/orlactl` builds the daemon and the `orlactl` control-plane CLI and puts both on your PATH under `$(go env GOPATH)/bin`. The last command starts the daemon, pointing it at the database through `ORLA_DATABASE_URL`. Orla runs its migrations on first start and listens on `localhost:8081`. Leave it running and open a second terminal for the rest of the steps.
 
 ```bash
 createdb orla
@@ -39,9 +41,11 @@ orlactl backend create --name llama-1b --endpoint http://localhost:11434/v1 \
   --model ollama:llama3.2:1b --api-key-env OLLAMA_API_KEY --max-concurrency 2
 ```
 
+Each command registers one backend. `--name` is the handle you will map stages to, `--endpoint` is the OpenAI-compatible URL Orla calls, `--model` carries the id described above, and `--max-concurrency 2` caps how many calls each backend handles at once.
+
 ## Map stages to backends
 
-A stage is a label for what a call is doing. The agent here has two stages, `plan` and `answer`. Map each one to a backend so Orla knows where to send it.
+A stage is a label for what a call is doing. The agent here has two stages, `plan` and `answer`. The command `orlactl stage map STAGE BACKEND` points a stage at a backend, so map each one and Orla knows where to send its calls.
 
 ```bash
 orlactl stage map plan   qwen-05b
@@ -78,6 +82,8 @@ answer = call("answer", f"Question: {question}\nNotes: {plan}\nAnswer in one sen
 print("\n" + answer.strip())
 ```
 
+The `call` function is the entire integration. It makes an ordinary OpenAI chat completion against Orla, with two differences from a direct provider call. The `model` field is a placeholder, because Orla chooses the model from the stage mapping, and the `X-Orla-Stage` header names the stage so Orla knows which mapping to apply. `max_completion_tokens` caps the response length. The script then runs the two stages in order, feeding the `plan` output into the `answer` prompt.
+
 Running it sends the `plan` call to `qwen-05b` and the `answer` call to `llama-1b`. The `model` field on each response is the backend Orla chose.
 
 ```
@@ -87,7 +93,7 @@ Running it sends the `plan` call to `qwen-05b` and the `answer` call to `llama-1
 
 ## Re-route a stage without touching the agent
 
-This is the point of the control plane. Send the planning stage to the larger model with a single call.
+Routing from outside the agent is the whole point of the control plane. Send the planning stage to the larger model with one command.
 
 ```bash
 orlactl stage map plan llama-1b
@@ -115,4 +121,4 @@ orlactl feedback <completion-id> --stage answer --rating 1.0
 
 ## Takeaways
 
-Your agent's routing now lives outside its code. The same loop scales up. You register more backends, split the workflow into more stages, and let a mapper tune each stage to the cheapest model that holds quality.
+Your agent's routing now lives outside its code, and the same loop scales up. You register more backends, split the workflow into more stages, and let a mapper tune each stage to the cheapest model that holds quality.
