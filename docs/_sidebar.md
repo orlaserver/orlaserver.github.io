@@ -1,5 +1,6 @@
 * **Orla v2**
   * [Quickstart](v2/quickstart.md)
+  * [Static Workflows](v2/static-workflows.md)
 
 * **Orla v1**
   * [Quickstart](quickstart.md)
