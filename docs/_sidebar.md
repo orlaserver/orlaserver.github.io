@@ -1,6 +1,7 @@
 * **Orla v2**
   * [Quickstart](v2/quickstart.md)
   * [Static Workflows](v2/static-workflows.md)
+  * [Using a Custom Scheduler](v2/custom-scheduler.md)
 
 * **Orla v1**
   * [Quickstart](quickstart.md)
