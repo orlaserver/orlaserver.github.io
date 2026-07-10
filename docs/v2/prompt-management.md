@@ -78,11 +78,11 @@ orlactl stage get answer
 
 ## How the override applies
 
-The rule Orla follows is "the stage's prompt is the leading system message." On a call tagged with a stage that has a prompt set, Orla replaces the first message when it is a system message, and prepends a system message when it is not. Everything after the leading system message is left alone.
+The rule Orla follows is "the stage's prompt is the leading instruction message." The instruction message is the system or developer message the request opens with, since SDKs differ on which role they use for instructions. This agent sends a system message, and the Vercel AI SDK used elsewhere in Meddit sends a developer message, so Orla accepts either. On a call tagged with a stage that has a prompt set, Orla replaces that first message and keeps its role, or prepends a system message when the first message is neither. Everything after the leading instruction message is left alone.
 
 That last point matters for multi-step stages. A tool-calling loop sends the same system message on every step, alongside a growing record of what it has done so far. Orla swaps that system message on each step and leaves the record intact, so the instructions change while the accumulated work survives. The `answer` stage here is a single call, so there is only one message to swap, but the same rule carries a retrieval loop or an agent that calls tools.
 
-The override is opt-in. A stage with no prompt forwards the agent's own messages exactly as before, so setting a prompt on `answer` leaves `select` and `hop` untouched. Set a stage prompt only when the stage sends its instructions as a leading system message, which this agent does for every stage. An agent that folds its instructions into a user turn instead should leave the stage prompt empty and keep applying the prompt itself.
+The override is opt-in. A stage with no prompt forwards the agent's own messages exactly as before, so setting a prompt on `answer` leaves `select` and `hop` untouched. Set a stage prompt only when the stage sends its instructions as a leading system or developer message, which this agent does for every stage. An agent that folds its instructions into a user turn instead should leave the stage prompt empty and keep applying the prompt itself.
 
 ## Clear it
 
