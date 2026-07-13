@@ -2,6 +2,7 @@
   * [Quickstart](v2/quickstart.md)
   * [Static Workflows](v2/static-workflows.md)
   * [Managing Prompts](v2/prompt-management.md)
+  * [Capturing Stage I/O](v2/capturing-io.md)
   * [Using a Custom Scheduler](v2/custom-scheduler.md)
 
 * **Orla v1**

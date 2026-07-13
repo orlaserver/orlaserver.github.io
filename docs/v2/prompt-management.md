@@ -54,11 +54,13 @@ orlactl stage list
 ```
 
 ```
-STAGE   BACKEND          PROMPT
-answer  anthropic-haiku  set
-hop     anthropic-haiku  -
-select  anthropic-haiku  -
+STAGE     BACKEND          PROMPT  CAPTURE
+answer    anthropic-haiku  set     off
+hop       anthropic-haiku  -       off
+select    anthropic-haiku  -       off
 ```
+
+The `PROMPT` column reads `set` for a stage with a prompt and `-` for one without. The `CAPTURE` column reads `on` when a stage is recording its request and response, and `off` here because none of these stages is. The [Capturing Stage I/O](v2/capturing-io.md) tutorial covers that switch.
 
 `orlactl stage get answer` shows the full record, including the prompt text.
 
@@ -72,6 +74,7 @@ orlactl stage get answer
   "backend": "anthropic-haiku",
   "reasoning_effort": "",
   "prompt": "Output only the exact answer span, with no leading words and no trailing punctuation. For a yes or no question, output yes or no.",
+  "capture_io": false,
   "labels": {}
 }
 ```
